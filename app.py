@@ -64,21 +64,32 @@ def index():
                 art['image'] = get_true_artist_image(art['artistId'])
                 results['artists'].append(art)
 
-        # 2. ALBUMS
-        r_alb = requests.get(f"https://itunes.apple.com/search?term={query}&entity=album&limit=10").json()
+               # 2. ALBUMS (СТРОГИЙ ФИЛЬТР ПО НАЗВАНИЮ АЛЬБОМА)
+        r_alb = requests.get(f"https://itunes.apple.com/search?term={query}&entity=album&limit=20").json() # Берем больше, чтобы было из чего выбрать
         for alb in r_alb.get('results', []):
-            # Строгая проверка: либо в имени артиста, либо в названии альбома есть запрос
-            if query.lower() in alb['artistName'].lower() or query.lower() in alb['collectionName'].lower():
+            # ВАЖНОЕ ИЗМЕНЕНИЕ:
+            # Показываем альбом только если ЗАПРОС содержится в НАЗВАНИИ АЛЬБОМА.
+            # Игнорируем совпадение по имени артиста.
+            if query.lower() in alb['collectionName'].lower():
                 alb['artworkUrl100'] = alb.get('artworkUrl100', '').replace('100x100bb', '300x300bb')
                 results['albums'].append(alb)
+                
+        # Ограничиваем до 8 штук для красоты
+        results['albums'] = results['albums'][:8]
 
-        # 3. SONGS
-        r_song = requests.get(f"https://itunes.apple.com/search?term={query}&entity=song&limit=10").json()
+
+        # 3. SONGS (СТРОГИЙ ФИЛЬТР ПО НАЗВАНИЮ ПЕСНИ)
+        r_song = requests.get(f"https://itunes.apple.com/search?term={query}&entity=song&limit=20").json()
         for song in r_song.get('results', []):
-            if query.lower() in song['artistName'].lower() or query.lower() in song['trackName'].lower():
+            # ВАЖНОЕ ИЗМЕНЕНИЕ:
+            # Показываем песню только если ЗАПРОС содержится в НАЗВАНИИ ПЕСНИ.
+            if query.lower() in song['trackName'].lower():
                 q = f"{song['artistName']} {song['trackName']}"
                 song['spotify_link'] = generate_spotify_link(q)
                 results['songs'].append(song)
+                
+        results['songs'] = results['songs'][:10]
+
 
     except Exception as e:
         print(e)
