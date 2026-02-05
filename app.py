@@ -19,9 +19,9 @@ def clean_query(text):
 
 def generate_qobuz_link(query):
     clean = clean_query(query)
-    # Добавляем site:qobuz.com чтобы искать прицельно
-    encoded = urllib.parse.quote(f"site:qobuz.com {clean}")
-    return f"https://www.google.com/search?q={encoded}&btnI" # btnI = I'm Feeling Lucky
+    encoded = urllib.parse.quote(clean)
+    # ПРОБУЕМ ЭТОТ ВАРИАНТ (он чаще открывает приложение правильно)
+    return f"https://open.qobuz.com/search?q={encoded}"
 
 
 def check_hires(query):
