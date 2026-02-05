@@ -110,23 +110,34 @@ def see_all(type):
     entity = entity_map.get(type, 'album')
     
     try:
-        url = f"https://itunes.apple.com/search?term={query}&entity={entity}&limit=50"
+        # Берем побольше (limit=100), так как фильтр отсеет многое
+        url = f"https://itunes.apple.com/search?term={query}&entity={entity}&limit=100"
         data = requests.get(url).json()
         raw = data.get('results', [])
         
-        # Применяем ту же строгую фильтрацию
         for item in raw:
             match = False
+            
+            # --- ARTISTS ---
             if type == 'artists':
+                # Здесь логика не менялась: ищем в имени артиста
                 if query.lower() in item['artistName'].lower():
                     item['image'] = get_true_artist_image(item['artistId'])
                     match = True
+            
+            # --- ALBUMS (СТРОГИЙ ФИЛЬТР) ---
             elif type == 'albums':
-                if query.lower() in item['artistName'].lower() or query.lower() in item['collectionName'].lower():
+                # Было: artistName OR collectionName
+                # СТАЛО: ТОЛЬКО collectionName (Название альбома)
+                if query.lower() in item['collectionName'].lower():
                     item['artworkUrl100'] = item.get('artworkUrl100', '').replace('100x100bb', '300x300bb')
                     match = True
+            
+            # --- SONGS (СТРОГИЙ ФИЛЬТР) ---
             elif type == 'songs':
-                if query.lower() in item['artistName'].lower() or query.lower() in item['trackName'].lower():
+                # Было: artistName OR trackName
+                # СТАЛО: ТОЛЬКО trackName (Название песни)
+                if query.lower() in item['trackName'].lower():
                     q = f"{item['artistName']} {item['trackName']}"
                     item['spotify_link'] = generate_spotify_link(q)
                     match = True
@@ -137,8 +148,8 @@ def see_all(type):
     except:
         pass
         
-    return render_template('index.html', view='see_all', results=results, type=type, query=query)
-
+    return render_template('index.html', view='see_all', results=results, type=type, query=query)              
+    
 @app.route('/artist/<int:artist_id>')
 def artist_page(artist_id):
     try:
