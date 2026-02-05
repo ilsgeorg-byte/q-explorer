@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Q-Explorer</title>
+    <!-- FAVICON (Эмодзи ноты, чтобы не было ошибки 404) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
+
     <style>
         :root {
             --bg: #121212;
@@ -18,9 +21,11 @@
             color: var(--text);
             margin: 0;
             padding: 20px;
+            /* Убирает серую подсветку при тапе на iPhone */
+            -webkit-tap-highlight-color: transparent; 
         }
         
-        /* Search Bar */
+        /* === ПОИСК === */
         .search-container {
             position: sticky;
             top: 0;
@@ -29,7 +34,10 @@
             z-index: 100;
             border-bottom: 1px solid #333;
             margin-bottom: 20px;
-            display: flex;
+        }
+        .search-form {
+            display: flex; 
+            width: 100%; 
             gap: 10px;
         }
         input {
@@ -39,22 +47,28 @@
             border: 1px solid #333;
             background: var(--card-bg);
             color: white;
-            font-size: 16px;
+            font-size: 16px; /* ВАЖНО: 16px предотвращает зум на iPhone */
+            min-width: 0;
+        }
+        input:focus {
+            outline: 2px solid var(--primary);
+            border-color: transparent;
         }
         button {
-            padding: 12px 24px;
+            padding: 0 20px;
             border-radius: 8px;
             border: none;
             background: var(--primary);
             color: white;
             font-weight: bold;
             cursor: pointer;
+            white-space: nowrap;
         }
 
-        /* Grid for Results */
+        /* === СЕТКА РЕЗУЛЬТАТОВ === */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 20px;
         }
         .card {
@@ -66,80 +80,92 @@
             color: inherit;
             display: block;
         }
-        .card:hover {
-            transform: translateY(-5px);
-            background: #2a2a2a;
+        /* Hover эффект только для ПК (чтобы не залипало на телефоне) */
+        @media (hover: hover) {
+            .card:hover {
+                transform: translateY(-5px);
+                background: #2a2a2a;
+            }
         }
         .card img {
             width: 100%;
             aspect-ratio: 1;
             object-fit: cover;
         }
-        .info {
-            padding: 12px;
-        }
+        .info { padding: 12px; }
         .title {
             font-weight: 600;
             margin-bottom: 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            font-size: 14px;
         }
-        .artist {
-            font-size: 13px;
-            color: var(--text-sec);
-        }
+        .artist { font-size: 13px; color: var(--text-sec); }
 
-        /* Album View Styles */
+        /* === СТРАНИЦА АЛЬБОМА === */
         .album-header {
             display: flex;
-            gap: 30px;
+            gap: 25px;
             margin-bottom: 30px;
             flex-wrap: wrap;
         }
         .album-art {
-            width: 250px;
+            width: 220px;
+            height: 220px;
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            object-fit: cover;
         }
         .album-meta {
             flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            min-width: 200px;
         }
-        h1 { margin: 0 0 10px 0; font-size: 28px; }
-        h2 { margin: 0 0 20px 0; font-size: 20px; color: var(--primary); font-weight: normal; }
-        .tags { display: flex; gap: 10px; font-size: 14px; color: var(--text-sec); margin-bottom: 20px; align-items: center;}
+        h1 { margin: 0 0 8px 0; font-size: 26px; line-height: 1.2; }
+        h2 { margin: 0 0 15px 0; font-size: 18px; color: var(--primary); font-weight: normal; }
         
+        .tags { 
+            display: flex; 
+            gap: 10px; 
+            font-size: 13px; 
+            color: var(--text-sec); 
+            margin-bottom: 20px; 
+            align-items: center; 
+            flex-wrap: wrap; 
+        }
+        
+        /* СТИЛЬ ДЛЯ ЗНАЧКА HI-RES */
         .hires-tag {
-            background: #ffd700;
+            background: #ffd700; /* Золотой цвет как у Qobuz */
             color: #000;
             padding: 2px 6px;
             border-radius: 4px;
-            font-weight: bold;
+            font-weight: 800;
             font-size: 10px;
             letter-spacing: 0.5px;
             display: inline-flex;
             align-items: center;
+            border: 1px solid #e6c200;
         }
 
         .btn-qobuz {
             display: inline-block;
             background: white;
             color: black;
-            padding: 10px 20px;
-            border-radius: 20px;
+            padding: 12px 24px;
+            border-radius: 30px;
             text-decoration: none;
             font-weight: bold;
+            font-size: 14px;
             width: fit-content;
-            margin-top: 10px;
         }
 
-        /* Tracklist Styles - UPDATED */
-        .tracklist {
-            max-width: 800px;
-        }
+        /* === СПИСОК ТРЕКОВ === */
+        .tracklist { max-width: 800px; margin-top: 20px; }
+        
         .track {
             display: flex;
             padding: 12px 10px;
@@ -147,42 +173,59 @@
             align-items: center;
             font-size: 14px;
             color: #ccc;
-            text-decoration: none; /* Убирает подчеркивание у ссылок */
-            transition: 0.2s; /* Плавность анимации */
+            text-decoration: none; /* Убирает подчеркивание ссылки */
+            transition: background 0.1s;
         }
-        /* Hover Effect */
-        .track:hover {
-            background: rgba(0, 112, 201, 0.15);
-            color: white;
-            cursor: pointer;
-            border-radius: 6px; /* Немного скруглим края при наведении */
+        
+        /* Активное состояние (момент нажатия пальцем) */
+        .track:active {
+            background: #222;
         }
-        .t-num {
-            width: 30px;
-            color: #666;
-            font-size: 12px;
+
+        /* Hover только для мыши */
+        @media (hover: hover) {
+            .track:hover {
+                background: rgba(0, 112, 201, 0.15);
+                color: white;
+                cursor: pointer;
+                border-radius: 6px;
+            }
+            .track:hover .t-name span { opacity: 0.8 !important; }
         }
-        .t-name {
-            flex-grow: 1;
-            font-weight: 500;
+
+        .t-num { width: 30px; color: #666; font-size: 12px; }
+        .t-name { 
+            flex-grow: 1; 
+            font-weight: 500; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding-right: 10px;
+        }
+        .t-time { font-family: monospace; color: #666; margin-left: 10px;}
+
+        /* На мобильных стрелка всегда немного видна */
+        @media (hover: none) {
+            .t-name span { opacity: 0.3 !important; }
         }
     </style>
 </head>
 <body>
 
-    <!-- SEARCH BAR -->
+    <!-- ПОИСК -->
     <div class="search-container">
-        <form action="/" method="get" style="display:flex; width:100%; gap:10px;">
-            <input type="text" name="q" placeholder="Search artist or album..." value="{{ request.args.get('q', '') }}" autofocus>
+        <form action="/" method="get" class="search-form">
+            <input type="text" name="q" placeholder="Search artist or album..." value="{{ request.args.get('q', '') }}">
             <button type="submit">Search</button>
         </form>
     </div>
 
-    <!-- GRID RESULTS VIEW -->
+    <!-- РЕЗУЛЬТАТЫ ПОИСКА (КАРТОЧКИ) -->
     {% if view == 'results' %}
         <div class="grid">
             {% for item in results %}
                 <a href="/album/{{ item.collectionId }}" class="card">
+                    <!-- Заменяем 100x100 на 400x400 для четкости -->
                     <img src="{{ item.artworkUrl100.replace('100x100bb', '400x400bb') }}" loading="lazy">
                     <div class="info">
                         <div class="title">{{ item.collectionName }}</div>
@@ -196,10 +239,10 @@
         </div>
     {% endif %}
 
-    <!-- SINGLE ALBUM VIEW -->
+    <!-- ПРОСМОТР АЛЬБОМА -->
     {% if view == 'album' %}
         <div style="max-width: 1000px; margin: 0 auto;">
-            <a href="javascript:history.back()" style="color: #666; text-decoration: none; margin-bottom: 20px; display: block;">← Back</a>
+            <a href="javascript:history.back()" style="color: #666; text-decoration: none; margin-bottom: 20px; display: block; font-size: 14px;">← Back</a>
             
             <div class="album-header">
                 <img src="{{ album.artworkUrl100 }}" class="album-art">
@@ -210,37 +253,34 @@
                         <span>{{ album.primaryGenreName }}</span> • 
                         <span>{{ album.releaseDate[:4] }}</span> • 
                         <span>{{ album.trackCount }} tracks</span>
+                        
+                        <!-- ВОТ ЗДЕСЬ ПРОВЕРКА HI-RES -->
                         {% if is_hires %}
                             <span class="hires-tag">HI-RES</span>
                         {% endif %}
                     </div>
-                    <!-- Main Album Link -->
+                    <!-- Кнопка на весь альбом -->
                     <a href="{{ qobuz_link }}" target="_blank" class="btn-qobuz">Listen on Qobuz ↗</a>
                 </div>
             </div>
 
-            <h3 style="border-bottom: 1px solid #333; padding-bottom: 10px;">Tracklist</h3>
+            <h3 style="border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0;">Tracklist</h3>
             <div class="tracklist">
                 {% for song in songs %}
-                    <!-- Updated: Clickable Track -->
+                    <!-- Теперь каждая песня - ссылка -->
                     <a href="{{ song.qobuz_link }}" target="_blank" class="track">
                         <div class="t-num">{{ song.trackNumber }}</div>
-                        <div class="t-name" style="display:flex; justify-content:space-between; align-items: center; padding-right: 10px;">
+                        <div class="t-name">
                             {{ song.trackName }}
-                            <!-- Small icon to indicate link -->
-                            <span style="font-size: 14px; color: var(--primary); opacity: 0.0;">↗</span>
+                            <!-- Стрелочка (видна при наведении или тускло на телефоне) -->
+                            <span style="font-size: 14px; color: var(--primary); opacity: 0;">↗</span>
                         </div>
-                        <div style="font-family: monospace; color: #666;">
+                        <div class="t-time">
                             {{ (song.trackTimeMillis / 60000) | round | int }}:{{ '%02d' % ((song.trackTimeMillis / 1000) % 60) | int }}
                         </div>
                     </a>
                 {% endfor %}
             </div>
-
-            <!-- CSS trick to show icon on hover only -->
-            <style>
-                .track:hover .t-name span { opacity: 0.8 !important; }
-            </style>
         </div>
     {% endif %}
 
