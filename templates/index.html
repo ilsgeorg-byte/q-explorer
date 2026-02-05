@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Q-Explorer</title>
-    <!-- FAVICON (Эмодзи ноты, чтобы не было ошибки 404) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
 
     <style>
@@ -14,6 +13,7 @@
             --text: #eee;
             --text-sec: #aaa;
             --primary: #0070c9;
+            --spotify: #1DB954;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -21,8 +21,7 @@
             color: var(--text);
             margin: 0;
             padding: 20px;
-            /* Убирает серую подсветку при тапе на iPhone */
-            -webkit-tap-highlight-color: transparent; 
+            -webkit-tap-highlight-color: transparent;
         }
         
         /* === ПОИСК === */
@@ -35,211 +34,129 @@
             border-bottom: 1px solid #333;
             margin-bottom: 20px;
         }
-        .search-form {
-            display: flex; 
-            width: 100%; 
-            gap: 10px;
+        .search-form { display: flex; width: 100%; gap: 10px; }
+        input[type="text"] {
+            flex-grow: 1; padding: 12px; border-radius: 8px; border: 1px solid #333;
+            background: var(--card-bg); color: white; font-size: 16px; min-width: 0;
         }
-        input {
-            flex-grow: 1;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            background: var(--card-bg);
-            color: white;
-            font-size: 16px; /* ВАЖНО: 16px предотвращает зум на iPhone */
-            min-width: 0;
-        }
-        input:focus {
-            outline: 2px solid var(--primary);
-            border-color: transparent;
-        }
+        input:focus { outline: 2px solid var(--primary); border-color: transparent; }
         button {
-            padding: 0 20px;
-            border-radius: 8px;
-            border: none;
-            background: var(--primary);
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            white-space: nowrap;
+            padding: 0 20px; border-radius: 8px; border: none; background: var(--primary);
+            color: white; font-weight: bold; cursor: pointer; white-space: nowrap;
         }
+        
+        /* Радио кнопки для фильтров */
+        .search-options {
+            display: flex; gap: 15px; margin-top: 10px; font-size: 14px; color: var(--text-sec);
+        }
+        .search-options label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        input[type="radio"] { accent-color: var(--primary); transform: scale(1.2); }
 
-        /* === СЕТКА РЕЗУЛЬТАТОВ === */
+        /* === СЕТКА === */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 20px;
         }
         .card {
-            background: var(--card-bg);
-            border-radius: 10px;
-            overflow: hidden;
-            transition: transform 0.2s;
-            text-decoration: none;
-            color: inherit;
-            display: block;
+            background: var(--card-bg); border-radius: 10px; overflow: hidden;
+            text-decoration: none; color: inherit; display: block;
         }
-        /* Hover эффект только для ПК (чтобы не залипало на телефоне) */
         @media (hover: hover) {
-            .card:hover {
-                transform: translateY(-5px);
-                background: #2a2a2a;
-            }
+            .card:hover { transform: translateY(-5px); background: #2a2a2a; }
         }
-        .card img {
-            width: 100%;
-            aspect-ratio: 1;
-            object-fit: cover;
-        }
+        .card img { width: 100%; aspect-ratio: 1; object-fit: cover; }
         .info { padding: 12px; }
-        .title {
-            font-weight: 600;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 14px;
-        }
+        .title { font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
         .artist { font-size: 13px; color: var(--text-sec); }
 
-        /* === СТРАНИЦА АЛЬБОМА === */
-        .album-header {
-            display: flex;
-            gap: 25px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
+        /* === АЛЬБОМ === */
+        .album-header { display: flex; gap: 25px; margin-bottom: 30px; flex-wrap: wrap; }
         .album-art {
-            width: 220px;
-            height: 220px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            object-fit: cover;
+            width: 220px; height: 220px; border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: cover;
         }
-        .album-meta {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            min-width: 200px;
-        }
+        .album-meta { flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 200px; }
         h1 { margin: 0 0 8px 0; font-size: 26px; line-height: 1.2; }
         h2 { margin: 0 0 15px 0; font-size: 18px; color: var(--primary); font-weight: normal; }
         
-        .tags { 
-            display: flex; 
-            gap: 10px; 
-            font-size: 13px; 
-            color: var(--text-sec); 
-            margin-bottom: 20px; 
-            align-items: center; 
-            flex-wrap: wrap; 
-        }
+        .tags { display: flex; gap: 10px; font-size: 13px; color: var(--text-sec); margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
         
-        /* СТИЛЬ ДЛЯ ЗНАЧКА HI-RES */
-        .hires-tag {
-            background: #ffd700; /* Золотой цвет как у Qobuz */
-            color: #000;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 800;
-            font-size: 10px;
-            letter-spacing: 0.5px;
-            display: inline-flex;
-            align-items: center;
-            border: 1px solid #e6c200;
+        .hires-badge {
+            background: #ffd700; color: #000; padding: 2px 6px; border-radius: 4px;
+            font-weight: 800; font-size: 10px; display: inline-flex; align-items: center;
         }
+        .hires-msg { color: #ffd700; font-size: 13px; font-weight: bold; margin-left: 10px; }
 
-        .btn-qobuz {
-            display: inline-block;
-            background: white;
-            color: black;
-            padding: 12px 24px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-            width: fit-content;
+        /* КНОПКИ СЕРВИСОВ */
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 10px 20px; border-radius: 30px; text-decoration: none;
+            font-weight: bold; font-size: 14px; color: black; min-width: 140px;
         }
+        .btn-qobuz { background: white; }
+        .btn-spotify { background: var(--spotify); color: white; }
 
-        /* === СПИСОК ТРЕКОВ === */
+        /* === ТРЕКЛИСТ === */
         .tracklist { max-width: 800px; margin-top: 20px; }
-        
         .track {
-            display: flex;
-            padding: 12px 10px;
-            border-bottom: 1px solid #222;
-            align-items: center;
-            font-size: 14px;
-            color: #ccc;
-            text-decoration: none; /* Убирает подчеркивание ссылки */
-            transition: background 0.1s;
+            display: flex; padding: 12px 10px; border-bottom: 1px solid #222; align-items: center;
+            font-size: 14px; color: #ccc; text-decoration: none; transition: background 0.1s;
         }
-        
-        /* Активное состояние (момент нажатия пальцем) */
-        .track:active {
-            background: #222;
-        }
-
-        /* Hover только для мыши */
+        .track:active { background: #222; }
         @media (hover: hover) {
-            .track:hover {
-                background: rgba(0, 112, 201, 0.15);
-                color: white;
-                cursor: pointer;
-                border-radius: 6px;
-            }
+            .track:hover { background: rgba(0, 112, 201, 0.15); color: white; cursor: pointer; border-radius: 6px; }
             .track:hover .t-name span { opacity: 0.8 !important; }
         }
-
         .t-num { width: 30px; color: #666; font-size: 12px; }
-        .t-name { 
-            flex-grow: 1; 
-            font-weight: 500; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding-right: 10px;
-        }
+        .t-name { flex-grow: 1; font-weight: 500; display: flex; justify-content: space-between; padding-right: 10px; }
         .t-time { font-family: monospace; color: #666; margin-left: 10px;}
-
-        /* На мобильных стрелка всегда немного видна */
-        @media (hover: none) {
-            .t-name span { opacity: 0.3 !important; }
-        }
     </style>
 </head>
 <body>
 
-    <!-- ПОИСК -->
     <div class="search-container">
-        <form action="/" method="get" class="search-form">
-            <input type="text" name="q" placeholder="Search artist or album..." value="{{ request.args.get('q', '') }}">
-            <button type="submit">Search</button>
+        <form action="/" method="get">
+            <div class="search-form">
+                <input type="text" name="q" placeholder="Search..." value="{{ request.args.get('q', '') }}">
+                <button type="submit">Search</button>
+            </div>
+            <!-- ВЕРНУЛИ РАДИО КНОПКИ -->
+            <div class="search-options">
+                <label><input type="radio" name="type" value="album" {% if request.args.get('type', 'album') == 'album' %}checked{% endif %}> Album</label>
+                <label><input type="radio" name="type" value="artist" {% if request.args.get('type') == 'artist' %}checked{% endif %}> Artist</label>
+                <label><input type="radio" name="type" value="song" {% if request.args.get('type') == 'song' %}checked{% endif %}> Song</label>
+            </div>
         </form>
     </div>
 
-    <!-- РЕЗУЛЬТАТЫ ПОИСКА (КАРТОЧКИ) -->
     {% if view == 'results' %}
         <div class="grid">
             {% for item in results %}
-                <a href="/album/{{ item.collectionId }}" class="card">
-                    <!-- Заменяем 100x100 на 400x400 для четкости -->
-                    <img src="{{ item.artworkUrl100.replace('100x100bb', '400x400bb') }}" loading="lazy">
+                <!-- Если ищем альбом или песню, ссылка ведет на альбом -->
+                {% set link_id = item.collectionId if item.collectionId else item.artistId %}
+                
+                <a href="/album/{{ link_id }}" class="card">
+                    <!-- Защита от отсутствия картинки (например у артистов) -->
+                    {% if item.artworkUrl100 %}
+                        <img src="{{ item.artworkUrl100.replace('100x100bb', '400x400bb') }}" loading="lazy">
+                    {% else %}
+                        <div style="width:100%; aspect-ratio:1; background:#333; display:flex; align-items:center; justify-content:center; color:#666;">No Image</div>
+                    {% endif %}
+                    
                     <div class="info">
-                        <div class="title">{{ item.collectionName }}</div>
+                        <div class="title">{{ item.collectionName if item.collectionName else item.artistName }}</div>
                         <div class="artist">{{ item.artistName }}</div>
-                        <div style="font-size: 11px; color: #666; margin-top: 5px;">
-                            {{ item.releaseDate[:4] }}
-                        </div>
+                        {% if item.releaseDate %}
+                            <div style="font-size: 11px; color: #666; margin-top: 5px;">{{ item.releaseDate[:4] }}</div>
+                        {% endif %}
                     </div>
                 </a>
             {% endfor %}
         </div>
     {% endif %}
 
-    <!-- ПРОСМОТР АЛЬБОМА -->
     {% if view == 'album' %}
         <div style="max-width: 1000px; margin: 0 auto;">
             <a href="javascript:history.back()" style="color: #666; text-decoration: none; margin-bottom: 20px; display: block; font-size: 14px;">← Back</a>
@@ -254,25 +171,29 @@
                         <span>{{ album.releaseDate[:4] }}</span> • 
                         <span>{{ album.trackCount }} tracks</span>
                         
-                        <!-- ВОТ ЗДЕСЬ ПРОВЕРКА HI-RES -->
+                        <!-- HI-RES ЛОГИКА И СООБЩЕНИЕ -->
                         {% if is_hires %}
-                            <span class="hires-tag">HI-RES</span>
+                            <span class="hires-badge">HI-RES</span>
+                            <span class="hires-msg">Available in Hi-Res on Qobuz</span>
                         {% endif %}
                     </div>
-                    <!-- Кнопка на весь альбом -->
-                    <a href="{{ qobuz_link }}" target="_blank" class="btn-qobuz">Listen on Qobuz ↗</a>
+                    
+                    <!-- КНОПКИ -->
+                    <div class="actions">
+                        <a href="{{ qobuz_link }}" target="_blank" class="btn btn-qobuz">Qobuz ↗</a>
+                        <a href="{{ spotify_link }}" target="_blank" class="btn btn-spotify">Spotify ↗</a>
+                    </div>
                 </div>
             </div>
 
             <h3 style="border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0;">Tracklist</h3>
             <div class="tracklist">
                 {% for song in songs %}
-                    <!-- Теперь каждая песня - ссылка -->
+                    <!-- Ссылка на Qobuz (основная) -->
                     <a href="{{ song.qobuz_link }}" target="_blank" class="track">
                         <div class="t-num">{{ song.trackNumber }}</div>
                         <div class="t-name">
                             {{ song.trackName }}
-                            <!-- Стрелочка (видна при наведении или тускло на телефоне) -->
                             <span style="font-size: 14px; color: var(--primary); opacity: 0;">↗</span>
                         </div>
                         <div class="t-time">

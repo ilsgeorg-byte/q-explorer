@@ -6,78 +6,86 @@ import urllib.parse
 app = Flask(__name__)
 
 def generate_qobuz_link(query):
-    """Генерирует ссылку на поиск Qobuz"""
     encoded_query = urllib.parse.quote(query)
     return f"https://www.qobuz.com/us-en/search?q={encoded_query}"
 
+def generate_spotify_link(query):
+    # Используем https ссылку, она умная: если есть приложение - откроет его, если нет - веб
+    encoded_query = urllib.parse.quote(query)
+    return f"https://open.spotify.com/search/{encoded_query}"
+
 def check_hires(query):
-    """
-    Парсит страницу поиска Qobuz, чтобы узнать, 
-    есть ли там значки Hi-Res для этого альбома.
-    (Простой парсинг, может не всегда работать идеально, но полезно)
-    """
     try:
         url = generate_qobuz_link(query)
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        r = requests.get(url, headers=headers, timeout=3)
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        r = requests.get(url, headers=headers, timeout=2)
         soup = BeautifulSoup(r.text, 'html.parser')
-        
-        # Ищем специфические классы Qobuz, отвечающие за значки качества
-        hires_badges = soup.find_all(class_='logo-hires')
-        return len(hires_badges) > 0
+        return len(soup.find_all(class_='logo-hires')) > 0
     except:
         return False
 
 @app.route('/')
 def index():
     query = request.args.get('q')
+    search_type = request.args.get('type', 'album') # По умолчанию ищем альбомы
+
     if query:
-        # Поиск альбомов через iTunes API
+        # Настройка сущности поиска для iTunes
+        entity_map = {
+            'album': 'album',
+            'artist': 'musicArtist',
+            'song': 'song'
+        }
+        entity = entity_map.get(search_type, 'album')
+
         try:
-            url = f"https://itunes.apple.com/search?term={query}&entity=album&limit=12"
+            # Если ищем артиста, лимит поменьше, результаты другие
+            url = f"https://itunes.apple.com/search?term={query}&entity={entity}&limit=24"
             response = requests.get(url)
             data = response.json()
-            return render_template('index.html', view='results', results=data.get('results', []))
+            results = data.get('results', [])
+            
+            # Фильтрация: иногда iTunes выдает мусор, если ищем артиста, убираем треки без artistId
+            if search_type == 'artist':
+                results = [r for r in results if r.get('artistType') == 'Artist']
+
+            return render_template('index.html', view='results', results=results, search_type=search_type)
         except Exception as e:
-            return f"Error connecting to iTunes API: {e}"
+            print(f"Error: {e}")
+            pass
     
-    # Если поиска нет, показываем пустую страницу
     return render_template('index.html', view='home')
 
-@app.route('/album/<int:album_id>')
-def album_page(album_id):
+@app.route('/album/<int:collection_id>')
+def album_page(collection_id):
     try:
-        # Получаем детали альбома и список треков
-        # entity=song возвращает и инфо об альбоме (первый элемент), и треки
-        url = f"https://itunes.apple.com/lookup?id={album_id}&entity=song"
-        response = requests.get(url)
-        data = response.json()
+        # Получаем данные альбома
+        url = f"https://itunes.apple.com/lookup?id={collection_id}&entity=song"
+        data = requests.get(url).json()
         
         if data['resultCount'] > 0:
-            # Первый элемент — это сам альбом
             album_info = data['results'][0]
-            
-            # Остальные элементы — это треки
             songs = []
             
-            # Проходимся по всем трекам, чтобы добавить им ссылки
+            # Обрабатываем песни
             for item in data['results'][1:]:
-                if item.get('kind') == 'song': # На всякий случай проверяем, что это песня
-                    # Формируем точный запрос для поиска конкретного трека
-                    track_query = f"{item['artistName']} {item['collectionName']} {item['trackName']}"
+                if item.get('kind') == 'song':
+                    # Ссылки для каждой песни
+                    track_query = f"{item['artistName']} {item['trackName']}"
                     item['qobuz_link'] = generate_qobuz_link(track_query)
+                    item['spotify_link'] = generate_spotify_link(track_query)
                     songs.append(item)
             
-            # Улучшаем качество обложки (iTunes отдает 100x100, меняем на 600x600)
+            # Улучшаем обложку
             album_info['artworkUrl100'] = album_info.get('artworkUrl100', '').replace('100x100bb', '600x600bb')
             
-            # Генерируем ссылку для всего альбома
+            # Генерируем запросы для кнопок альбома
             album_query = f"{album_info['artistName']} {album_info['collectionName']}"
-            main_qobuz_link = generate_qobuz_link(album_query)
             
-            # Проверяем наличие Hi-Res (парсинг)
+            qobuz_link = generate_qobuz_link(album_query)
+            spotify_link = generate_spotify_link(album_query)
+            
+            # Проверяем Hi-Res
             is_hires = check_hires(album_query)
             
             return render_template(
@@ -86,14 +94,13 @@ def album_page(album_id):
                 album=album_info, 
                 songs=songs, 
                 is_hires=is_hires, 
-                qobuz_link=main_qobuz_link
+                qobuz_link=qobuz_link,
+                spotify_link=spotify_link
             )
-            
-    except Exception as e:
-        print(f"Error: {e}")
+    except:
         pass
-        
-    return "Album not found or API error"
+    
+    return "Album not found"
 
 if __name__ == '__main__':
     app.run(debug=True)
