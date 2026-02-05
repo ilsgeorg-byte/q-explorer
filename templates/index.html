@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q-Explorer</title>
+    <!-- FAVICON (Blue Vinyl Record) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%230070c9%22/><circle cx=%2250%22 cy=%2250%22 r=%2215%22 fill=%22%23121212%22/><circle cx=%2250%22 cy=%2250%22 r=%225%22 fill=%22%23ffffff%22/></svg>">
+    
+    <style>
+        :root { --primary: #043e6d; --bg: #0f1014; --card-bg: #1c1c22; --hover: #292930; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 20px; }
+        a { text-decoration: none; color: inherit; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        /* Header */
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #333; }
+        .logo { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+        .logo span { color: var(--primary); }
+        .search-container { display: flex; gap: 12px; background: var(--card-bg); padding: 8px; border-radius: 12px; border: 1px solid #333; margin-bottom: 40px; }
+        select { background: #000; color: #fff; border: 1px solid #444; padding: 10px 15px; border-radius: 8px; cursor: pointer; }
+        input { flex: 1; background: transparent; border: none; color: white; font-size: 17px; padding: 10px; outline: none; }
+        .search-btn { background: var(--primary); color: white; border: none; padding: 0 25px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px; margin-bottom: 40px; }
+        .card { background: var(--card-bg); border-radius: 12px; padding: 16px; transition: all 0.2s; display: block; border: 1px solid transparent; position: relative; }
+        .card:hover { transform: translateY(-4px); background: var(--hover); border-color: #444; }
+        .card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 12px; background: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .card-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-sub { font-size: 12px; color: #999; }
+        .type-badge { position: absolute; top: 22px; right: 22px; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .badge-live { background: #e91e63; color: white; }
+        .badge-single { background: #2196f3; color: white; }
+        .count-badge { font-size: 12px; background: #333; padding: 2px 8px; border-radius: 10px; color: #aaa; }
+        .section-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+        .hero { display: flex; gap: 40px; margin-bottom: 40px; align-items: center; }
+        .hero-img { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 4px solid var(--card-bg); }
+        .hero-meta h1 { font-size: 48px; margin: 0 0 10px 0; line-height: 1; }
+        .hero-meta .genre { font-size: 18px; color: var(--primary); font-weight: 500; }
+        .song-list-item { display: flex; align-items: center; gap: 15px; background: var(--card-bg); padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+        .song-img { width: 50px; height: 50px; border-radius: 4px; object-fit: cover; }
+        .song-info { flex: 1; }
+        .btn-small { font-size: 12px; padding: 6px 12px; border-radius: 15px; background: #333; }
+        .btn-primary { background: var(--primary); color: white; }
+        .album-header-img { width: 260px; height: 260px; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .hires-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 215, 0, 0.15); color: #ffd700; border: 1px solid rgba(255, 215, 0, 0.3); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .track { display: flex; padding: 12px 10px; border-bottom: 1px solid #222; align-items: center; font-size: 14px; color: #ccc; }
+        .t-num { width: 30px; color: #666; text-align: right; margin-right: 20px; }
+        .t-name { flex: 1; font-weight: 500; }
+        @media (max-width: 600px) { .hero { flex-direction: column; align-items: center; text-align: center; } .hero-img { width: 200px; height: 200px; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <a href="/" class="logo">Q-<span>Explorer</span></a>
+        {% if view != 'home' %}
+            <a href="javascript:history.back()" style="color: #888;">&larr; Back</a>
+        {% endif %}
+    </div>
+
+    <form action="/" method="POST" class="search-container">
+        <select name="type">
+            <option value="artist" {% if stype == 'artist' %}selected{% endif %}>Artist</option>
+            <option value="album" {% if stype == 'album' %}selected{% endif %}>Album</option>
+            <option value="song" {% if stype == 'song' %}selected{% endif %}>Song</option>
+        </select>
+        <input type="text" name="query" placeholder="Start typing..." value="{{ query or '' }}" required autofocus>
+        <button type="submit" class="search-btn">Search</button>
+    </form>
+
+    {% if view == 'results' %}
+        <h2 style="margin-bottom: 20px;">Results for "{{ query }}"</h2>
+        {% if stype == 'song' %}
+            <div class="list">
+                {% for item in results %}
+                <div class="song-list-item">
+                    <img src="{{ item.image }}" class="song-img">
+                    <div class="song-info">
+                        <div style="font-weight: 600;">{{ item.name }}</div>
+                        <div style="color: #888; font-size: 13px;">{{ item.sub }}</div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <a href="/album/{{ item.album_id }}" class="btn-small">Album</a>
+                        <a href="{{ item.qobuz_link }}" target="_blank" class="btn-small btn-primary">Qobuz ↗</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="grid">
+                {% for item in results %}
+                    <a href="/{{ item.type }}/{{ item.id }}" class="card">
+                        {% if item.image %}
+                            <img src="{{ item.image }}" loading="lazy" style="{% if item.type == 'artist' %}border-radius: 50%;{% endif %}">
+                        {% else %}
+                            <div class="card-placeholder" style="{% if item.type == 'artist' %}border-radius: 50%;{% endif %}">🎤</div>
+                        {% endif %}
+                        <div class="card-title" style="{% if item.type == 'artist' %}text-align:center;{% endif %}">{{ item.name }}</div>
+                        <div class="card-sub" style="{% if item.type == 'artist' %}text-align:center;{% endif %}">{{ item.sub }}</div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if view == 'artist' %}
+        <div class="hero">
+            {% if artist_image %}
+                <img src="{{ artist_image }}" class="hero-img">
+            {% else %}
+                <div class="hero-img" style="background: #333; display: flex; align-items: center; justify-content: center; font-size: 60px;">🎤</div>
+            {% endif %}
+            <div class="hero-meta">
+                <div class="genre">{{ artist.primaryGenreName }}</div>
+                <h1>{{ artist.artistName }}</h1>
+            </div>
+        </div>
+        {% if discography['album'] %}
+            <div class="section-title">Albums <span class="count-badge">{{ discography['album']|length }}</span></div>
+            <div class="grid">
+                {% for alb in discography['album'] %}
+                    <a href="/album/{{ alb.collectionId }}" class="card">
+                        <img src="{{ alb.artworkUrl100 }}" loading="lazy">
+                        <div class="card-title">{{ alb.collectionName }}</div>
+                        <div class="card-sub">{{ alb.releaseDate[:4] }}</div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if discography['single'] %}
+            <div class="section-title">Singles & EPs <span class="count-badge">{{ discography['single']|length }}</span></div>
+            <div class="grid">
+                {% for alb in discography['single'] %}
+                    <a href="/album/{{ alb.collectionId }}" class="card">
+                        <img src="{{ alb.artworkUrl100 }}" loading="lazy">
+                        <div class="card-title">{{ alb.collectionName }}</div>
+                        <div class="card-sub">{{ alb.releaseDate[:4] }}</div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if discography['live'] %}
+            <div class="section-title">Live Albums <span class="count-badge">{{ discography['live']|length }}</span></div>
+            <div class="grid">
+                {% for alb in discography['live'] %}
+                    <a href="/album/{{ alb.collectionId }}" class="card">
+                        <img src="{{ alb.artworkUrl100 }}" loading="lazy">
+                        <div class="card-title">{{ alb.collectionName }}</div>
+                        <div class="card-sub">{{ alb.releaseDate[:4] }}</div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if discography['compilation'] %}
+            <div class="section-title">Compilations <span class="count-badge">{{ discography['compilation']|length }}</span></div>
+            <div class="grid">
+                {% for alb in discography['compilation'] %}
+                    <a href="/album/{{ alb.collectionId }}" class="card">
+                        <img src="{{ alb.artworkUrl100 }}" loading="lazy">
+                        <div class="card-title">{{ alb.collectionName }}</div>
+                        <div class="card-sub">{{ alb.releaseDate[:4] }}</div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if view == 'album' %}
+        <div class="hero" style="align-items: flex-end;">
+            <img src="{{ album.artworkUrl100 }}" class="album-header-img">
+            <div class="hero-meta">
+                <h2><a href="/artist/{{ album.artistId }}">{{ album.artistName }}</a></h2>
+                <h1>{{ album.collectionName }}</h1>
+                <div style="color: #aaa; font-size: 14px; margin-bottom: 20px;">
+                    {{ album.primaryGenreName }} • {{ album.releaseDate[:4] }} • {{ songs|length }} songs
+                </div>
+                {% if is_hires %}
+                    <div class="hires-tag">✨ Hi-Res Available</div>
+                {% else %}
+                    <div style="font-size: 13px; color: #666; display: inline-block; padding: 6px 0;">CD Quality (16-bit)</div>
+                {% endif %}
+                <div style="margin-top: 20px;">
+                    <a href="{{ qobuz_link }}" target="_blank" class="search-btn" style="padding: 12px 25px; display: inline-block;">Listen on Qobuz ↗</a>
+                </div>
+            </div>
+        </div>
+        <h3 style="border-bottom: 1px solid #333; padding-bottom: 10px;">Tracklist</h3>
+        <div class="tracklist">
+            {% for song in songs %}
+                <div class="track">
+                    <div class="t-num">{{ song.trackNumber }}</div>
+                    <div class="t-name">{{ song.trackName }}</div>
+                    <div style="font-family: monospace; color: #666;">
+                        {{ (song.trackTimeMillis / 60000) | round | int }}:{{ '%02d' % ((song.trackTimeMillis / 1000) % 60) | int }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    {% if view == 'home' %}
+        <div style="text-align: center; padding: 100px 20px; opacity: 0.5;">
+            <div style="font-size: 60px; margin-bottom: 20px; filter: grayscale(1);">🎵</div>
+            <h2>Search for Artists, Albums or Songs</h2>
+        </div>
+    {% endif %}
+</div>
+</body>
+</html>
