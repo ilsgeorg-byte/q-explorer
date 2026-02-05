@@ -18,11 +18,11 @@ def clean_query(text):
     return " ".join(text.split())
 
 def generate_qobuz_link(query):
-    """Генерирует максимально совместимую ссылку"""
     clean = clean_query(query)
-    encoded = urllib.parse.quote(clean)
-    # Используем ссылку, которая лучше работает и в вебе, и в приложении
-    return f"https://play.qobuz.com/search?q={encoded}&source=1"
+    # Добавляем site:qobuz.com чтобы искать прицельно
+    encoded = urllib.parse.quote(f"site:qobuz.com {clean}")
+    return f"https://www.google.com/search?q={encoded}&btnI" # btnI = I'm Feeling Lucky
+
 
 def check_hires(query):
     try:
