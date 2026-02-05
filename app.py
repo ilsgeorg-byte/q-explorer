@@ -7,56 +7,43 @@ app = Flask(__name__)
 def generate_spotify_link(query):
     return f"https://open.spotify.com/search/{urllib.parse.quote(query)}"
 
-def get_image_for_artist(artist_name):
-    # Хак: ищем 1 альбом артиста, чтобы взять его картинку
+def get_true_artist_image(artist_id):
+    """
+    Ищет картинку артиста, проверяя artistId, чтобы не взять чужой альбом.
+    """
     try:
-        r = requests.get(f"https://itunes.apple.com/search?term={artist_name}&entity=album&limit=1").json()
-        if r['resultCount'] > 0:
-            return r['results'][0]['artworkUrl100']
+        # Ищем альбомы конкретно этого artistId
+        url = f"https://itunes.apple.com/lookup?id={artist_id}&entity=album&limit=1"
+        r = requests.get(url).json()
+        
+        # Результат 0 - это артист, результаты 1..N - альбомы
+        results = r.get('results', [])
+        for item in results:
+            if item.get('collectionType') == 'Album' and item.get('artworkUrl100'):
+                 return item['artworkUrl100'].replace('100x100bb', '400x400bb')
     except:
         pass
     return None
 
 def sort_albums(albums_list):
-    """Сортирует альбомы по категориям"""
-    categorized = {
-        'albums': [],
-        'singles': [],
-        'live': [],
-        'compilations': []
-    }
-    
-    seen_names = set() # Чтобы убрать дубликаты
+    categorized = {'albums': [], 'singles': [], 'live': [], 'compilations': []}
+    seen = set()
     
     for alb in albums_list:
-        name = alb['collectionName']
-        lower_name = name.lower()
+        if alb['collectionName'] in seen: continue
+        seen.add(alb['collectionName'])
         
-        # Пропускаем дубликаты (иногда iTunes дает одно и то же)
-        if name in seen_names: continue
-        seen_names.add(name)
-        
-        # Улучшаем картинку
         alb['artworkUrl100'] = alb.get('artworkUrl100', '').replace('100x100bb', '400x400bb')
+        name = alb['collectionName'].lower()
+        cnt = alb.get('trackCount', 0)
         
-        track_count = alb.get('trackCount', 0)
-
-        # ЛОГИКА СОРТИРОВКИ
-        if 'live' in lower_name or 'concert' in lower_name or 'tour' in lower_name:
-            categorized['live'].append(alb)
-        elif 'greatest hits' in lower_name or 'best of' in lower_name or 'collection' in lower_name or 'anthology' in lower_name:
-            categorized['compilations'].append(alb)
-        elif track_count < 5 or 'single' in lower_name or 'ep' in lower_name:
-            # Считаем синглами всё, где мало треков
-            categorized['singles'].append(alb)
-        else:
-            # Остальное - студийные альбомы
-            categorized['albums'].append(alb)
-            
-    # Сортируем внутри категорий по дате (свежие сверху)
-    for key in categorized:
-        categorized[key].sort(key=lambda x: x.get('releaseDate', ''), reverse=True)
-        
+        if 'live' in name or 'concert' in name: categorized['live'].append(alb)
+        elif 'greatest' in name or 'best of' in name or 'anthology' in name: categorized['compilations'].append(alb)
+        elif cnt < 5 or 'single' in name or 'ep' in name: categorized['singles'].append(alb)
+        else: categorized['albums'].append(alb)
+    
+    for k in categorized:
+        categorized[k].sort(key=lambda x: x.get('releaseDate', ''), reverse=True)
     return categorized
 
 @app.route('/')
@@ -65,86 +52,101 @@ def index():
     if not query:
         return render_template('index.html', view='home')
 
+    # Основной поиск (ограниченный)
     results = {'artists': [], 'albums': [], 'songs': []}
     
     try:
-        # 1. ARTISTS (Ищем больше, чтобы потом отфильтровать мусор)
-        r_art = requests.get(f"https://itunes.apple.com/search?term={query}&entity=musicArtist&limit=10").json()
-        raw_artists = r_art.get('results', [])
-        
-        # Фильтруем: оставляем только тех, чье имя похоже на запрос
-        # (чтобы убрать Smashing Pumpkins по запросу Machine Head)
-        clean_artists = []
-        for art in raw_artists:
+        # 1. ARTISTS
+        r_art = requests.get(f"https://itunes.apple.com/search?term={query}&entity=musicArtist&limit=5").json()
+        for art in r_art.get('results', []):
+            # Строгая проверка: имя должно содержать запрос
             if query.lower() in art['artistName'].lower():
-                # Пробуем найти картинку
-                art['image'] = get_image_for_artist(art['artistName'])
-                clean_artists.append(art)
-        
-        results['artists'] = clean_artists[:4] # Берем топ-4 самых релевантных
+                art['image'] = get_true_artist_image(art['artistId'])
+                results['artists'].append(art)
 
         # 2. ALBUMS
-        r_alb = requests.get(f"https://itunes.apple.com/search?term={query}&entity=album&limit=25").json()
-        raw_albums = r_alb.get('results', [])
-        
-        # Фильтр: показываем только альбомы, где Исполнитель совпадает с запросом
-        clean_albums = []
-        for alb in raw_albums:
-            if query.lower() in alb['artistName'].lower():
+        r_alb = requests.get(f"https://itunes.apple.com/search?term={query}&entity=album&limit=10").json()
+        for alb in r_alb.get('results', []):
+            # Строгая проверка: либо в имени артиста, либо в названии альбома есть запрос
+            if query.lower() in alb['artistName'].lower() or query.lower() in alb['collectionName'].lower():
                 alb['artworkUrl100'] = alb.get('artworkUrl100', '').replace('100x100bb', '300x300bb')
-                clean_albums.append(alb)
-                
-        results['albums'] = clean_albums[:8] # Топ-8 альбомов
+                results['albums'].append(alb)
 
         # 3. SONGS
-        r_song = requests.get(f"https://itunes.apple.com/search?term={query}&entity=song&limit=15").json()
-        raw_songs = r_song.get('results', [])
-        
-        clean_songs = []
-        for song in raw_songs:
-            # Тоже фильтруем, чтобы не было каверов от левых групп
+        r_song = requests.get(f"https://itunes.apple.com/search?term={query}&entity=song&limit=10").json()
+        for song in r_song.get('results', []):
             if query.lower() in song['artistName'].lower() or query.lower() in song['trackName'].lower():
                 q = f"{song['artistName']} {song['trackName']}"
                 song['spotify_link'] = generate_spotify_link(q)
-                clean_songs.append(song)
-                
-        results['songs'] = clean_songs[:10]
+                results['songs'].append(song)
 
     except Exception as e:
         print(e)
 
     return render_template('index.html', view='results', data=results, query=query)
 
+# СТРАНИЦА "SEE ALL"
+@app.route('/see-all/<type>')
+def see_all(type):
+    query = request.args.get('q')
+    results = []
+    
+    entity_map = {
+        'artists': 'musicArtist',
+        'albums': 'album',
+        'songs': 'song'
+    }
+    entity = entity_map.get(type, 'album')
+    
+    try:
+        url = f"https://itunes.apple.com/search?term={query}&entity={entity}&limit=50"
+        data = requests.get(url).json()
+        raw = data.get('results', [])
+        
+        # Применяем ту же строгую фильтрацию
+        for item in raw:
+            match = False
+            if type == 'artists':
+                if query.lower() in item['artistName'].lower():
+                    item['image'] = get_true_artist_image(item['artistId'])
+                    match = True
+            elif type == 'albums':
+                if query.lower() in item['artistName'].lower() or query.lower() in item['collectionName'].lower():
+                    item['artworkUrl100'] = item.get('artworkUrl100', '').replace('100x100bb', '300x300bb')
+                    match = True
+            elif type == 'songs':
+                if query.lower() in item['artistName'].lower() or query.lower() in item['trackName'].lower():
+                    q = f"{item['artistName']} {item['trackName']}"
+                    item['spotify_link'] = generate_spotify_link(q)
+                    match = True
+            
+            if match:
+                results.append(item)
+                
+    except:
+        pass
+        
+    return render_template('index.html', view='see_all', results=results, type=type, query=query)
+
 @app.route('/artist/<int:artist_id>')
 def artist_page(artist_id):
     try:
-        # Инфо об артисте
         lookup = requests.get(f"https://itunes.apple.com/lookup?id={artist_id}").json()
         artist = lookup['results'][0]
         
-        # Загружаем ВСЕ альбомы (limit=200)
         albums_req = requests.get(f"https://itunes.apple.com/lookup?id={artist_id}&entity=album&limit=200").json()
-        
-        # Фильтруем (убираем самого артиста из списка и чужие сборники)
         raw_albums = [x for x in albums_req.get('results', []) if x.get('collectionType') == 'Album' and x.get('artistId') == artist_id]
         
-        # СОРТИРУЕМ ПО КАТЕГОРИЯМ
         discography = sort_albums(raw_albums)
-        
-        # Ищем картинку артиста (через последний альбом)
         artist_image = None
-        if discography['albums']:
-            artist_image = discography['albums'][0]['artworkUrl100']
-        elif raw_albums:
-            artist_image = raw_albums[0]['artworkUrl100'].replace('100x100bb', '400x400bb')
-
+        if discography['albums']: artist_image = discography['albums'][0]['artworkUrl100']
+        
         return render_template('index.html', view='artist_detail', artist=artist, discography=discography, artist_image=artist_image)
-    except Exception as e:
-        return f"Error: {e}"
+    except:
+        return "Error"
 
 @app.route('/album/<int:collection_id>')
 def album_page(collection_id):
-    # (Эта часть без изменений, она работает хорошо)
     try:
         url = f"https://itunes.apple.com/lookup?id={collection_id}&entity=song"
         data = requests.get(url).json()
