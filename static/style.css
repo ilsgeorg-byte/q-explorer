@@ -1,130 +1,51 @@
-/* === 1. БАЗОВЫЕ НАСТРОЙКИ === */
-:root {
-    --primary: #fa243c;
-    --bg-dark: #121212;
-    --bg-card: #1e1e1e;
-    --text-main: #fff;
-    --text-sub: #a0a0a0;
-}
 
+:root { --primary: #fa243c; --bg-dark: #121212; --bg-card: #1e1e1e; --text-main: #fff; --text-sub: #a0a0a0; }
 * { box-sizing: border-box; }
-
-body {
-    font-family: -apple-system, system-ui, sans-serif;
-    background: var(--bg-dark);
-    color: var(--text-main);
-    margin: 0;
-    padding: 20px;
-    /* ОПТИМИЗАЦИЯ ОТСТУПА: */
-    padding-top: 110px; /* Для десктопа */
-}
-
+body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg-dark); color: var(--text-main); margin: 0; padding: 20px; padding-top: 110px; }
 a { text-decoration: none; color: inherit; }
 
-/* === 2. ШАПКА (SEARCH) === */
-.search-container {
-    position: fixed; top: 0; left: 0; right: 0;
-    background: rgba(18,18,18,0.98); /* Почти непрозрачный */
-    backdrop-filter: blur(15px);
-    padding: 15px 20px;
-    z-index: 900;
-    border-bottom: 1px solid #333;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4); /* Тень чтобы отделить от контента */
-}
+.search-container { position: fixed; top: 0; left: 0; right: 0; background: rgba(18,18,18,0.98); backdrop-filter: blur(15px); padding: 15px 20px; z-index: 900; border-bottom: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
 .header { max-width: 1200px; margin: 0 auto 10px; }
 .logo { font-size: 24px; font-weight: 800; }
 .search-wrapper { max-width: 1200px; margin: 0 auto; display: flex; gap: 10px; position: relative; }
 input { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #333; background: #000; color: #fff; font-size: 16px; }
 button { padding: 0 25px; border-radius: 12px; border: none; background: var(--primary); color: #fff; font-weight: 600; cursor: pointer; }
 
-/* === 3. ИЗБРАННОЕ (FAVORITES) === */
-#favorites-section {
-    max-width: 1200px; margin: 20px auto 40px; 
-    display: none;
-    /* Красивая подложка */
-    background: #181818;
-    border: 1px solid #2a2a2a;
-    border-radius: 16px;
-    padding: 15px 20px;
-}
-
-.fav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.fav-title { font-size: 14px; color: var(--text-sub); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-.fav-controls { display: flex; gap: 15px; font-size: 13px; align-items: center; }
-
-/* Кнопки управления избранным */
-.fav-btn-action {
-    color: var(--primary);
-    cursor: pointer;
-    font-weight: 600;
-    padding: 4px 8px;
-    border-radius: 6px;
-    transition: 0.2s;
-}
-.fav-btn-action:hover { background: rgba(250, 36, 60, 0.1); }
-
-
-/* Режим скролла (Компактный) */
-.scroll-row {
-    display: flex; gap: 15px; overflow-x: auto; padding-bottom: 5px;
-    scrollbar-width: none;
-}
-.scroll-row::-webkit-scrollbar { display: none; }
-
-.scroll-row .card {
-    min-width: 100px; width: 100px;
-    flex-shrink: 0; padding: 8px;
-    background: transparent; /* В скролле без фона, чтобы легче смотрелось */
-}
-.scroll-row .card:hover { background: #222; }
-.scroll-row .card img { height: 100px; margin-bottom: 8px; }
-.scroll-row .info .title { font-size: 11px; text-align: center; }
-.scroll-row .info .sub { display: none; } /* Скрываем подписи в компактном виде */
-.scroll-row .btn-like { width: 24px; height: 24px; font-size: 14px; top: 5px; right: 5px; }
-
-/* === 4. ОБЩИЕ СТИЛИ (GRID, CARDS) === */
-.grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px;
-    max-width: 1200px; margin: 0 auto;
-}
-.card {
-    background: var(--bg-card); padding: 12px; border-radius: 12px;
-    display: block; position: relative; transition: 0.2s;
-}
-.card:hover { background: #2a2a2a; transform: translateY(-3px); }
-.card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
-.artist-card img { border-radius: 50%; }
-
-.info .title { font-weight: 600; font-size: 14px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.info .sub { font-size: 12px; color: var(--text-sub); }
-
-.btn-like {
-    position: absolute; top: 8px; right: 8px;
-    width: 28px; height: 28px; border-radius: 50%;
-    background: rgba(0,0,0,0.6); color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; z-index: 5;
-}
-.btn-like.liked { color: var(--primary); }
-
-/* Кнопка BACK (SEE ALL) */
-.btn-see-all { 
-    color: var(--primary); cursor: pointer; font-weight: 600; 
-    display: inline-block;
-    /* ВАЖНО: Добавляем отступ сверху, чтобы не прилипала к шапке */
-    margin-top: 10px; 
-}
-
-/* History Dropdown */
-#history-dropdown {
-    position: absolute; top: 100%; left: 0; right: 0;
-    background: #222; border: 1px solid #333; border-top: none;
-    border-radius: 0 0 12px 12px; display: none; margin-top: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
+#history-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #222; border: 1px solid #333; border-top: none; border-radius: 0 0 12px 12px; display: none; margin-top: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 .history-item { padding: 12px; display: flex; justify-content: space-between; cursor: pointer; border-bottom: 1px solid #333; }
 .history-item:hover { background: #333; }
 
-/* Modal & Other */
+#favorites-section { max-width: 1200px; margin: 20px auto 40px; display: none; background: #181818; border: 1px solid #2a2a2a; border-radius: 16px; padding: 15px 20px; }
+.fav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.fav-title { font-size: 14px; color: var(--text-sub); font-weight: bold; text-transform: uppercase; }
+.fav-controls { display: flex; gap: 15px; font-size: 13px; align-items: center; }
+.fav-btn-action { color: var(--primary); cursor: pointer; font-weight: 600; padding: 4px 8px; border-radius: 6px; }
+.fav-btn-action:hover { background: rgba(250, 36, 60, 0.1); }
+
+.scroll-row { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+.scroll-row::-webkit-scrollbar { display: none; }
+.scroll-row .card { min-width: 100px; width: 100px; flex-shrink: 0; padding: 8px; background: transparent; position: relative; }
+.scroll-row .card:hover { background: #222; }
+.scroll-row .card img { height: 100px; margin-bottom: 8px; }
+.scroll-row .info .title { font-size: 11px; text-align: center; }
+.scroll-row .info .sub { display: none; }
+.scroll-row .btn-like { width: 24px; height: 24px; font-size: 14px; top: 5px; right: 5px; z-index: 100; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+.card { background: var(--bg-card); padding: 12px; border-radius: 12px; display: block; position: relative; transition: 0.2s; }
+.card:hover { background: #2a2a2a; transform: translateY(-3px); }
+.card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
+.artist-card img { border-radius: 50%; }
+.info .title { font-weight: 600; font-size: 14px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.info .sub { font-size: 12px; color: var(--text-sub); }
+
+.btn-like { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 20; transition: 0.2s; }
+.btn-like:hover { transform: scale(1.1); background: rgba(0,0,0,0.9); }
+.btn-like.liked { color: var(--primary); }
+.song-like { position: static; background: transparent; width: auto; height: auto; margin-left: auto; }
+
+.btn-see-all { color: var(--primary); cursor: pointer; font-weight: 600; display: inline-block; margin-top: 10px; }
+
 #music-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); }
 .modal-content { background: #222; padding: 30px; border-radius: 20px; width: 300px; text-align: center; border: 1px solid #444; }
 .modal-title { font-size: 18px; margin-bottom: 20px; font-weight: bold; }
@@ -133,7 +54,6 @@ button { padding: 0 25px; border-radius: 12px; border: none; background: var(--p
 .m-apple { background: #fc3c44; color: #fff; }
 .m-cancel { border: 1px solid #444; color: #aaa; margin-top: 15px; cursor: pointer; }
 
-/* Headers & Hero */
 .section-header { max-width: 1200px; margin: 30px auto 15px; display: flex; justify-content: space-between; align-items: flex-end; }
 .section-title { font-size: 20px; margin: 0; }
 .artist-hero, .hero { text-align: center; max-width: 600px; margin: 0 auto 40px; border-bottom: 1px solid #333; padding-bottom: 30px; }
@@ -148,15 +68,10 @@ button { padding: 0 25px; border-radius: 12px; border: none; background: var(--p
 .sim-circle { width: 60px; height: 60px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid var(--primary); margin-bottom: 5px; }
 .similar-card { color: #fff; font-size: 12px; text-align: center; }
 
-/* === 5. МОБИЛЬНАЯ АДАПТАЦИЯ (ВАЖНО) === */
 @media (max-width: 768px) {
-    body {
-        /* Увеличиваем отступ на мобильных, так как поиск может занимать 2 строки */
-        padding-top: 150px; 
-    }
+    body { padding-top: 150px; }
     .search-wrapper { flex-wrap: wrap; }
     button { width: 100%; margin-top: 5px; }
-    
     .hero { flex-direction: column; text-align: center; }
     .grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
 }

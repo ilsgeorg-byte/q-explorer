@@ -2,46 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Q-Explorer</title>
-    <!-- Подключаем внешние стили -->
+    <!-- FAVICON ADDED HERE -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-    <!-- Шапка и Поиск (Фиксированная) -->
     <div class="search-container">
         <div class="header">
             <a href="/" class="logo">Q-Explorer <span style="color:var(--primary)">.</span></a>
         </div>
         <form action="/" method="get" class="search-wrapper" onsubmit="saveHistory(this.q.value)">
-            <input type="text" name="q" placeholder="Search artists, albums, songs..." 
-                   value="{{ query if query else '' }}" 
-                   autocomplete="off" 
-                   onfocus="showHistory()">
+            <input type="text" name="q" placeholder="Search..." value="{{ query if query else '' }}" autocomplete="off" onfocus="showHistory()">
             <button type="submit">Go</button>
-            
-            <!-- Выпадающий список истории -->
             <div id="history-dropdown"></div>
         </form>
     </div>
-    <!-- КОНЕЦ ФИКСИРОВАННОЙ ШАПКИ -->
 
-    <!-- ИЗБРАННОЕ (Скроллится вместе со страницей) -->    
     <div id="favorites-section">
         <div class="fav-header">
             <div class="fav-title">❤️ My Favorites</div>
             <div class="fav-controls">
-                <!-- Класс fav-btn-action делает их похожими на кнопки -->
                 <span class="fav-btn-action" onclick="toggleFavsView()" id="fav-toggle-btn">See All</span>
                 <span class="fav-btn-action" onclick="clearFavs()">Clear</span>
             </div>
         </div>
-        <!-- Контейнер для карточек -->
         <div id="favorites-container" class="scroll-row"></div>
     </div>
 
-    <!-- Модальное окно выбора сервиса -->
     <div id="music-modal" onclick="closeMusicModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-title">Listen on...</div>
@@ -51,19 +41,14 @@
         </div>
     </div>
 
-    <!-- ГЛАВНАЯ СТРАНИЦА -->
     {% if view == 'home' %}
-    <div style="text-align: center; margin-top: 100px; color: #666;">
+    <div class="empty-state">
         <div style="font-size: 60px; margin-bottom: 20px;">🎵</div>
-        Search for music to start exploring<br>
-        <span style="font-size: 12px; margin-top: 10px; display:block;">Powered by iTunes & Last.fm</span>
+        Start searching for music
     </div>
     {% endif %}
 
-    <!-- РЕЗУЛЬТАТЫ ПОИСКА -->
     {% if view == 'results' %}
-        
-        <!-- Artists -->
         {% if data.artists %}
         <div class="section-header">
             <h2 class="section-title">Artists</h2>
@@ -73,29 +58,16 @@
             {% for item in data.artists %}
             <a href="/artist/{{ item.artistId }}" class="card artist-card">
                 <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
-                
-                {% if item.image %}
-                    <img src="{{ item.image }}" loading="lazy">
-                {% else %}
-                    <div style="width:100%; aspect-ratio:1; background:#333; display:flex; align-items:center; justify-content:center; border-radius:50%; width:80%; margin:10% auto;">🎵</div>
-                {% endif %}
-                
+                {% if item.image %} <img src="{{ item.image }}"> {% else %} <div class="placeholder-img">🎵</div> {% endif %}
                 <div class="info">
                     <div class="title">{{ item.artistName }}</div>
-                    <div class="sub">{{ item.primaryGenreName }}</div>
-                    {% if item.stats %}
-                    <div class="stats-container">
-                        <span class="artist-stats">{{ item.stats }}</span>
-                        <span class="lastfm-tag">Last.fm Data</span>
-                    </div>
-                    {% endif %}
+                    {% if item.stats %}<span class="artist-stats">{{ item.stats }}</span>{% endif %}
                 </div>
             </a>
             {% endfor %}
         </div>
         {% endif %}
 
-        <!-- Albums -->
         {% if data.albums %}
         <div class="section-header">
             <h2 class="section-title">Albums</h2>
@@ -105,17 +77,13 @@
             {% for item in data.albums %}
             <a href="/album/{{ item.collectionId }}" class="card">
                 <div class="btn-like" onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">♥</div>
-                <img src="{{ item.artworkUrl100 }}" loading="lazy">
-                <div class="info">
-                    <div class="title">{{ item.collectionName }}</div>
-                    <div class="sub">{{ item.artistName }}</div>
-                </div>
+                <img src="{{ item.artworkUrl100 }}">
+                <div class="info"><div class="title">{{ item.collectionName }}</div><div class="sub">{{ item.artistName }}</div></div>
             </a>
             {% endfor %}
         </div>
         {% endif %}
 
-        <!-- Songs -->
         {% if data.songs %}
         <div class="section-header">
             <h2 class="section-title">Songs</h2>
@@ -134,26 +102,51 @@
             {% endfor %}
         </div>
         {% endif %}
-
     {% endif %}
 
-    <!-- ДЕТАЛИ АРТИСТА -->
+    {% if view == 'see_all' %}
+    <a href="/?q={{ query }}" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back to Search</a>
+    <h1 style="font-size: 24px; margin-bottom: 20px;">All {{ type|capitalize }} for "{{ query }}"</h1>
+    {% if not results %}
+        <div style="text-align:center; padding: 40px; color:#666;">No results found.</div>
+    {% else %}
+    <div class="grid">
+        {% for item in results %}
+            {% if type == 'artists' %}
+            <a href="/artist/{{ item.artistId }}" class="card artist-card">
+                 <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
+                <img src="{{ item.image }}">
+                <div class="info"><div class="title">{{ item.artistName }}</div></div>
+            </a>
+            {% elif type == 'albums' %}
+            <a href="/album/{{ item.collectionId }}" class="card">
+                 <div class="btn-like" onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">♥</div>
+                <img src="{{ item.artworkUrl100 }}">
+                <div class="info"><div class="title">{{ item.collectionName }}</div><div class="sub">{{ item.artistName }}</div></div>
+            </a>
+            {% elif type == 'songs' %}
+             <div class="song-row" onclick="openMusicModal('{{ item.spotify_link }}', '{{ item.collectionId }}', '{{ item.trackId }}')">
+                <img src="{{ item.artworkUrl100 }}" class="song-img">
+                <div class="song-info">
+                    <div class="song-title">{{ item.trackName }}</div>
+                    <div class="song-artist">{{ item.artistName }}</div>
+                </div>
+                <div class="song-like btn-like" onclick="toggleLike(this, 'song', '{{ item.trackId }}', '{{ item.trackName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.spotify_link }}')">♥</div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endif %}
+
     {% if view == 'artist_detail' %}
     <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
-    
     <div class="artist-hero">
-        {% if artist_image %}
-            <img src="{{ artist_image }}">
-        {% endif %}
+        {% if artist_image %}<img src="{{ artist_image }}">{% endif %}
         <h1>{{ artist.artistName }}</h1>
         <div class="genre">{{ artist.primaryGenreName }}</div>
-        {% if artist.stats %}
-            <div style="margin-top:10px; font-weight:bold; color:#eee;">{{ artist.stats }}</div>
-            <div class="lastfm-tag">Last.fm Data</div>
-        {% endif %}
+        {% if artist.stats %}<div class="stats-hero">{{ artist.stats }}</div>{% endif %}
     </div>
-
-    <!-- Похожие артисты (НОВОЕ) -->
     {% if similar %}
     <div class="similar-artists">
         <h3>Fans also like</h3>
@@ -167,21 +160,15 @@
         </div>
     </div>
     {% endif %}
-
     {% for cat, items in discography.items() %}
         {% if items %}
-        <div class="section-header">
-            <h2 class="section-title">{{ cat|capitalize }}</h2>
-        </div>
+        <div class="section-header"><h2 class="section-title">{{ cat|capitalize }}</h2></div>
         <div class="grid">
             {% for item in items %}
             <a href="/album/{{ item.collectionId }}" class="card">
-                 <div class="btn-like" onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">♥</div>
-                <img src="{{ item.artworkUrl100 }}" loading="lazy">
-                <div class="info">
-                    <div class="title">{{ item.collectionName }}</div>
-                    <div class="sub">{{ item.releaseDate[:4] }}</div>
-                </div>
+                <div class="btn-like" onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">♥</div>
+                <img src="{{ item.artworkUrl100 }}">
+                <div class="info"><div class="title">{{ item.collectionName }}</div><div class="sub">{{ item.releaseDate[:4] }}</div></div>
             </a>
             {% endfor %}
         </div>
@@ -189,49 +176,31 @@
     {% endfor %}
     {% endif %}
 
-    <!-- ДЕТАЛИ АЛЬБОМА -->
     {% if view == 'album_detail' %}
     <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
-    
     <div class="hero">
         <img src="{{ album.artworkUrl100 }}">
         <div class="hero-info">
             <h1>{{ album.collectionName }}</h1>
-            <div class="sub" style="font-size:16px;">{{ album.artistName }} • {{ album.releaseDate[:4] }}</div>
-            
-            {% if album_stats %}
-                <div class="hero-stats">{{ album_stats }}</div>
-                <div class="lastfm-tag">LAST.FM</div>
-            {% endif %}
-
+            <div class="sub">{{ album.artistName }} • {{ album.releaseDate[:4] }}</div>
+            {% if album_stats %}<div class="hero-stats">{{ album_stats }}</div>{% endif %}
             <div class="actions">
-                <a href="{{ spotify_link }}" target="_blank" class="btn btn-spotify">Spotify ↗</a>
-                <a href="https://music.apple.com/album/{{ album.collectionId }}" target="_blank" class="btn btn-apple">Apple Music ↗</a>
+                <a href="{{ spotify_link }}" target="_blank" class="btn btn-spotify">Spotify</a>
+                <a href="https://music.apple.com/album/{{ album.collectionId }}" target="_blank" class="btn btn-apple">Apple Music</a>
             </div>
         </div>
     </div>
-
-    <div class="song-list" style="margin-top:30px;">
+    <div class="song-list">
         {% for song in songs %}
         <div class="track" onclick="openMusicModal('{{ song.spotify_link }}', '{{ album.collectionId }}', '{{ song.trackId }}')">
             <div class="t-num">{{ song.trackNumber }}</div>
             <div class="t-name">{{ song.trackName }}</div>
-            <div style="color:#666; font-size:12px;">
-                {{ (song.trackTimeMillis / 60000) | round | int }}:{{ '%02d' % ((song.trackTimeMillis / 1000) % 60) | int }}
-            </div>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <!-- Подключаем скрипты -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script>
-        // Инициализация при загрузке
-        document.addEventListener('DOMContentLoaded', () => {
-            renderFavorites();
-            checkLikedStatus();
-        });
-    </script>
+    <script>document.addEventListener('DOMContentLoaded', () => { renderFavorites(); checkLikedStatus(); });</script>
 </body>
 </html>
