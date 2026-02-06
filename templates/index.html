@@ -138,7 +138,13 @@
         <div class="grid">
             {% for item in results %}
                 {% if type == 'artists' %}
+                <!-- Если это Deezer, генерируем спец-ссылку для поиска -->
+            {% if item.source == 'deezer' %}
+                <a href="/artist/search:{{ item.artistName }}" class="card artist-card">
+            {% else %}
                 <a href="/artist/{{ item.artistId }}" class="card artist-card">
+            {% endif %}
+
                      <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
                     <img src="{{ item.image }}">
                     <div class="info"><div class="title">{{ item.artistName }}</div></div>
