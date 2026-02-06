@@ -21,23 +21,40 @@
 
         /* SEARCH HISTORY DROPDOWN */
         #history-dropdown {
-            position: absolute; top: 100%; left: 0; right: 80px; /* Leave space for button */
+            position: absolute; top: 100%; left: 0; right: 80px;
             background: #2a2a2a; border-radius: 0 0 8px 8px; border: 1px solid #333;
             display: none; z-index: 200; max-height: 200px; overflow-y: auto;
         }
-        .history-item {
-            padding: 10px 12px; border-bottom: 1px solid #333; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-        }
+        .history-item { padding: 10px 12px; border-bottom: 1px solid #333; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .history-item:hover { background: #333; }
         .history-text { color: #eee; }
         .history-remove { color: #666; font-size: 18px; padding: 0 5px; }
-        .history-remove:hover { color: #f00; }
 
         /* FAVORITES SECTION */
         #favorites-section { margin-top: 20px; display: none; border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px;}
         .fav-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
         .fav-title { font-size: 18px; font-weight: 700; color: #ffd700; display: flex; align-items: center; gap: 8px;}
         .clear-fav { font-size: 12px; color: #666; cursor: pointer; text-decoration: underline; }
+
+        /* MODAL (MUSIC SELECTOR) */
+        #music-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000; display: none;
+            align-items: center; justify-content: center; backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: #222; padding: 30px; border-radius: 20px; text-align: center;
+            width: 90%; max-width: 300px; border: 1px solid #444; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+        .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 20px; color: white; }
+        .modal-btn {
+            display: flex; align-items: center; justify-content: center; width: 100%;
+            padding: 15px 0; margin-bottom: 10px; border-radius: 12px;
+            font-weight: bold; text-decoration: none; color: white; transition: 0.2s;
+        }
+        .m-spotify { background: var(--spotify); }
+        .m-apple { background: var(--apple); }
+        .m-cancel { background: #333; margin-top: 20px; color: #aaa; }
 
         /* GRID & CARDS */
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; margin-top: 30px; }
@@ -52,7 +69,6 @@
         .title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
         .sub { font-size: 12px; color: var(--text-sec); margin-top: 4px; }
         
-        /* LIKE BUTTON */
         .btn-like {
             position: absolute; top: 10px; right: 10px; width: 30px; height: 30px;
             background: rgba(0,0,0,0.6); border-radius: 50%; display: flex;
@@ -62,14 +78,13 @@
         .btn-like.liked { color: #f00; background: rgba(255,255,255,0.9); }
         .btn-like:hover { transform: scale(1.1); }
 
-        /* STATS */
         .stats-container { display: flex; flex-direction: column; align-items: center; margin-top: 5px; }
         .artist-stats { color: #eee; font-size: 12px; font-weight: bold; }
         .lastfm-tag { font-size: 8px; color: #d51007; font-weight: 800; text-transform: uppercase; margin-top: 2px; opacity: 0.8; letter-spacing: 0.5px;}
 
         /* SONGS */
         .song-list { display: flex; flex-direction: column; gap: 5px; }
-        .song-row { display: flex; align-items: center; padding: 10px; background: var(--card-bg); border-radius: 8px; text-decoration: none; color: inherit; position: relative; }
+        .song-row { display: flex; align-items: center; padding: 10px; background: var(--card-bg); border-radius: 8px; text-decoration: none; color: inherit; position: relative; cursor: pointer;}
         .song-img { width: 40px; height: 40px; border-radius: 4px; margin-right: 15px; }
         .song-info { flex-grow: 1; min-width: 0; }
         .song-title { font-weight: 500; font-size: 14px; }
@@ -78,7 +93,6 @@
         .song-like { position: static; background: transparent; width: auto; height: auto; margin-right: 10px; color: #444; }
         .song-like.liked { color: #f00; background: transparent; }
 
-        /* HERO & BUTTONS */
         .artist-hero { text-align: center; margin-bottom: 40px; padding-top: 20px; position: relative; }
         .artist-hero img { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; box-shadow: 0 10px 40px rgba(0,0,0,0.6); margin-bottom: 20px; }
         .artist-hero h1 { font-size: 32px; margin: 0; }
@@ -94,16 +108,26 @@
         .btn-spotify { background: var(--spotify); }
         .btn-apple { background: var(--apple); }
         
-        .track { display: flex; padding: 12px 0; border-bottom: 1px solid #222; text-decoration: none; color: #ccc; }
+        .track { display: flex; padding: 12px 0; border-bottom: 1px solid #222; text-decoration: none; color: #ccc; cursor: pointer; }
         .t-num { width: 30px; color: #666; font-size: 12px; }
         .t-name { flex: 1; color: white; font-weight: 500;}
     </style>
 </head>
 <body>
+    
+    <!-- MODAL WINDOW -->
+    <div id="music-modal" onclick="closeMusicModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-title">Listen on...</div>
+            <a id="modal-spotify" href="#" target="_blank" class="modal-btn m-spotify">Spotify</a>
+            <a id="modal-apple" href="#" target="_blank" class="modal-btn m-apple">Apple Music</a>
+            <div class="modal-btn m-cancel" onclick="closeMusicModal()">Cancel</div>
+        </div>
+    </div>
+
     <div class="header">
         <a href="/" class="logo">Q-Explorer</a>
         
-        <!-- FAVORITES SECTION (JS Populated) -->
         <div id="favorites-section">
             <div class="fav-header">
                 <div class="fav-title">❤️ My Favorites</div>
@@ -117,7 +141,6 @@
                 <div class="search-wrapper">
                     <input type="text" id="search-input" name="q" placeholder="Search music..." value="{{ request.args.get('q', '') }}" autocomplete="off" onfocus="showHistory()" onblur="setTimeout(hideHistory, 200)">
                     <button type="submit">Go</button>
-                    <!-- HISTORY DROPDOWN -->
                     <div id="history-dropdown"></div>
                 </div>
             </form>
@@ -172,13 +195,14 @@
             <div class="section"><div class="section-header"><div class="section-title">Songs</div><a href="/see-all/songs?q={{ query }}" class="btn-see-all">See All</a></div>
                 <div class="song-list">
                     {% for item in data.songs %}
-                        <div class="song-row">
+                        <!-- CLICKING OPENS MODAL -->
+                        <div class="song-row" onclick="openMusicModal('{{ item.spotify_link }}', 'https://music.apple.com/us/search?term={{ item.artistName }} {{ item.trackName }}')">
                              <div class="btn-like song-like" onclick="toggleLike(this, 'song', '{{ item.trackId }}', `{{ item.trackName }}`, '{{ item.artworkUrl100 }}', `{{ item.artistName }}`, '{{ item.spotify_link }}')">♥</div>
-                             <a href="{{ item.spotify_link }}" target="_blank" style="display:flex; flex-grow:1; align-items:center; text-decoration:none; color:inherit;">
+                             <div style="display:flex; flex-grow:1; align-items:center;">
                                 <img src="{{ item.artworkUrl100 }}" class="song-img">
                                 <div class="song-info"><div class="song-title">{{ item.trackName }}</div><div class="song-artist">{{ item.artistName }}</div></div>
                                 <div class="btn-play">▶</div>
-                            </a>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -196,7 +220,6 @@
             {% if artist.stats %}<div style="margin-top: 10px;"><span style="font-weight: bold; font-size: 16px;">{{ artist.stats }}</span><span class="lastfm-tag" style="margin-left: 5px; font-size: 10px;">Last.fm Data</span></div>{% endif %}
         </div>
         
-        <!-- DISCOGRAPHY LOOPS (Albums, Singles, etc) - ADDED LIKE BUTTONS -->
         {% for cat, items in discography.items() %}
             {% if items %}
                 <div class="section"><div class="section-title">{{ cat|capitalize }}</div><div class="grid">
@@ -226,25 +249,41 @@
                 
                 <div class="actions">
                     <a href="{{ spotify_link }}" target="_blank" class="btn btn-spotify">Spotify ↗</a>
-                    <!-- NEW APPLE MUSIC BUTTON -->
                     <a href="https://music.apple.com/album/{{ album.collectionId }}" target="_blank" class="btn btn-apple">Apple Music ↗</a>
                 </div>
             </div>
         </div>
         <div class="tracklist">
             {% for song in songs %}
-                <a href="{{ song.spotify_link }}" target="_blank" class="track"><div class="t-num">{{ song.trackNumber }}</div><div class="t-name">{{ song.trackName }}</div><div style="font-family:monospace; color:#666;">{{ (song.trackTimeMillis / 60000) | round | int }}:{{ '%02d' % ((song.trackTimeMillis / 1000) % 60) | int }}</div></a>
+                <!-- CLICKING OPENS MODAL -->
+                <div class="track" onclick="openMusicModal('{{ song.spotify_link }}', 'https://music.apple.com/us/search?term={{ song.artistName }} {{ song.trackName }}')">
+                    <div class="t-num">{{ song.trackNumber }}</div>
+                    <div class="t-name">{{ song.trackName }}</div>
+                    <div style="font-family:monospace; color:#666;">{{ (song.trackTimeMillis / 60000) | round | int }}:{{ '%02d' % ((song.trackTimeMillis / 1000) % 60) | int }}</div>
+                </div>
             {% endfor %}
         </div>
     {% endif %}
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // --- FAVORITES SYSTEM ---
+        // --- MODAL LOGIC ---
+        function openMusicModal(spotifyLink, appleLink) {
+            document.getElementById('modal-spotify').href = spotifyLink;
+            // Apple Music Search Link (поскольку у нас нет ID песни, ищем по названию)
+            document.getElementById('modal-apple').href = appleLink; 
+            document.getElementById('music-modal').style.display = 'flex';
+        }
+
+        function closeMusicModal() {
+            document.getElementById('music-modal').style.display = 'none';
+        }
+
+        // --- FAVORITES & HISTORY (As before) ---
         function getFavs() { return JSON.parse(localStorage.getItem('q_favs') || '[]'); }
         function saveFavs(favs) { localStorage.setItem('q_favs', JSON.stringify(favs)); renderFavorites(); }
 
         function toggleLike(btn, type, id, title, img, sub, link) {
+            event.stopPropagation(); // Stop opening the modal/link
             let favs = getFavs();
             const index = favs.findIndex(f => f.id === id);
             
@@ -252,19 +291,15 @@
                 favs.splice(index, 1);
                 btn.classList.remove('liked');
             } else {
-                favs.unshift({ type, id, title, img, sub, link }); // Add to beginning
+                favs.unshift({ type, id, title, img, sub, link });
                 btn.classList.add('liked');
             }
             saveFavs(favs);
-            // Prevent clicking the link underneath
-            if(event) event.stopPropagation();
-            if(event) event.preventDefault();
         }
 
         function checkLikedStatus() {
             let favs = getFavs();
             document.querySelectorAll('.btn-like').forEach(btn => {
-                // We use the onclick attribute string to find the ID (hacky but works without extra data attrs)
                 const idMatch = btn.getAttribute('onclick').match(/'(\d+)'/);
                 if (idMatch && favs.find(f => f.id === idMatch[1])) {
                     btn.classList.add('liked');
@@ -276,21 +311,20 @@
             const favs = getFavs();
             const container = document.getElementById('favorites-section');
             const grid = document.getElementById('favorites-grid');
-            
-            if (favs.length === 0) {
-                container.style.display = 'none';
-                return;
-            }
+            if (favs.length === 0) { container.style.display = 'none'; return; }
             
             container.style.display = 'block';
             grid.innerHTML = favs.map(f => {
-                let href = f.type === 'artist' ? `/artist/${f.id}` : (f.type === 'album' ? `/album/${f.id}` : f.link);
+                let href = f.type === 'artist' ? `/artist/${f.id}` : (f.type === 'album' ? `/album/${f.id}` : '#');
                 let imgStyle = f.type === 'artist' ? 'border-radius:50%; width:80%; margin:10% auto;' : 'width:100%';
                 
+                // For songs in favorites, we also open the modal
+                let onclick = f.type === 'song' ? `onclick="openMusicModal('${f.link}', 'https://music.apple.com/us/search?term=${f.sub} ${f.title}')"` : '';
+
                 return `
-                <div class="card" style="position:relative;">
+                <div class="card" style="position:relative;" ${onclick}>
                     <div class="btn-like liked" onclick="toggleLike(this, '${f.type}', '${f.id}', '', '', '', '')">♥</div>
-                    <a href="${href}" ${f.type==='song'?'target="_blank"':''} style="text-decoration:none; color:inherit; display:block;">
+                    <a href="${href}" style="text-decoration:none; color:inherit; display:block;">
                         <img src="${f.img || ''}" style="${imgStyle}">
                         <div class="info">
                             <div class="title">${f.title}</div>
@@ -301,64 +335,30 @@
             }).join('');
         }
 
-        function clearFavorites() {
-            if(confirm('Clear all favorites?')) {
-                saveFavs([]);
-            }
-        }
+        function clearFavorites() { if(confirm('Clear?')) saveFavs([]); }
 
-        // --- SEARCH HISTORY ---
         function getHistory() { return JSON.parse(localStorage.getItem('q_history') || '[]'); }
-        
         function saveHistory() {
             const val = document.getElementById('search-input').value.trim();
             if (!val) return;
             let hist = getHistory();
-            hist = hist.filter(h => h !== val); // Remove duplicate
-            hist.unshift(val); // Add to top
-            if (hist.length > 5) hist.pop(); // Keep max 5
+            hist = hist.filter(h => h !== val);
+            hist.unshift(val);
+            if (hist.length > 5) hist.pop();
             localStorage.setItem('q_history', JSON.stringify(hist));
         }
-
         function showHistory() {
             const hist = getHistory();
             const dd = document.getElementById('history-dropdown');
             if (hist.length === 0) { dd.style.display = 'none'; return; }
-            
-            dd.innerHTML = hist.map(h => `
-                <div class="history-item" onclick="setSearch('${h}')">
-                    <span class="history-text">🕒 ${h}</span>
-                    <span class="history-remove" onclick="removeHistory(event, '${h}')">×</span>
-                </div>
-            `).join('');
+            dd.innerHTML = hist.map(h => `<div class="history-item" onclick="setSearch('${h}')"><span class="history-text">🕒 ${h}</span><span class="history-remove" onclick="removeHistory(event, '${h}')">×</span></div>`).join('');
             dd.style.display = 'block';
         }
+        function hideHistory() { document.getElementById('history-dropdown').style.display = 'none'; }
+        function setSearch(val) { document.getElementById('search-input').value = val; document.querySelector('.search-form').submit(); }
+        function removeHistory(e, val) { e.stopPropagation(); let hist = getHistory().filter(h => h !== val); localStorage.setItem('q_history', JSON.stringify(hist)); if(hist.length === 0) document.getElementById('history-dropdown').style.display = 'none'; else showHistory(); document.getElementById('search-input').focus(); }
 
-        function hideHistory() {
-            document.getElementById('history-dropdown').style.display = 'none';
-        }
-
-        function setSearch(val) {
-            document.getElementById('search-input').value = val;
-            document.querySelector('.search-form').submit();
-        }
-
-        function removeHistory(e, val) {
-            e.stopPropagation();
-            let hist = getHistory().filter(h => h !== val);
-            localStorage.setItem('q_history', JSON.stringify(hist));
-            // Re-render
-            const dd = document.getElementById('history-dropdown');
-            if(hist.length === 0) dd.style.display = 'none';
-            else showHistory();
-            document.getElementById('search-input').focus();
-        }
-
-        // INIT
-        document.addEventListener('DOMContentLoaded', () => {
-            renderFavorites();
-            checkLikedStatus();
-        });
+        document.addEventListener('DOMContentLoaded', () => { renderFavorites(); checkLikedStatus(); });
     </script>
 </body>
 </html>
