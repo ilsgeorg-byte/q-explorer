@@ -3,8 +3,7 @@
 body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg-dark); color: var(--text-main); margin: 0; padding: 20px; padding-top: 110px; }
 a { text-decoration: none; color: inherit; }
 
-/* ОБЩИЙ КОНТЕЙНЕР 1200px (Выравнивание) */
-/* Добавили .similar-artists в общий список для центрирования */
+/* ОБЩИЙ КОНТЕЙНЕР */
 .header, .search-wrapper, .section-header, .page-header, .grid, .song-list, .artist-hero, .hero, #favorites-section, .similar-artists {
     max-width: 1200px;
     margin-left: auto;
@@ -26,7 +25,7 @@ button { padding: 0 25px; border-radius: 12px; border: none; background: var(--p
 .history-item { padding: 12px; display: flex; justify-content: space-between; cursor: pointer; border-bottom: 1px solid #333; }
 .history-item:hover { background: #333; }
 
-/* FAVORITES & SCROLL ROW (90px) */
+/* FAVORITES & SCROLL ROW */
 #favorites-section { display: none; background: #181818; border: 1px solid #2a2a2a; border-radius: 16px; padding: 15px 20px; margin-bottom: 40px; }
 .fav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .fav-title { font-size: 14px; color: var(--text-sub); font-weight: bold; text-transform: uppercase; }
@@ -36,16 +35,9 @@ button { padding: 0 25px; border-radius: 12px; border: none; background: var(--p
 
 .scroll-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
 .scroll-row::-webkit-scrollbar { display: none; }
-.scroll-row .card { 
-    min-width: 90px; width: 90px; flex-shrink: 0; 
-    padding: 5px; background: transparent; 
-    position: relative; text-align: center;
-}
+.scroll-row .card { min-width: 90px; width: 90px; flex-shrink: 0; padding: 5px; background: transparent; position: relative; text-align: center; }
 .scroll-row .card:hover { background: #222; }
-.scroll-row .card img { 
-    height: 90px; width: 90px; margin-bottom: 5px; 
-    border-radius: 8px; object-fit: cover;
-}
+.scroll-row .card img { height: 90px; width: 90px; margin-bottom: 5px; border-radius: 8px; object-fit: cover; }
 .scroll-row .artist-card img { border-radius: 50%; }
 .scroll-row .info .title { font-size: 11px; text-align: center; display: block; line-height: 1.2; }
 .scroll-row .info .sub { display: none; }
@@ -80,38 +72,26 @@ button { padding: 0 25px; border-radius: 12px; border: none; background: var(--p
 .song-title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .song-artist { font-size: 13px; color: var(--text-sub); }
 
-/* ИСПРАВЛЕНИЕ FANS ALSO LIKE */
+/* FANS ALSO LIKE FIX */
 .similar-artists { margin-bottom: 40px; }
 .similar-artists h3 { font-size: 18px; margin-bottom: 15px; color: var(--text-sub); }
+.similar-card { width: 90px; flex-shrink: 0; text-align: center; display: flex; flex-direction: column; align-items: center; color: #fff; font-size: 12px; }
+.sim-circle { width: 60px; height: 60px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid var(--primary); margin-bottom: 8px; }
+.similar-card span { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
 
-.similar-card { 
-    width: 90px; /* Фиксированная ширина */
-    flex-shrink: 0;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: #fff; font-size: 12px;
-}
-.sim-circle { 
-    width: 60px; height: 60px; 
-    border-radius: 50%; 
-    background: #333; 
-    display: flex; align-items: center; justify-content: center; 
-    font-size: 24px; 
-    border: 2px solid var(--primary); 
-    margin-bottom: 8px; 
-}
-/* Обрезаем длинный текст в similar artists с многоточием */
-.similar-card span {
-    display: block;
-    width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap; /* Или 'normal' если хотите перенос, но тогда карточки будут разной высоты */
-    line-height: 1.2;
-}
+/* ALBUM DETAILS FIX */
+.actions { display: flex; gap: 15px; margin-top: 15px; }
+.btn { padding: 10px 20px; border-radius: 20px; font-weight: 600; font-size: 14px; transition: 0.2s; display: inline-flex; align-items: center; }
+.btn:hover { transform: scale(1.05); }
+.btn-spotify { background: #1DB954; color: #000; }
+.btn-apple { background: #fc3c44; color: #fff; }
 
+.track { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid #2a2a2a; cursor: pointer; transition: background 0.2s; border-radius: 6px; }
+.track:hover { background: #2a2a2a; }
+.t-num { color: var(--text-sub); width: 30px; font-size: 14px; text-align: right; margin-right: 20px; font-variant-numeric: tabular-nums; }
+.t-name { font-weight: 500; font-size: 16px; color: #fff; }
+
+/* MODAL */
 #music-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); }
 .modal-content { background: #222; padding: 30px; border-radius: 20px; width: 300px; text-align: center; border: 1px solid #444; }
 .modal-title { font-size: 18px; margin-bottom: 20px; font-weight: bold; }
@@ -120,6 +100,16 @@ button { padding: 0 25px; border-radius: 12px; border: none; background: var(--p
 .m-apple { background: #fc3c44; color: #fff; }
 .m-cancel { border: 1px solid #444; color: #aaa; margin-top: 15px; cursor: pointer; }
 
+/* GLOBAL LOADER */
+#global-loader { position: fixed; inset: 0; background: var(--bg-dark); display: none; align-items: center; justify-content: center; z-index: 9999; }
+.spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* SCROLL TOP & TOAST */
+#scroll-top { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; background: var(--primary); color: #fff; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 1000; transition: 0.2s; }
+#scroll-top:hover { transform: translateY(-5px); }
+#toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 20px; display: none; z-index: 2000; font-size: 14px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+
 /* MOBILE FIX */
 @media (max-width: 768px) {
     body { padding-top: 150px; }
@@ -127,54 +117,4 @@ button { padding: 0 25px; border-radius: 12px; border: none; background: var(--p
     button { width: auto; margin-top: 0; }
     .hero { flex-direction: column; text-align: center; }
     .grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
-}
-
-/* ... (весь предыдущий код оставьте как есть) ... */
-
-/* УЛУЧШЕНИЕ СТРАНИЦЫ АЛЬБОМА */
-
-/* Кнопки действий (Spotify/Apple) */
-.actions { 
-    display: flex; 
-    gap: 15px; 
-    margin-top: 15px; 
-}
-.btn { 
-    padding: 10px 20px; 
-    border-radius: 20px; 
-    font-weight: 600; 
-    font-size: 14px; 
-    transition: 0.2s; 
-    display: inline-flex; 
-    align-items: center; 
-}
-.btn:hover { transform: scale(1.05); }
-.btn-spotify { background: #1DB954; color: #000; }
-.btn-apple { background: #fc3c44; color: #fff; }
-
-/* Список треков в альбоме */
-.track {
-    display: flex;
-    align-items: center;
-    padding: 12px 15px;
-    border-bottom: 1px solid #2a2a2a;
-    cursor: pointer;
-    transition: background 0.2s;
-    border-radius: 6px;
-}
-.track:hover {
-    background: #2a2a2a;
-}
-.t-num {
-    color: var(--text-sub);
-    width: 30px;
-    font-size: 14px;
-    text-align: right;
-    margin-right: 20px;
-    font-variant-numeric: tabular-nums; /* Чтобы цифры стояли ровно */
-}
-.t-name {
-    font-weight: 500;
-    font-size: 16px;
-    color: #fff;
 }

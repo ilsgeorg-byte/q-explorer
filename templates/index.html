@@ -9,6 +9,11 @@
 </head>
 <body>
 
+    <!-- ЗАГРУЗЧИК -->
+    <div id="global-loader">
+        <div class="spinner"></div>
+    </div>
+
     <div class="search-container">
         <div class="header">
             <a href="/" class="logo">Q-Explorer <span style="color:var(--primary)">.</span></a>
@@ -79,7 +84,7 @@
                 <img src="{{ item.artworkUrl100 }}">
                 <div class="info">
                     <div class="title">{{ item.collectionName }}</div>
-                    <div class="sub">{{ item.artistName }}</div>
+                    <div class="sub">{{ item.artistName }} {% if item.year %}• {{ item.year }}{% endif %}</div>
                 </div>
             </a>
             {% endfor %}
@@ -135,14 +140,14 @@
                 {% if type == 'artists' %}
                 <a href="/artist/{{ item.artistId }}" class="card artist-card">
                      <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
-                    <img src="{{ item.image }}"> 
+                    <img src="{{ item.image }}">
                     <div class="info"><div class="title">{{ item.artistName }}</div></div>
                 </a>
                 {% elif type == 'albums' %}
                 <a href="/album/{{ item.collectionId }}" class="card">
                      <div class="btn-like" onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">♥</div>
                     <img src="{{ item.artworkUrl100 }}">
-                    <div class="info"><div class="title">{{ item.collectionName }}</div><div class="sub">{{ item.artistName }}</div></div>
+                    <div class="info"><div class="title">{{ item.collectionName }}</div><div class="sub">{{ item.artistName }} {% if item.year %}• {{ item.year }}{% endif %}</div></div>
                 </a>
                 {% endif %}
             {% endfor %}
@@ -154,6 +159,7 @@
     {% if view == 'artist_detail' %}
     <div class="page-header">
         <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
+        <span class="btn-see-all" onclick="sharePage()" style="margin-left: 20px; cursor: pointer;">🔗 Share</span>
     </div>
     <div class="artist-hero">
         {% if artist_image %}<img src="{{ artist_image }}">{% endif %}
@@ -193,6 +199,7 @@
     {% if view == 'album_detail' %}
     <div class="page-header">
         <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
+        <span class="btn-see-all" onclick="sharePage()" style="margin-left: 20px; cursor: pointer;">🔗 Share</span>
     </div>
     <div class="hero">
         <img src="{{ album.artworkUrl100 }}">
@@ -216,7 +223,53 @@
     </div>
     {% endif %}
 
+    <!-- КНОПКА НАВЕРХ -->
+    <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</div>
+    <!-- УВЕДОМЛЕНИЕ -->
+    <div id="toast">Link copied!</div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script>document.addEventListener('DOMContentLoaded', () => { renderFavorites(); checkLikedStatus(); });</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => { 
+            renderFavorites(); 
+            checkLikedStatus();
+            
+            // Random Placeholder
+            const hints = ["Pink Floyd", "Metallica", "Taylor Swift", "Queen", "Hans Zimmer", "The Beatles", "Eminem"];
+            const input = document.querySelector('input[name="q"]');
+            if(input) input.placeholder = "Try: " + hints[Math.floor(Math.random() * hints.length)];
+            
+            // Scroll Button Logic
+            window.addEventListener('scroll', () => {
+                const btn = document.getElementById('scroll-top');
+                if (window.scrollY > 300) btn.style.display = 'flex';
+                else btn.style.display = 'none';
+            });
+        });
+
+        // LOADER LOGIC
+        document.querySelector('form').addEventListener('submit', () => {
+            document.getElementById('global-loader').style.display = 'flex';
+        });
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                const href = link.getAttribute('href');
+                if (href && !href.startsWith('#') && !href.startsWith('javascript') && link.target !== '_blank') {
+                    document.getElementById('global-loader').style.display = 'flex';
+                }
+            });
+        });
+        window.addEventListener('pageshow', () => {
+            document.getElementById('global-loader').style.display = 'none';
+        });
+        
+        // SHARE LOGIC
+        function sharePage() {
+            navigator.clipboard.writeText(window.location.href);
+            const toast = document.getElementById('toast');
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2000);
+        }
+    </script>
 </body>
 </html>

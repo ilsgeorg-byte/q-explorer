@@ -23,6 +23,9 @@ def index():
     for alb in search_itunes(query, 'album', 15):
         if query.lower() in alb.get('collectionName', '').lower():
             alb['artworkUrl100'] = alb.get('artworkUrl100', '').replace('100x100bb', '300x300bb')
+            # Добавляем год
+            date = alb.get('releaseDate', '')
+            alb['year'] = date[:4] if date else ''
             results['albums'].append(alb)
     results['albums'] = results['albums'][:8]
     
@@ -45,18 +48,19 @@ def see_all(type):
     entity_map = {'artists': 'musicArtist', 'albums': 'album', 'songs': 'song'}
     entity = entity_map.get(type, 'album')
     
-    # Стабильный лимит 30
     data = search_itunes(query, entity, 30)
     
     for item in data:
         match = False
         if type == 'artists':
             if query.lower() in item.get('artistName', '').lower():
-                # Убрали тяжелые картинки для скорости списка "Все"
                 match = True
         elif type == 'albums':
             if item.get('collectionName') and query.lower() in item.get('collectionName', '').lower():
                 item['artworkUrl100'] = item.get('artworkUrl100', '').replace('100x100bb', '300x300bb')
+                # Добавляем год
+                date = item.get('releaseDate', '')
+                item['year'] = date[:4] if date else ''
                 match = True
         elif type == 'songs':
             if item.get('trackName') and query.lower() in item.get('trackName', '').lower():
