@@ -12,12 +12,25 @@ def index():
     
     results = {'artists': [], 'albums': [], 'songs': []}
     
-    # 1. Artists (iTunes + Last.fm stats + iTunes image hack)
-    for art in search_itunes(query, 'musicArtist', 4):
-        if query.lower() in art.get('artistName', '').lower():
+        # 1. Artists (С фильтрацией дубликатов)
+    seen_artists = set() # Множество для запоминания имен
+    
+    # Запрашиваем больше (10), чтобы после фильтрации осталось хотя бы 4
+    for art in search_itunes(query, 'musicArtist', 10):
+        name = art.get('artistName', '')
+        # Пропускаем, если имя пустое или уже было
+        if not name or name.lower() in seen_artists:
+            continue
+            
+        if query.lower() in name.lower():
             art['image'] = get_true_artist_image(art.get('artistId'))
-            art['stats'] = get_lastfm_artist_stats(art.get('artistName', ''))
+            art['stats'] = get_lastfm_artist_stats(name)
             results['artists'].append(art)
+            seen_artists.add(name.lower()) # Запоминаем имя
+            
+    # Ограничиваем до 4 уникальных
+    results['artists'] = results['artists'][:4]
+
     
     # 2. Albums
     for alb in search_itunes(query, 'album', 15):
