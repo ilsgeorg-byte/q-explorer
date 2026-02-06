@@ -8,25 +8,35 @@
     <style>
         :root { --bg: #121212; --card-bg: #1e1e1e; --text: #eee; --text-sec: #aaa; --primary: #0070c9; --spotify: #1DB954; --apple: #fa243c; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; -webkit-tap-highlight-color: transparent;}
+        
         .header { margin-bottom: 20px; }
         .logo { font-size: 24px; font-weight: 800; color: white; margin-bottom: 15px; display: block; text-decoration: none;}
+        
         .search-container { position: sticky; top: 0; background: var(--bg); padding-bottom: 10px; z-index: 100; border-bottom: 1px solid #333; }
         .search-wrapper { position: relative; display: flex; width: 100%; gap: 10px; }
         input[type="text"] { flex-grow: 1; padding: 12px; border-radius: 8px; border: 1px solid #333; background: var(--card-bg); color: white; font-size: 16px; min-width: 0; }
         button { padding: 0 20px; border-radius: 8px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+
+        /* History */
         #history-dropdown { position: absolute; top: 100%; left: 0; right: 80px; background: #2a2a2a; border-radius: 0 0 8px 8px; border: 1px solid #333; display: none; z-index: 200; max-height: 200px; overflow-y: auto; }
         .history-item { padding: 10px 12px; border-bottom: 1px solid #333; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .history-item:hover { background: #333; }
         .history-text { color: #eee; } .history-remove { color: #666; font-size: 18px; padding: 0 5px; }
+
+        /* Favorites */
         #favorites-section { margin-top: 20px; display: none; border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px;}
         .fav-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
         .fav-title { font-size: 18px; font-weight: 700; color: #ffd700; display: flex; align-items: center; gap: 8px;}
         .clear-fav { font-size: 12px; color: #666; cursor: pointer; text-decoration: underline; }
+
+        /* Modal */
         #music-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-content { background: #222; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 300px; border: 1px solid #444; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
         .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 20px; color: white; }
         .modal-btn { display: flex; align-items: center; justify-content: center; width: 100%; padding: 15px 0; margin-bottom: 10px; border-radius: 12px; font-weight: bold; text-decoration: none; color: white; transition: 0.2s; }
         .m-spotify { background: var(--spotify); } .m-apple { background: var(--apple); } .m-cancel { background: #333; margin-top: 20px; color: #aaa; }
+
+        /* Cards */
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; margin-top: 30px; }
         .section-title { font-size: 22px; font-weight: 700; color: white; border-left: 4px solid var(--primary); padding-left: 10px; margin: 0; }
         .btn-see-all { font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 600; }
@@ -37,12 +47,16 @@
         .info { padding: 10px; text-align: center; }
         .title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
         .sub { font-size: 12px; color: var(--text-sec); margin-top: 4px; }
+        
         .btn-like { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; background: rgba(0,0,0,0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; color: #888; transition: 0.2s; z-index: 10; }
         .btn-like.liked { color: #f00; background: rgba(255,255,255,0.9); }
         .btn-like:hover { transform: scale(1.1); }
+        
         .stats-container { display: flex; flex-direction: column; align-items: center; margin-top: 5px; }
         .artist-stats { color: #eee; font-size: 12px; font-weight: bold; }
         .lastfm-tag { font-size: 8px; color: #d51007; font-weight: 800; text-transform: uppercase; margin-top: 2px; opacity: 0.8; letter-spacing: 0.5px;}
+
+        /* Song List */
         .song-list { display: flex; flex-direction: column; gap: 5px; }
         .song-row { display: flex; align-items: center; padding: 10px; background: var(--card-bg); border-radius: 8px; text-decoration: none; color: inherit; position: relative; cursor: pointer;}
         .song-img { width: 40px; height: 40px; border-radius: 4px; margin-right: 15px; }
@@ -52,6 +66,8 @@
         .btn-play { color: var(--spotify); font-size: 20px; margin-left: 10px; }
         .song-like { position: static; background: transparent; width: auto; height: auto; margin-right: 10px; color: #444; }
         .song-like.liked { color: #f00; background: transparent; }
+
+        /* Hero */
         .artist-hero { text-align: center; margin-bottom: 40px; padding-top: 20px; position: relative; }
         .artist-hero img { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; box-shadow: 0 10px 40px rgba(0,0,0,0.6); margin-bottom: 20px; }
         .artist-hero h1 { font-size: 32px; margin: 0; }
@@ -119,6 +135,7 @@
                 </div>
             </div>
         {% endif %}
+
         {% if data.albums %}
             <div class="section"><div class="section-header"><div class="section-title">Albums</div><a href="/see-all/albums?q={{ query }}" class="btn-see-all">See All</a></div>
                 <div class="grid">
@@ -134,6 +151,7 @@
                 </div>
             </div>
         {% endif %}
+
         {% if data.songs %}
             <div class="section"><div class="section-header"><div class="section-title">Songs</div><a href="/see-all/songs?q={{ query }}" class="btn-see-all">See All</a></div>
                 <div class="song-list">
@@ -193,6 +211,7 @@
             <div class="genre">{{ artist.primaryGenreName }}</div>
             {% if artist.stats %}<div style="margin-top: 10px;"><span style="font-weight: bold; font-size: 16px;">{{ artist.stats }}</span><span class="lastfm-tag" style="margin-left: 5px; font-size: 10px;">Last.fm Data</span></div>{% endif %}
         </div>
+        
         {% for cat, items in discography.items() %}
             {% if items %}
                 <div class="section"><div class="section-title">{{ cat|capitalize }}</div><div class="grid">
@@ -219,6 +238,7 @@
                 <h1>{{ album.collectionName }}</h1>
                 <div class="sub">{{ album.artistName }} • {{ album.releaseDate[:4] }}</div>
                 {% if album_stats %}<div class="hero-stats">{{ album_stats }} <span class="lastfm-tag" style="font-size: 10px; margin-left: 5px; color: #d51007;">LAST.FM</span></div>{% endif %}
+                
                 <div class="actions">
                     <a href="{{ spotify_link }}" target="_blank" class="btn btn-spotify">Spotify ↗</a>
                     <a href="https://music.apple.com/album/{{ album.collectionId }}" target="_blank" class="btn btn-apple">Apple Music ↗</a>
@@ -237,6 +257,7 @@
     {% endif %}
 
     <script>
+        // --- MODAL LOGIC ---
         function openMusicModal(spotifyLink, appleCollectionId, appleTrackId) {
             document.getElementById('modal-spotify').href = spotifyLink;
             let appleLink = `https://music.apple.com/album/${appleCollectionId}`;
@@ -272,7 +293,10 @@
             grid.innerHTML = favs.map(f => {
                 let href = f.type === 'artist' ? `/artist/${f.id}` : (f.type === 'album' ? `/album/${f.id}` : '#');
                 let imgStyle = f.type === 'artist' ? 'border-radius:50%; width:80%; margin:10% auto;' : 'width:100%';
+                
+                // Исправлена интерполяция строк для JS:
                 let onclick = f.type === 'song' ? `onclick="openMusicModal('${f.link}', '', '')"` : '';
+                
                 return `<div class="card" style="position:relative;" ${onclick}><div class="btn-like liked" onclick="toggleLike(this, '${f.type}', '${f.id}', '', '', '', '')">♥</div><a href="${href}" style="text-decoration:none; color:inherit; display:block;"><img src="${f.img || ''}" style="${imgStyle}"><div class="info"><div class="title">${f.title}</div><div class="sub">${f.sub || ''}</div></div></a></div>`;
             }).join('');
         }
