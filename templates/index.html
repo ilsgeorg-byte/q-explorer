@@ -9,11 +9,12 @@
 </head>
 <body>
 
-    <!-- ЗАГРУЗЧИК -->
+    <!-- ЗАГРУЗЧИК (Глобальный спиннер) -->
     <div id="global-loader">
         <div class="spinner"></div>
     </div>
 
+    <!-- ПОИСК И ШАПКА -->
     <div class="search-container">
         <div class="header">
             <a href="/" class="logo">Q-Explorer <span style="color:var(--primary)">.</span></a>
@@ -25,6 +26,7 @@
         </form>
     </div>
 
+    <!-- ИЗБРАННОЕ -->
     <div id="favorites-section">
         <div class="fav-header">
             <div class="fav-title">❤️ My Favorites</div>
@@ -36,6 +38,7 @@
         <div id="favorites-container" class="scroll-row"></div>
     </div>
 
+    <!-- МОДАЛЬНОЕ ОКНО (Spotify/Apple) -->
     <div id="music-modal" onclick="closeMusicModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-title">Listen on...</div>
@@ -45,6 +48,7 @@
         </div>
     </div>
 
+    <!-- ГЛАВНАЯ (Пустое состояние) -->
     {% if view == 'home' %}
     <div class="empty-state">
         <div style="font-size: 60px; margin-bottom: 20px;">🎵</div>
@@ -52,7 +56,10 @@
     </div>
     {% endif %}
 
+    <!-- РЕЗУЛЬТАТЫ ПОИСКА -->
     {% if view == 'results' %}
+        
+        <!-- Artists -->
         {% if data.artists %}
         <div class="section-header">
             <h2 class="section-title">Artists</h2>
@@ -62,7 +69,16 @@
             {% for item in data.artists %}
             <a href="/artist/{{ item.artistId }}" class="card artist-card">
                 <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
-                {% if item.image %} <img src="{{ item.image }}"> {% else %} <div class="placeholder-img">🎵</div> {% endif %}
+                
+                {% if item.image %}
+                    <img src="{{ item.image }}">
+                {% else %}
+                    <!-- Плейсхолдер -->
+                    <div class="artist-placeholder" style="background-color: hsl({{ (item.artistName|length * 50) % 360 }}, 60%, 40%);">
+                        {{ item.artistName[:1] }}
+                    </div>
+                {% endif %}
+                
                 <div class="info">
                     <div class="title">{{ item.artistName }}</div>
                     {% if item.stats %}<span class="artist-stats">{{ item.stats }}</span>{% endif %}
@@ -72,6 +88,7 @@
         </div>
         {% endif %}
 
+        <!-- Albums -->
         {% if data.albums %}
         <div class="section-header">
             <h2 class="section-title">Albums</h2>
@@ -84,13 +101,17 @@
                 <img src="{{ item.artworkUrl100 }}">
                 <div class="info">
                     <div class="title">{{ item.collectionName }}</div>
-                    <div class="sub">{{ item.artistName }} {% if item.year %}• {{ item.year }}{% endif %}</div>
+                    <div class="sub">
+                        {{ item.artistName }} 
+                        {% if item.year %}• {{ item.year }}{% endif %}
+                    </div>
                 </div>
             </a>
             {% endfor %}
         </div>
         {% endif %}
 
+        <!-- Songs -->
         {% if data.songs %}
         <div class="section-header">
             <h2 class="section-title">Songs</h2>
@@ -111,6 +132,7 @@
         {% endif %}
     {% endif %}
 
+    <!-- СТРАНИЦА "SEE ALL" -->
     {% if view == 'see_all' %}
     <div class="page-header">
         <a href="/?q={{ query }}" class="btn-see-all" style="margin-bottom:10px; display:inline-block;">← Back to Search</a>
@@ -138,22 +160,31 @@
         <div class="grid">
             {% for item in results %}
                 {% if type == 'artists' %}
-                <!-- Если это Deezer, генерируем спец-ссылку для поиска -->
-            {% if item.source == 'deezer' %}
-                <a href="/artist/search:{{ item.artistName }}" class="card artist-card">
-            {% else %}
                 <a href="/artist/{{ item.artistId }}" class="card artist-card">
-            {% endif %}
-
                      <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
-                    <img src="{{ item.image }}">
+                    
+                    {% if item.image %}
+                        <img src="{{ item.image }}">
+                    {% else %}
+                        <!-- Умный плейсхолдер в See All -->
+                        <div class="artist-placeholder" style="background-color: hsl({{ (item.artistName|length * 50) % 360 }}, 60%, 40%);">
+                            {{ item.artistName[:1] }}
+                        </div>
+                    {% endif %}
+                    
                     <div class="info"><div class="title">{{ item.artistName }}</div></div>
                 </a>
                 {% elif type == 'albums' %}
                 <a href="/album/{{ item.collectionId }}" class="card">
                      <div class="btn-like" onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">♥</div>
                     <img src="{{ item.artworkUrl100 }}">
-                    <div class="info"><div class="title">{{ item.collectionName }}</div><div class="sub">{{ item.artistName }} {% if item.year %}• {{ item.year }}{% endif %}</div></div>
+                    <div class="info">
+                        <div class="title">{{ item.collectionName }}</div>
+                        <div class="sub">
+                            {{ item.artistName }} 
+                            {% if item.year %}• {{ item.year }}{% endif %}
+                        </div>
+                    </div>
                 </a>
                 {% endif %}
             {% endfor %}
@@ -162,6 +193,7 @@
     {% endif %}
     {% endif %}
 
+    <!-- СТРАНИЦА АРТИСТА -->
     {% if view == 'artist_detail' %}
     <div class="page-header">
         <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
@@ -202,6 +234,7 @@
     {% endfor %}
     {% endif %}
 
+    <!-- СТРАНИЦА АЛЬБОМА -->
     {% if view == 'album_detail' %}
     <div class="page-header">
         <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
@@ -229,9 +262,8 @@
     </div>
     {% endif %}
 
-    <!-- КНОПКА НАВЕРХ -->
+    <!-- КНОПКА НАВЕРХ И ТОСТ -->
     <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</div>
-    <!-- УВЕДОМЛЕНИЕ -->
     <div id="toast">Link copied!</div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
@@ -240,12 +272,12 @@
             renderFavorites(); 
             checkLikedStatus();
             
-            // Random Placeholder
+            // Плейсхолдер с подсказками
             const hints = ["Pink Floyd", "Metallica", "Taylor Swift", "Queen", "Hans Zimmer", "The Beatles", "Eminem"];
             const input = document.querySelector('input[name="q"]');
             if(input) input.placeholder = "Try: " + hints[Math.floor(Math.random() * hints.length)];
             
-            // Scroll Button Logic
+            // Кнопка наверх
             window.addEventListener('scroll', () => {
                 const btn = document.getElementById('scroll-top');
                 if (window.scrollY > 300) btn.style.display = 'flex';
@@ -253,7 +285,7 @@
             });
         });
 
-        // LOADER LOGIC
+        // ЛОАДЕР (Показываем при клике)
         document.querySelector('form').addEventListener('submit', () => {
             document.getElementById('global-loader').style.display = 'flex';
         });
@@ -265,11 +297,12 @@
                 }
             });
         });
+        // Прячем, если вернулись назад
         window.addEventListener('pageshow', () => {
             document.getElementById('global-loader').style.display = 'none';
         });
         
-        // SHARE LOGIC
+        // SHARE
         function sharePage() {
             navigator.clipboard.writeText(window.location.href);
             const toast = document.getElementById('toast');
