@@ -9,7 +9,7 @@
 </head>
 <body>
 
-    <!-- Шапка и Поиск -->
+    <!-- Шапка и Поиск (Фиксированная) -->
     <div class="search-container">
         <div class="header">
             <a href="/" class="logo">Q-Explorer <span style="color:var(--primary)">.</span></a>
@@ -24,40 +24,17 @@
             <!-- Выпадающий список истории -->
             <div id="history-dropdown"></div>
         </form>
+    </div>
+    <!-- КОНЕЦ ФИКСИРОВАННОЙ ШАПКИ -->
 
-        <!-- Раздел Избранного (скрыт, если пуст) -->
-        <div id="favorites-section">
-            <div class="fav-header">
-                <div class="fav-title">❤️ My Favorites</div>
-                <div class="clear-fav" onclick="clearFavs()">Clear All</div>
-            </div>
-            <div class="grid" id="favorites-grid"></div>
+    <!-- ИЗБРАННОЕ (Скроллится вместе со страницей) -->
+    <div id="favorites-section">
+        <div class="fav-header">
+            <div class="fav-title">❤️ My Favorites</div>
+            <div class="clear-fav" onclick="clearFavs()">Clear All</div>
         </div>
+        <div class="grid" id="favorites-grid"></div>
     </div>
-
-    <!-- Шапка и Поиск -->
-<div class="search-container">
-    <div class="header">
-        <a href="/" class="logo">Q-Explorer <span style="color:var(--primary)">.</span></a>
-    </div>
-    <form action="/" method="get" class="search-wrapper" onsubmit="saveHistory(this.q.value)">
-        <!-- ... инпуты ... -->
-        <div id="history-dropdown"></div>
-    </form>
-</div>
-<!-- КОНЕЦ search-container -->
-
-<!-- Избранное будет скроллиться вместе со страницей -->
-<div id="favorites-section">
-    <div class="fav-header">
-        <div class="fav-title">❤️ My Favorites</div>
-        <div class="clear-fav" onclick="clearFavs()">Clear All</div>
-    </div>
-    <div class="grid" id="favorites-grid"></div>
-</div>
-
-<!-- Модальное окно ... -->
-
 
     <!-- Модальное окно выбора сервиса -->
     <div id="music-modal" onclick="closeMusicModal()">

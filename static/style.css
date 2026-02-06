@@ -17,7 +17,7 @@ body {
     color: var(--text-main);
     margin: 0;
     padding: 20px;
-    padding-top: 100px; /* Было 140px, ставим меньше, так как Favorites ушли из шапки 
+    padding-top: 100px; /* УМЕНЬШИЛИ: теперь шапка меньше места занимает */
 }
 
 a { text-decoration: none; color: inherit; }
@@ -87,12 +87,12 @@ button:hover { opacity: 0.9; }
     position: absolute;
     top: 100%;
     left: 0;
-    right: 90px; /* Отступ справа, чтобы не перекрывать кнопку Go (примерно) */
+    right: 90px;
     background: #252525;
     border-radius: 0 0 12px 12px;
     border: 1px solid var(--border);
     border-top: none;
-    display: none; /* Скрыто по умолчанию */
+    display: none;
     z-index: 200;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     overflow: hidden;
@@ -113,7 +113,7 @@ button:hover { opacity: 0.9; }
 .history-item:last-child { border-bottom: none; }
 .history-item:hover { background: #333; color: white; }
 
-.history-text { pointer-events: none; } /* Чтобы клик шел на div */
+.history-text { pointer-events: none; }
 .history-remove {
     color: #666;
     font-size: 20px;
@@ -123,22 +123,24 @@ button:hover { opacity: 0.9; }
 .history-remove:hover { color: #fa243c; background: rgba(250, 36, 60, 0.1); }
 
 /* === 4. ИЗБРАННОЕ (FAVORITES) === */
+/* Теперь это отдельный блок в потоке */
 #favorites-section {
     max-width: 1200px;
-    margin: 20px auto 30px; /* Добавили отступ снизу 30px, чтобы не липло к результатам */
-    padding-top: 0;         /* Убрали лишний паддинг */
-    border-top: none;       /* Убрали линию сверху, она теперь не нужна */
-    display: none;
-    /* Можно добавить легкий фон или рамку, чтобы выделить блок */
-    background: #1a1a1a;
+    margin: 10px auto 30px; /* Отступ сверху небольшой, снизу больше */
     padding: 20px;
+    background: #181818; /* Чуть светлее фона body */
     border-radius: 16px;
+    display: none; /* Скрыто JS-ом если пусто */
+    border: 1px solid #2a2a2a;
 }
 
 .fav-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 15px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #333; /* Линия теперь внутри блока */
+    border-bottom: 1px solid #333;
 }
 
 .fav-title { font-size: 14px; font-weight: bold; color: var(--text-sub); text-transform: uppercase; }
@@ -170,8 +172,8 @@ button:hover { opacity: 0.9; }
     border-radius: 12px;
     transition: 0.2s;
     cursor: pointer;
-    position: relative; /* Для кнопки лайка */
-    display: block; /* Для ссылок-оберток */
+    position: relative;
+    display: block;
 }
 
 .card:hover { background: var(--bg-hover); transform: translateY(-3px); }
@@ -185,7 +187,6 @@ button:hover { opacity: 0.9; }
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-/* Круглые фото для артистов */
 .artist-card img { border-radius: 50%; width: 90%; margin: 0 auto 12px; display: block; }
 
 .info .title {
@@ -198,7 +199,6 @@ button:hover { opacity: 0.9; }
 
 .info .sub { font-size: 13px; color: var(--text-sub); }
 
-/* Кнопка лайка на карточке */
 .btn-like {
     position: absolute;
     top: 10px; right: 10px;
@@ -214,7 +214,6 @@ button:hover { opacity: 0.9; }
 .btn-like:hover { transform: scale(1.1); background: rgba(0,0,0,0.8); }
 .btn-like.liked { color: var(--primary); }
 
-/* Статистика на карточке */
 .stats-container { display: flex; flex-direction: column; gap: 2px; margin-top: 5px; }
 .artist-stats { font-size: 11px; color: #fff; background: #333; padding: 2px 6px; border-radius: 4px; align-self: flex-start; }
 .lastfm-tag { font-size: 9px; color: #666; text-transform: uppercase; font-weight: bold; margin-top: 2px; }
@@ -245,7 +244,7 @@ button:hover { opacity: 0.9; }
 .song-artist { font-size: 13px; color: var(--text-sub); }
 .song-like { position: static; background: transparent; width: auto; height: auto; margin-left: 10px; }
 
-/* === 7. СТРАНИЦА ДЕТАЛЕЙ (Artist/Album Detail) === */
+/* === 7. СТРАНИЦА ДЕТАЛЕЙ === */
 .artist-hero, .hero {
     text-align: center;
     max-width: 600px;
@@ -260,11 +259,128 @@ button:hover { opacity: 0.9; }
 .artist-hero h1 { font-size: 36px; margin: 0 0 10px; }
 .genre { color: var(--primary); font-weight: 600; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; }
 
-/* Секция похожих артистов (Scroll Row) */
 .similar-artists { 
     max-width: 1200px; 
     margin: 20px auto; 
     padding-bottom: 15px; 
     border-bottom: 1px solid var(--border); 
 }
-.similar-artists h3 { f
+.similar-artists h3 { font-size: 16px; color: var(--text-sub); margin-bottom: 15px; text-transform: uppercase; }
+
+.scroll-row {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 10px 0;
+    scrollbar-width: none;
+}
+.scroll-row::-webkit-scrollbar { display: none; }
+
+.similar-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+    min-width: 90px;
+    transition: transform 0.2s;
+}
+.similar-card:hover { transform: scale(1.05); }
+
+.sim-circle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #2a2a2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    border: 2px solid var(--primary);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.track {
+    display: flex;
+    padding: 12px 10px;
+    border-bottom: 1px solid #222;
+    color: #ccc;
+    cursor: pointer;
+    align-items: center;
+}
+.track:hover { background: var(--bg-hover); color: white; }
+.t-num { width: 30px; color: #666; font-size: 14px; font-variant-numeric: tabular-nums; }
+.t-name { flex: 1; font-weight: 500; }
+
+.actions { margin-top: 20px; display: flex; gap: 10px; }
+.btn { 
+    padding: 10px 20px; 
+    border-radius: 20px; 
+    font-size: 14px; 
+    font-weight: 600; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 5px; 
+}
+.btn-spotify { background: #1DB954; color: black; }
+.btn-apple { background: #fc3c44; color: white; }
+
+/* === 8. МОДАЛЬНОЕ ОКНО === */
+#music-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: #222;
+    padding: 30px;
+    border-radius: 20px;
+    width: 300px;
+    text-align: center;
+    border: 1px solid #444;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.modal-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+
+.modal-btn {
+    display: block;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.m-spotify { background: #1DB954; color: #000; }
+.m-apple { background: #fc3c44; color: #fff; }
+.m-cancel { background: transparent; color: #888; cursor: pointer; border: 1px solid #444; margin-top: 20px; }
+.m-cancel:hover { color: white; border-color: white; }
+
+/* === 9. МОБИЛЬНАЯ АДАПТАЦИЯ === */
+@media (max-width: 768px) {
+    body { padding-top: 130px; padding-left: 10px; padding-right: 10px; }
+    
+    .search-wrapper { flex-wrap: wrap; }
+    button { width: 100%; margin-top: 10px; }
+    #history-dropdown { right: 0; }
+    
+    .grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+    
+    .hero { flex-direction: column; text-align: center; }
+    .hero img { width: 200px; height: 200px; margin: 0 auto; }
+    .actions { justify-content: center; }
+    
+    .t-num { width: 20px; font-size: 12px; }
+    
+    .artist-hero h1 { font-size: 28px; }
+}
