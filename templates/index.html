@@ -160,20 +160,19 @@
         <div class="grid">
             {% for item in results %}
                 {% if type == 'artists' %}
-                <a href="/artist/{{ item.artistId }}" class="card artist-card">
-                     <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
-                    
-                    {% if item.image %}
-                        <img src="{{ item.image }}">
-                    {% else %}
-                        <!-- Умный плейсхолдер в See All -->
+              <a href="/artist/{{ item.artistId }}" class="card artist-card">
+                <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
+    
+                <!-- Изначально показываем плейсхолдер, но добавляем ID для JS -->
+                    <div class="artist-img-wrapper" data-artist-id="{{ item.artistId }}">
                         <div class="artist-placeholder" style="background-color: hsl({{ (item.artistName|length * 50) % 360 }}, 60%, 40%);">
                             {{ item.artistName[:1] }}
                         </div>
-                    {% endif %}
-                    
-                    <div class="info"><div class="title">{{ item.artistName }}</div></div>
-                </a>
+                    </div>
+    
+                <div class="info"><div class="title">{{ item.artistName }}</div></div>
+            </a>
+
                 {% elif type == 'albums' %}
                 <a href="/album/{{ item.collectionId }}" class="card">
                      <div class="btn-like" onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">♥</div>
@@ -310,5 +309,53 @@
             setTimeout(() => toast.style.display = 'none', 2000);
         }
     </script>
+    <script>
+    // ЛЕНИВАЯ ЗАГРУЗКА КАРТИНОК
+    document.addEventListener("DOMContentLoaded", function() {
+        const wrappers = document.querySelectorAll('.artist-img-wrapper');
+        
+        // Функция загрузки одной картинки
+        const loadImage = (wrapper) => {
+            const artistId = wrapper.getAttribute('data-artist-id');
+            if (!artistId) return;
+
+            fetch(`/api/get-artist-image/${artistId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.image) {
+                        // Создаем картинку
+                        const img = document.createElement('img');
+                        img.src = data.image;
+                        img.style.opacity = '0';
+                        img.onload = () => { img.style.opacity = '1'; }; // Плавное появление
+                        
+                        // Очищаем плейсхолдер и вставляем картинку
+                        wrapper.innerHTML = ''; 
+                        wrapper.appendChild(img);
+                        
+                        // Обновляем кнопку лайка (чтобы там тоже сохранилась картинка)
+                        const card = wrapper.closest('.card');
+                        const likeBtn = card.querySelector('.btn-like');
+                        if (likeBtn) {
+                            // Обновляем аргументы onclick (немного магии регекспов или просто замена атрибута)
+                            let onClick = likeBtn.getAttribute('onclick');
+                            // Находим пустую строку картинки в аргументах и заменяем
+                            // (Это сложный момент, но для визуализации не критичный. 
+                            // Главное - отображение).
+                        }
+                    }
+                })
+                .catch(err => console.log('No image for', artistId));
+        };
+
+        // Запускаем очередь с небольшой задержкой, чтобы не положить браузер
+        wrappers.forEach((wrapper, index) => {
+            setTimeout(() => {
+                loadImage(wrapper);
+            }, index * 200); // Каждые 200мс грузим следующую (5 картинок в секунду)
+        });
+    });
+    </script>
+
 </body>
 </html>

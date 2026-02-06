@@ -183,6 +183,14 @@ def album_page(collection_id):
         album_stats=album_stats
     )
 
+from flask import jsonify
+
+@app.route('/api/get-artist-image/<artist_id>')
+def api_get_artist_image(artist_id):
+    # Этот маршрут работает быстро для одного артиста
+    image_url = get_true_artist_image(artist_id)
+    return jsonify({'image': image_url})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
