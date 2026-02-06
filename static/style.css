@@ -118,3 +118,187 @@ button { padding: 0 25px; border-radius: 12px; border: none; background: var(--p
     .hero { flex-direction: column; text-align: center; }
     .grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
 }
+/* --- СТРОГИЙ & ПРОЗРАЧНЫЙ СТИЛЬ (GHOST STYLE) --- */
+
+/* 1. Поле поиска: Прозрачное и угловатое */
+input {
+    flex: 1;
+    padding: 12px 15px;
+    border-radius: 4px; /* Строгие углы (было 12px) */
+    border: 1px solid #333;
+    background: rgba(255, 255, 255, 0.05); /* Полупрозрачный фон */
+    color: #fff;
+    font-size: 14px;
+    min-width: 0;
+    transition: 0.2s;
+}
+input:focus {
+    border-color: var(--primary);
+    background: rgba(0, 0, 0, 0.5);
+    outline: none;
+}
+
+/* 2. Кнопка GO: Контурная */
+button {
+    padding: 0 25px;
+    border-radius: 4px; /* Строгие углы */
+    border: 1px solid var(--primary); /* Только рамка */
+    background: transparent; /* Прозрачная */
+    color: var(--primary);
+    font-weight: 700;
+    text-transform: uppercase; /* Строгий текст */
+    letter-spacing: 1px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+button:hover {
+    background: var(--primary); /* Заливка при наведении */
+    color: #fff;
+}
+
+/* 3. Кнопки Spotify/Apple (В альбомах): Строгие чипсы */
+.btn {
+    padding: 10px 24px;
+    border-radius: 4px; /* Строгие углы */
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    background: transparent; /* Прозрачные */
+    border: 1px solid rgba(255,255,255,0.3); /* Тонкая рамка */
+    backdrop-filter: blur(5px); /* Эффект стекла */
+}
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Специфика брендов */
+.btn-spotify {
+    border-color: #1DB954;
+    color: #1DB954;
+}
+.btn-spotify:hover {
+    background: #1DB954;
+    color: #000;
+}
+
+.btn-apple {
+    border-color: #fff;
+    color: #fff;
+}
+.btn-apple:hover {
+    background: #fff;
+    color: #000;
+}
+
+/* 4. Кнопки "See All" и "Back": Аккуратные плашки */
+.btn-see-all {
+    color: var(--primary);
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    padding: 6px 12px;
+    border: 1px solid rgba(250, 36, 60, 0.3); /* Рамка */
+    border-radius: 4px;
+    transition: 0.2s;
+}
+.btn-see-all:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+/* 5. Модальное окно: Кнопки */
+.modal-btn {
+    display: block;
+    padding: 14px;
+    margin-bottom: 10px;
+    border-radius: 4px; /* Строго */
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid transparent;
+    transition: 0.2s;
+}
+.m-spotify {
+    background: transparent;
+    border: 1px solid #1DB954;
+    color: #1DB954;
+}
+.m-spotify:hover { background: #1DB954; color: #000; }
+
+.m-apple {
+    background: transparent;
+    border: 1px solid #fff;
+    color: #fff;
+}
+.m-apple:hover { background: #fff; color: #000; }
+
+.m-cancel {
+    background: transparent;
+    border: 1px solid #444;
+    color: #888;
+}
+.m-cancel:hover { border-color: #666; color: #fff; }
+
+/* MOBILE FIX */
+@media (max-width: 768px) {
+    body { padding-top: 150px; }
+    
+    /* Исправление поиска */
+    .search-wrapper { flex-wrap: nowrap; } 
+    button { width: auto; margin-top: 0; }
+    
+    /* Карточки на мобильном */
+    .grid { 
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+        gap: 15px; /* Чуть больше воздуха */
+    }
+    
+    /* ВАЖНО: Центрирование текста в карточках */
+    .card .info {
+        text-align: center; /* Текст по центру */
+        padding: 8px 5px; /* Отступы */
+    }
+    
+    .card .title {
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        margin-bottom: 4px;
+    }
+    
+    .artist-stats {
+        font-size: 10px; /* Чуть меньше шрифт */
+        justify-content: center; /* Если флекс - по центру */
+        display: block; /* Или блок */
+    }
+
+    /* Герой альбома/артиста */
+    .hero, .artist-hero { 
+        flex-direction: column; 
+        text-align: center; 
+        align-items: center;
+    }
+    
+    .hero-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Кнопки тоже по центру */
+    }
+    
+    .actions {
+        justify-content: center;
+    }
+}
+
