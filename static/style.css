@@ -1,386 +1,162 @@
-/* === 1. БАЗОВЫЕ НАСТРОЙКИ И ПЕРЕМЕННЫЕ === */
+/* === 1. БАЗОВЫЕ НАСТРОЙКИ === */
 :root {
-    --primary: #fa243c;       /* Фирменный красный/розовый */
-    --bg-dark: #121212;       /* Основной фон */
-    --bg-card: #1e1e1e;       /* Фон карточек */
-    --bg-hover: #2a2a2a;      /* Фон при наведении */
-    --text-main: #ffffff;
+    --primary: #fa243c;
+    --bg-dark: #121212;
+    --bg-card: #1e1e1e;
+    --text-main: #fff;
     --text-sub: #a0a0a0;
-    --border: #333;
 }
 
 * { box-sizing: border-box; }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--bg-dark);
+    font-family: -apple-system, system-ui, sans-serif;
+    background: var(--bg-dark);
     color: var(--text-main);
     margin: 0;
     padding: 20px;
-    padding-top: 100px; /* УМЕНЬШИЛИ: теперь шапка меньше места занимает */
+    /* ОПТИМИЗАЦИЯ ОТСТУПА: */
+    padding-top: 110px; /* Для десктопа */
 }
 
 a { text-decoration: none; color: inherit; }
 
-/* === 2. ШАПКА И ПОИСК === */
+/* === 2. ШАПКА (SEARCH) === */
 .search-container {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    background: rgba(18, 18, 18, 0.95);
-    backdrop-filter: blur(10px);
+    position: fixed; top: 0; left: 0; right: 0;
+    background: rgba(18,18,18,0.98); /* Почти непрозрачный */
+    backdrop-filter: blur(15px);
     padding: 15px 20px;
-    z-index: 100;
-    border-bottom: 1px solid var(--border);
-}
-
-.header {
-    max-width: 1200px;
-    margin: 0 auto 10px;
-}
-
-.logo {
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: -1px;
-}
-
-.search-wrapper {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    gap: 10px;
-    position: relative; /* Важно для выпадающей истории */
-}
-
-input[type="text"] {
-    flex: 1;
-    padding: 12px 20px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: #000;
-    color: white;
-    font-size: 16px;
-    outline: none;
-    transition: 0.2s;
-}
-
-input[type="text"]:focus {
-    border-color: var(--primary);
-    background: #1a1a1a;
-}
-
-button {
-    padding: 0 25px;
-    border-radius: 12px;
-    border: none;
-    background: var(--primary);
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-button:hover { opacity: 0.9; }
-
-/* === 3. ИСТОРИЯ ПОИСКА (DROPDOWN) === */
-#history-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 90px;
-    background: #252525;
-    border-radius: 0 0 12px 12px;
-    border: 1px solid var(--border);
-    border-top: none;
-    display: none;
-    z-index: 200;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    overflow: hidden;
-    margin-top: 2px;
-}
-
-.history-item {
-    padding: 12px 15px;
+    z-index: 900;
     border-bottom: 1px solid #333;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    color: #ccc;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4); /* Тень чтобы отделить от контента */
 }
+.header { max-width: 1200px; margin: 0 auto 10px; }
+.logo { font-size: 24px; font-weight: 800; }
+.search-wrapper { max-width: 1200px; margin: 0 auto; display: flex; gap: 10px; position: relative; }
+input { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #333; background: #000; color: #fff; font-size: 16px; }
+button { padding: 0 25px; border-radius: 12px; border: none; background: var(--primary); color: #fff; font-weight: 600; cursor: pointer; }
 
-.history-item:last-child { border-bottom: none; }
-.history-item:hover { background: #333; color: white; }
-
-.history-text { pointer-events: none; }
-.history-remove {
-    color: #666;
-    font-size: 20px;
-    padding: 0 8px;
-    border-radius: 4px;
-}
-.history-remove:hover { color: #fa243c; background: rgba(250, 36, 60, 0.1); }
-
-/* === 4. ИЗБРАННОЕ (FAVORITES) === */
-/* Теперь это отдельный блок в потоке */
+/* === 3. ИЗБРАННОЕ (FAVORITES) === */
 #favorites-section {
-    max-width: 1200px;
-    margin: 10px auto 30px; /* Отступ сверху небольшой, снизу больше */
-    padding: 20px;
-    background: #181818; /* Чуть светлее фона body */
-    border-radius: 16px;
-    display: none; /* Скрыто JS-ом если пусто */
+    max-width: 1200px; margin: 20px auto 40px; 
+    display: none;
+    /* Красивая подложка */
+    background: #181818;
     border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 15px 20px;
 }
 
-.fav-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #333;
-}
+.fav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.fav-title { font-size: 14px; color: var(--text-sub); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+.fav-controls { display: flex; gap: 15px; font-size: 13px; align-items: center; }
 
-.fav-title { font-size: 14px; font-weight: bold; color: var(--text-sub); text-transform: uppercase; }
-.clear-fav { font-size: 12px; color: var(--primary); cursor: pointer; }
-
-/* === 5. СЕТКА (GRID) И КАРТОЧКИ === */
-.section-header {
-    max-width: 1200px;
-    margin: 30px auto 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-}
-
-.section-title { font-size: 22px; margin: 0; font-weight: 700; }
-.btn-see-all { font-size: 14px; color: var(--primary); font-weight: 600; cursor: pointer; }
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.card {
-    background: var(--bg-card);
-    padding: 15px;
-    border-radius: 12px;
-    transition: 0.2s;
+/* Кнопки управления избранным */
+.fav-btn-action {
+    color: var(--primary);
     cursor: pointer;
-    position: relative;
-    display: block;
-}
-
-.card:hover { background: var(--bg-hover); transform: translateY(-3px); }
-
-.card img {
-    width: 100%;
-    aspect-ratio: 1;
-    object-fit: cover;
-    border-radius: 6px;
-    margin-bottom: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-
-.artist-card img { border-radius: 50%; width: 90%; margin: 0 auto 12px; display: block; }
-
-.info .title {
     font-weight: 600;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.info .sub { font-size: 13px; color: var(--text-sub); }
-
-.btn-like {
-    position: absolute;
-    top: 10px; right: 10px;
-    background: rgba(0,0,0,0.6);
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; color: #555;
-    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
     transition: 0.2s;
-    z-index: 10;
 }
-.btn-like:hover { transform: scale(1.1); background: rgba(0,0,0,0.8); }
-.btn-like.liked { color: var(--primary); }
+.fav-btn-action:hover { background: rgba(250, 36, 60, 0.1); }
 
-.stats-container { display: flex; flex-direction: column; gap: 2px; margin-top: 5px; }
-.artist-stats { font-size: 11px; color: #fff; background: #333; padding: 2px 6px; border-radius: 4px; align-self: flex-start; }
-.lastfm-tag { font-size: 9px; color: #666; text-transform: uppercase; font-weight: bold; margin-top: 2px; }
 
-/* === 6. СПИСОК ПЕСЕН === */
-.song-list {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-}
-
-.song-row {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-    border-bottom: 1px solid #222;
-}
-
-.song-row:hover { background: var(--bg-hover); }
-
-.song-img { width: 40px; height: 40px; border-radius: 4px; margin-right: 15px; }
-.song-info { flex: 1; }
-.song-title { font-weight: 500; }
-.song-artist { font-size: 13px; color: var(--text-sub); }
-.song-like { position: static; background: transparent; width: auto; height: auto; margin-left: 10px; }
-
-/* === 7. СТРАНИЦА ДЕТАЛЕЙ === */
-.artist-hero, .hero {
-    text-align: center;
-    max-width: 600px;
-    margin: 0 auto 40px;
-    padding-bottom: 30px;
-    border-bottom: 1px solid var(--border);
-}
-
-.hero { display: flex; text-align: left; gap: 30px; align-items: center; }
-.hero img { width: 250px; height: 250px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-.artist-hero img { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-.artist-hero h1 { font-size: 36px; margin: 0 0 10px; }
-.genre { color: var(--primary); font-weight: 600; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; }
-
-.similar-artists { 
-    max-width: 1200px; 
-    margin: 20px auto; 
-    padding-bottom: 15px; 
-    border-bottom: 1px solid var(--border); 
-}
-.similar-artists h3 { font-size: 16px; color: var(--text-sub); margin-bottom: 15px; text-transform: uppercase; }
-
+/* Режим скролла (Компактный) */
 .scroll-row {
-    display: flex;
-    gap: 20px;
-    overflow-x: auto;
-    padding: 10px 0;
+    display: flex; gap: 15px; overflow-x: auto; padding-bottom: 5px;
     scrollbar-width: none;
 }
 .scroll-row::-webkit-scrollbar { display: none; }
 
-.similar-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none;
-    color: white;
-    min-width: 90px;
-    transition: transform 0.2s;
+.scroll-row .card {
+    min-width: 100px; width: 100px;
+    flex-shrink: 0; padding: 8px;
+    background: transparent; /* В скролле без фона, чтобы легче смотрелось */
 }
-.similar-card:hover { transform: scale(1.05); }
+.scroll-row .card:hover { background: #222; }
+.scroll-row .card img { height: 100px; margin-bottom: 8px; }
+.scroll-row .info .title { font-size: 11px; text-align: center; }
+.scroll-row .info .sub { display: none; } /* Скрываем подписи в компактном виде */
+.scroll-row .btn-like { width: 24px; height: 24px; font-size: 14px; top: 5px; right: 5px; }
 
-.sim-circle {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    background: #2a2a2a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    font-weight: bold;
-    margin-bottom: 8px;
-    border: 2px solid var(--primary);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+/* === 4. ОБЩИЕ СТИЛИ (GRID, CARDS) === */
+.grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px;
+    max-width: 1200px; margin: 0 auto;
 }
-
-.track {
-    display: flex;
-    padding: 12px 10px;
-    border-bottom: 1px solid #222;
-    color: #ccc;
-    cursor: pointer;
-    align-items: center;
+.card {
+    background: var(--bg-card); padding: 12px; border-radius: 12px;
+    display: block; position: relative; transition: 0.2s;
 }
-.track:hover { background: var(--bg-hover); color: white; }
-.t-num { width: 30px; color: #666; font-size: 14px; font-variant-numeric: tabular-nums; }
-.t-name { flex: 1; font-weight: 500; }
+.card:hover { background: #2a2a2a; transform: translateY(-3px); }
+.card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
+.artist-card img { border-radius: 50%; }
 
-.actions { margin-top: 20px; display: flex; gap: 10px; }
-.btn { 
-    padding: 10px 20px; 
-    border-radius: 20px; 
-    font-size: 14px; 
-    font-weight: 600; 
-    display: inline-flex; 
-    align-items: center; 
-    gap: 5px; 
+.info .title { font-weight: 600; font-size: 14px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.info .sub { font-size: 12px; color: var(--text-sub); }
+
+.btn-like {
+    position: absolute; top: 8px; right: 8px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(0,0,0,0.6); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 5;
 }
-.btn-spotify { background: #1DB954; color: black; }
-.btn-apple { background: #fc3c44; color: white; }
+.btn-like.liked { color: var(--primary); }
 
-/* === 8. МОДАЛЬНОЕ ОКНО === */
-#music-modal {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.85);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    backdrop-filter: blur(5px);
+/* Кнопка BACK (SEE ALL) */
+.btn-see-all { 
+    color: var(--primary); cursor: pointer; font-weight: 600; 
+    display: inline-block;
+    /* ВАЖНО: Добавляем отступ сверху, чтобы не прилипала к шапке */
+    margin-top: 10px; 
 }
 
-.modal-content {
-    background: #222;
-    padding: 30px;
-    border-radius: 20px;
-    width: 300px;
-    text-align: center;
-    border: 1px solid #444;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+/* History Dropdown */
+#history-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: #222; border: 1px solid #333; border-top: none;
+    border-radius: 0 0 12px 12px; display: none; margin-top: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
+.history-item { padding: 12px; display: flex; justify-content: space-between; cursor: pointer; border-bottom: 1px solid #333; }
+.history-item:hover { background: #333; }
 
-.modal-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
-
-.modal-btn {
-    display: block;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    text-decoration: none;
-    transition: 0.2s;
-}
-
+/* Modal & Other */
+#music-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); }
+.modal-content { background: #222; padding: 30px; border-radius: 20px; width: 300px; text-align: center; border: 1px solid #444; }
+.modal-title { font-size: 18px; margin-bottom: 20px; font-weight: bold; }
+.modal-btn { display: block; padding: 12px; margin-bottom: 10px; border-radius: 10px; font-weight: 600; }
 .m-spotify { background: #1DB954; color: #000; }
 .m-apple { background: #fc3c44; color: #fff; }
-.m-cancel { background: transparent; color: #888; cursor: pointer; border: 1px solid #444; margin-top: 20px; }
-.m-cancel:hover { color: white; border-color: white; }
+.m-cancel { border: 1px solid #444; color: #aaa; margin-top: 15px; cursor: pointer; }
 
-/* === 9. МОБИЛЬНАЯ АДАПТАЦИЯ === */
+/* Headers & Hero */
+.section-header { max-width: 1200px; margin: 30px auto 15px; display: flex; justify-content: space-between; align-items: flex-end; }
+.section-title { font-size: 20px; margin: 0; }
+.artist-hero, .hero { text-align: center; max-width: 600px; margin: 0 auto 40px; border-bottom: 1px solid #333; padding-bottom: 30px; }
+.artist-hero img { width: 180px; height: 180px; border-radius: 50%; margin-bottom: 20px; }
+.hero { display: flex; text-align: left; gap: 20px; align-items: center; }
+.hero img { width: 200px; border-radius: 12px; }
+.song-list { max-width: 1200px; margin: 0 auto; }
+.song-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #222; cursor: pointer; }
+.song-row:hover { background: #1a1a1a; }
+.song-img { width: 40px; height: 40px; border-radius: 4px; margin-right: 15px; }
+.song-info { flex: 1; }
+.sim-circle { width: 60px; height: 60px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid var(--primary); margin-bottom: 5px; }
+.similar-card { color: #fff; font-size: 12px; text-align: center; }
+
+/* === 5. МОБИЛЬНАЯ АДАПТАЦИЯ (ВАЖНО) === */
 @media (max-width: 768px) {
-    body { padding-top: 130px; padding-left: 10px; padding-right: 10px; }
-    
+    body {
+        /* Увеличиваем отступ на мобильных, так как поиск может занимать 2 строки */
+        padding-top: 150px; 
+    }
     .search-wrapper { flex-wrap: wrap; }
-    button { width: 100%; margin-top: 10px; }
-    #history-dropdown { right: 0; }
-    
-    .grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+    button { width: 100%; margin-top: 5px; }
     
     .hero { flex-direction: column; text-align: center; }
-    .hero img { width: 200px; height: 200px; margin: 0 auto; }
-    .actions { justify-content: center; }
-    
-    .t-num { width: 20px; font-size: 12px; }
-    
-    .artist-hero h1 { font-size: 28px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
 }

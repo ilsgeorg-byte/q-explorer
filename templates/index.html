@@ -27,13 +27,18 @@
     </div>
     <!-- КОНЕЦ ФИКСИРОВАННОЙ ШАПКИ -->
 
-    <!-- ИЗБРАННОЕ (Скроллится вместе со страницей) -->
+    <!-- ИЗБРАННОЕ (Скроллится вместе со страницей) -->    
     <div id="favorites-section">
         <div class="fav-header">
             <div class="fav-title">❤️ My Favorites</div>
-            <div class="clear-fav" onclick="clearFavs()">Clear All</div>
+            <div class="fav-controls">
+                <!-- Класс fav-btn-action делает их похожими на кнопки -->
+                <span class="fav-btn-action" onclick="toggleFavsView()" id="fav-toggle-btn">See All</span>
+                <span class="fav-btn-action" onclick="clearFavs()">Clear</span>
+            </div>
         </div>
-        <div class="grid" id="favorites-grid"></div>
+        <!-- Контейнер для карточек -->
+        <div id="favorites-container" class="scroll-row"></div>
     </div>
 
     <!-- Модальное окно выбора сервиса -->
