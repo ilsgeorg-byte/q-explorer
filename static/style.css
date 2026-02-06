@@ -4,6 +4,17 @@
 body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg-dark); color: var(--text-main); margin: 0; padding: 20px; padding-top: 110px; }
 a { text-decoration: none; color: inherit; }
 
+/* HOME EMPTY STATE - Centered */
+.empty-state {
+    text-align: center;
+    margin-top: 100px;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
 .search-container { position: fixed; top: 0; left: 0; right: 0; background: rgba(18,18,18,0.98); backdrop-filter: blur(15px); padding: 15px 20px; z-index: 900; border-bottom: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
 .header { max-width: 1200px; margin: 0 auto 10px; }
 .logo { font-size: 24px; font-weight: 800; }
@@ -22,12 +33,28 @@ button { padding: 0 25px; border-radius: 12px; border: none; background: var(--p
 .fav-btn-action { color: var(--primary); cursor: pointer; font-weight: 600; padding: 4px 8px; border-radius: 6px; }
 .fav-btn-action:hover { background: rgba(250, 36, 60, 0.1); }
 
-.scroll-row { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+/* SCROLL ROW - Маленькие картинки с подписями */
+.scroll-row { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
 .scroll-row::-webkit-scrollbar { display: none; }
-.scroll-row .card { min-width: 100px; width: 100px; flex-shrink: 0; padding: 8px; background: transparent; position: relative; }
+.scroll-row .card { 
+    min-width: 120px; width: 120px; 
+    flex-shrink: 0; 
+    padding: 8px; 
+    background: transparent; 
+    position: relative; 
+    text-align: center; /* Центрируем текст */
+}
 .scroll-row .card:hover { background: #222; }
-.scroll-row .card img { height: 100px; margin-bottom: 8px; }
-.scroll-row .info .title { font-size: 11px; text-align: center; }
+.scroll-row .card img { 
+    height: 120px; width: 120px; 
+    margin-bottom: 8px; 
+    border-radius: 8px; 
+    object-fit: cover;
+}
+/* Круглые фото только для артистов в скролле */
+.scroll-row .artist-card img { border-radius: 50%; }
+
+.scroll-row .info .title { font-size: 12px; text-align: center; display: block; }
 .scroll-row .info .sub { display: none; }
 .scroll-row .btn-like { width: 24px; height: 24px; font-size: 14px; top: 5px; right: 5px; z-index: 100; }
 
@@ -60,11 +87,15 @@ button { padding: 0 25px; border-radius: 12px; border: none; background: var(--p
 .artist-hero img { width: 180px; height: 180px; border-radius: 50%; margin-bottom: 20px; }
 .hero { display: flex; text-align: left; gap: 20px; align-items: center; }
 .hero img { width: 200px; border-radius: 12px; }
-.song-list { max-width: 1200px; margin: 0 auto; }
-.song-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #222; cursor: pointer; }
+
+/* SONG LIST (FIXED) */
+.song-list { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; width: 100%; }
+.song-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #222; cursor: pointer; width: 100%; }
 .song-row:hover { background: #1a1a1a; }
-.song-img { width: 40px; height: 40px; border-radius: 4px; margin-right: 15px; }
-.song-info { flex: 1; }
+.song-img { width: 40px; height: 40px; border-radius: 4px; margin-right: 15px; flex-shrink: 0; }
+.song-info { flex: 1; min-width: 0; /* Fixes text overflow in flex */ }
+.song-title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.song-artist { font-size: 13px; color: var(--text-sub); }
 .sim-circle { width: 60px; height: 60px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid var(--primary); margin-bottom: 5px; }
 .similar-card { color: #fff; font-size: 12px; text-align: center; }
 
