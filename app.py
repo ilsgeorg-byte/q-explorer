@@ -1,93 +1,9 @@
 from flask import Flask, render_template, request
-import requests
-import urllib.parse
-import re
+from api_clients import search_itunes, lookup_itunes, get_true_artist_image, get_lastfm_artist_stats, get_lastfm_album_stats
+from utils import generate_spotify_link, sort_albums
 
 app = Flask(__name__)
 
-# --- CONFIG ---
-LASTFM_API_KEY = "23579f4b7b17523bef4d3a1fd3edc8ce"
-
-# --- UTILS ---
-def clean_name_for_search(text):
-    if not text: return ""
-    text = re.sub(r'\s*\(.*?\)', '', text)
-    text = re.sub(r'\s*\[.*?\]', '', text)
-    text = re.sub(r'(?i)\s(deluxe|remastered|expanded|anniversary)\s+edition', '', text)
-    return text.strip()
-
-def generate_spotify_link(query):
-    return f"https://open.spotify.com/search/{urllib.parse.quote(query)}"
-
-def sort_albums(albums_list):
-    categorized = {'albums': [], 'singles': [], 'live': [], 'compilations': []}
-    seen = set()
-    for alb in albums_list:
-        if alb['collectionName'] in seen: continue
-        seen.add(alb['collectionName'])
-        alb['artworkUrl100'] = alb.get('artworkUrl100', '').replace('100x100bb', '400x400bb')
-        name = alb['collectionName'].lower()
-        cnt = alb.get('trackCount', 0)
-        
-        if 'live' in name or 'concert' in name: categorized['live'].append(alb)
-        elif 'greatest' in name or 'best of' in name or 'anthology' in name: categorized['compilations'].append(alb)
-        elif cnt < 5 or 'single' in name or 'ep' in name: categorized['singles'].append(alb)
-        else: categorized['albums'].append(alb)
-    
-    for k in categorized: categorized[k].sort(key=lambda x: x.get('releaseDate', ''), reverse=True)
-    return categorized
-
-# --- API CLIENTS ---
-def get_lastfm_artist_stats(artist_name):
-    try:
-        clean_name = clean_name_for_search(artist_name)
-        url = f"http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist={urllib.parse.quote(clean_name)}&api_key={LASTFM_API_KEY}&format=json"
-        data = requests.get(url, timeout=1.5).json()
-        if 'artist' in data and 'stats' in data['artist']:
-            listeners = int(data['artist']['stats']['listeners'])
-            if listeners > 1000000: return f"👥 {listeners/1000000:.1f}M listeners"
-            if listeners > 1000: return f"👥 {listeners/1000:.0f}K listeners"
-            return f"👥 {listeners} listeners"
-    except: return None
-
-def get_lastfm_album_stats(artist_name, album_name):
-    try:
-        clean_art = clean_name_for_search(artist_name)
-        clean_alb = clean_name_for_search(album_name)
-        url = f"http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key={LASTFM_API_KEY}&artist={urllib.parse.quote(clean_art)}&album={urllib.parse.quote(clean_alb)}&format=json"
-        data = requests.get(url, timeout=1.5).json()
-        if 'album' in data:
-            playcount = int(data['album'].get('playcount', 0))
-            if playcount > 1000000: return f"🔥 {playcount/1000000:.1f}M plays"
-            if playcount > 1000: return f"🔥 {playcount/1000:.0f}K plays"
-            return f"🔥 {playcount} plays"
-    except: return None
-
-def get_true_artist_image(artist_id):
-    try:
-        url = f"https://itunes.apple.com/lookup?id={artist_id}&entity=album&limit=1"
-        r = requests.get(url, timeout=2.0).json()
-        for item in r.get('results', []):
-            if item.get('collectionType') == 'Album' and item.get('artworkUrl100'):
-                 return item['artworkUrl100'].replace('100x100bb', '400x400bb')
-    except: pass
-    return None
-
-def search_itunes(query, entity, limit):
-    try:
-        url = f"https://itunes.apple.com/search?term={query}&entity={entity}&limit={limit}"
-        return requests.get(url, timeout=3).json().get('results', [])
-    except: return []
-
-def lookup_itunes(id, entity=None, limit=None):
-    try:
-        url = f"https://itunes.apple.com/lookup?id={id}"
-        if entity: url += f"&entity={entity}"
-        if limit: url += f"&limit={limit}"
-        return requests.get(url, timeout=4).json().get('results', [])
-    except: return []
-
-# --- ROUTES ---
 @app.route('/')
 def index():
     query = request.args.get('q')
