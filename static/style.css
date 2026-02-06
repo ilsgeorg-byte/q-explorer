@@ -17,7 +17,7 @@ body {
     color: var(--text-main);
     margin: 0;
     padding: 20px;
-    padding-top: 140px; /* Отступ под фиксированную шапку */
+    padding-top: 100px; /* Было 140px, ставим меньше, так как Favorites ушли из шапки 
 }
 
 a { text-decoration: none; color: inherit; }
@@ -125,17 +125,20 @@ button:hover { opacity: 0.9; }
 /* === 4. ИЗБРАННОЕ (FAVORITES) === */
 #favorites-section {
     max-width: 1200px;
-    margin: 15px auto 0;
-    padding-top: 15px;
-    border-top: 1px solid var(--border);
-    display: none; /* Скрыто JS-ом если пусто */
+    margin: 20px auto 30px; /* Добавили отступ снизу 30px, чтобы не липло к результатам */
+    padding-top: 0;         /* Убрали лишний паддинг */
+    border-top: none;       /* Убрали линию сверху, она теперь не нужна */
+    display: none;
+    /* Можно добавить легкий фон или рамку, чтобы выделить блок */
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 16px;
 }
 
 .fav-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #333; /* Линия теперь внутри блока */
 }
 
 .fav-title { font-size: 14px; font-weight: bold; color: var(--text-sub); text-transform: uppercase; }
