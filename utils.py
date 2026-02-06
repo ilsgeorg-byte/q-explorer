@@ -2,12 +2,7 @@ import re
 import urllib.parse
 
 def clean_name(name):
-    """
-    Удаляет текст в скобках для лучшего поиска в Last.fm.
-    Пример: "Bohemian Rhapsody (Remastered 2011)" -> "Bohemian Rhapsody"
-    """
     if not name: return ""
-    # Удаляем всё, что в круглых () или квадратных [] скобках
     return re.sub(r'\s*[\(\[].*?[\)\]]', '', name).strip()
 
 def generate_spotify_link(query):
@@ -16,31 +11,64 @@ def generate_spotify_link(query):
 
 def sort_albums(albums):
     """
-    Сортирует альбомы: сначала свежие, разделяет на LP и Синглы.
+    Сортирует альбомы по категориям:
+    - Albums (Студийные)
+    - Live (Live, Concert, Tour)
+    - Compilations (Greatest Hits, Best Of, Anthology)
+    - Singles & EPs
     """
-    lps = []
-    singles = []
+    categories = {
+        'albums': [],
+        'live': [],
+        'compilations': [],
+        'singles': []
+    }
+    
+    seen = set() # Чтобы убрать дубликаты
     
     for alb in albums:
-        # Улучшаем качество обложки сразу
+        # Уникальность по названию (игнорируем регистр)
+        title = alb.get('collectionName', '').strip()
+        if not title: continue
+        
+        # Ключ уникальности: название + год (чтобы не путать ремастеры разных лет)
+        key = (title.lower(), alb.get('releaseDate', '')[:4])
+        if key in seen: continue
+        seen.add(key)
+        
+        # Улучшаем картинку
         if 'artworkUrl100' in alb:
             alb['artworkUrl100'] = alb['artworkUrl100'].replace('100x100bb', '300x300bb')
         
-        # Определяем год
+        # Год
         date_str = alb.get('releaseDate', '')
         alb['year'] = date_str[:4] if date_str else ''
         
-        # Логика: если меньше 4 треков или в названии "Single/EP" - это сингл
         track_count = alb.get('trackCount', 0)
-        title = alb.get('collectionName', '').lower()
+        lower_title = title.lower()
         
-        if track_count < 4 or 'single' in title or 'ep' in title:
-            singles.append(alb)
-        else:
-            lps.append(alb)
+        # ЛОГИКА СОРТИРОВКИ
+        
+        # 1. Singles / EP
+        if track_count < 5 or ' - single' in lower_title or ' - ep' in lower_title:
+            categories['singles'].append(alb)
+            continue
             
-    # Сортировка: новые сверху
-    lps.sort(key=lambda x: x.get('releaseDate', ''), reverse=True)
-    singles.sort(key=lambda x: x.get('releaseDate', ''), reverse=True)
-    
-    return {'albums': lps, 'singles': singles}
+        # 2. Live Albums
+        if any(x in lower_title for x in ['live', 'concert', 'tour', 'wembley', 'bowl', 'montreal', 'budokan']):
+            categories['live'].append(alb)
+            continue
+            
+        # 3. Compilations
+        if any(x in lower_title for x in ['greatest hits', 'best of', 'anthology', 'collection', 'essential', 'platinum', 'gold', 'years', 'hits']):
+            categories['compilations'].append(alb)
+            continue
+            
+        # 4. Остальное - Студийные альбомы
+        categories['albums'].append(alb)
+
+    # Сортируем каждую категорию по дате (новые сверху)
+    for key in categories:
+        categories[key].sort(key=lambda x: x.get('releaseDate', ''), reverse=True)
+        
+    return categories
