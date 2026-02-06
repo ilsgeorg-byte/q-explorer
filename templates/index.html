@@ -153,4 +153,199 @@
                     <div class="song-title">{{ item.trackName }}</div>
                     <div class="song-artist">{{ item.artistName }}</div>
                 </div>
-                <div class="song-like btn-like" onclick="to
+                <div class="song-like btn-like" onclick="toggleLike(this, 'song', '{{ item.trackId }}', '{{ item.trackName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.spotify_link }}')">♥</div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="grid">
+            {% for item in results %}
+                {% if type == 'artists' %}
+                <a href="/artist/{{ item.artistId }}" class="card artist-card">
+                     <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
+                    
+                    <!-- WRAPPER ДЛЯ ЛЕНИВОЙ ЗАГРУЗКИ -->
+                    <div class="artist-img-wrapper" data-artist-id="{{ item.artistId }}">
+                        {% if item.image %}
+                            <img src="{{ item.image }}">
+                        {% else %}
+                            <div class="artist-placeholder" style="background-color: hsl({{ (item.artistName|length * 50) % 360 }}, 60%, 40%);">
+                                {{ item.artistName[:1] }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="info"><div class="title">{{ item.artistName }}</div></div>
+                </a>
+                {% elif type == 'albums' %}
+                <a href="/album/{{ item.collectionId }}" class="card">
+                     <div class="btn-like" onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">♥</div>
+                    <img src="{{ item.artworkUrl100 }}">
+                    <div class="info">
+                        <div class="title">{{ item.collectionName }}</div>
+                        <div class="sub">
+                            {{ item.artistName }} 
+                            {% if item.year %}• {{ item.year }}{% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endif %}
+    {% endif %}
+
+    <!-- ARTIST DETAIL -->
+    {% if view == 'artist_detail' %}
+    <div class="page-header">
+        <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
+        <span class="btn-see-all" onclick="sharePage()" style="margin-left: 20px; cursor: pointer;">🔗 Share</span>
+    </div>
+    <div class="artist-hero">
+        {% if artist_image %}<img src="{{ artist_image }}">{% endif %}
+        <h1>{{ artist.artistName }}</h1>
+        <div class="genre">{{ artist.primaryGenreName }}</div>
+        {% if artist.stats %}<div class="stats-hero">{{ artist.stats }}</div>{% endif %}
+    </div>
+    {% if similar %}
+    <div class="similar-artists">
+        <h3>Fans also like</h3>
+        <div class="scroll-row">
+            {% for sim in similar %}
+            <a href="/?q={{ sim.name }}" class="similar-card">
+                <div class="sim-circle">{{ sim.name[:1] }}</div>
+                <span>{{ sim.name }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% for cat, items in discography.items() %}
+        {% if items %}
+        <div class="section-header"><h2 class="section-title">{{ cat|capitalize }}</h2></div>
+        <div class="grid">
+            {% for item in items %}
+            <a href="/album/{{ item.collectionId }}" class="card">
+                <div class="btn-like" onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">♥</div>
+                <img src="{{ item.artworkUrl100 }}">
+                <div class="info"><div class="title">{{ item.collectionName }}</div><div class="sub">{{ item.releaseDate[:4] }}</div></div>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    <!-- ALBUM DETAIL -->
+    {% if view == 'album_detail' %}
+    <div class="page-header">
+        <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
+        <span class="btn-see-all" onclick="sharePage()" style="margin-left: 20px; cursor: pointer;">🔗 Share</span>
+    </div>
+    <div class="hero">
+        <img src="{{ album.artworkUrl100 }}">
+        <div class="hero-info">
+            <h1>{{ album.collectionName }}</h1>
+            <div class="sub">{{ album.artistName }} • {{ album.releaseDate[:4] }}</div>
+            {% if album_stats %}<div class="hero-stats">{{ album_stats }}</div>{% endif %}
+            <div class="actions">
+                <a href="{{ spotify_link }}" target="_blank" class="btn btn-spotify">Spotify</a>
+                <a href="https://music.apple.com/album/{{ album.collectionId }}" target="_blank" class="btn btn-apple">Apple Music</a>
+            </div>
+        </div>
+    </div>
+    <div class="song-list">
+        {% for song in songs %}
+        <div class="track" style="position: relative;" onclick="openMusicModal('{{ song.spotify_link }}', '{{ album.collectionId }}', '{{ song.trackId }}')">
+            <div class="t-num">{{ song.trackNumber }}</div>
+            <div class="t-name">{{ song.trackName }}</div>
+            <div class="btn-like song-like" 
+                 onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ album.artworkUrl100 }}', '{{ album.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">
+                ♥
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- КНОПКА НАВЕРХ И ТОСТ -->
+    <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</div>
+    <div id="toast">Link copied!</div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => { 
+            renderFavorites(); 
+            checkLikedStatus();
+            
+            // Плейсхолдер с подсказками
+            const hints = ["Pink Floyd", "Metallica", "Taylor Swift", "Queen", "Hans Zimmer", "The Beatles", "Eminem"];
+            const input = document.querySelector('input[name="q"]');
+            if(input) input.placeholder = "Try: " + hints[Math.floor(Math.random() * hints.length)];
+            
+            // Кнопка наверх
+            window.addEventListener('scroll', () => {
+                const btn = document.getElementById('scroll-top');
+                if (window.scrollY > 300) btn.style.display = 'flex';
+                else btn.style.display = 'none';
+            });
+            
+            // LAZY LOADING IMAGES (Важная часть!)
+            const wrappers = document.querySelectorAll('.artist-img-wrapper');
+            const loadImage = (wrapper) => {
+                const artistId = wrapper.getAttribute('data-artist-id');
+                // Если нет ID или уже есть картинка, пропускаем
+                if (!artistId || wrapper.querySelector('img')) return;
+
+                fetch(`/api/get-artist-image/${artistId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.image) {
+                            const img = document.createElement('img');
+                            img.src = data.image;
+                            img.style.opacity = '0'; // Скрыта
+                            img.style.transition = 'opacity 0.5s'; // Плавное появление
+                            img.onload = () => { img.style.opacity = '1'; };
+                            
+                            wrapper.innerHTML = ''; // Убираем плейсхолдер
+                            wrapper.appendChild(img);
+                        }
+                    })
+                    .catch(err => console.log('No image for', artistId));
+            };
+
+            // Запускаем очередь с задержкой 300мс
+            wrappers.forEach((wrapper, index) => {
+                setTimeout(() => {
+                    loadImage(wrapper);
+                }, index * 300);
+            });
+        });
+
+        // ЛОАДЕР
+        document.querySelector('form').addEventListener('submit', () => {
+            document.getElementById('global-loader').style.display = 'flex';
+        });
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                const href = link.getAttribute('href');
+                if (href && !href.startsWith('#') && !href.startsWith('javascript') && link.target !== '_blank') {
+                    document.getElementById('global-loader').style.display = 'flex';
+                }
+            });
+        });
+        window.addEventListener('pageshow', () => {
+            document.getElementById('global-loader').style.display = 'none';
+        });
+        
+        // SHARE
+        function sharePage() {
+            navigator.clipboard.writeText(window.location.href);
+            const toast = document.getElementById('toast');
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2000);
+        }
+    </script>
+</body>
+</html>
