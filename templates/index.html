@@ -9,12 +9,12 @@
 </head>
 <body>
 
-    <!-- ЗАГРУЗЧИК (Глобальный спиннер) -->
+    <!-- ЗАГРУЗЧИК -->
     <div id="global-loader">
         <div class="spinner"></div>
     </div>
 
-    <!-- ПОИСК И ШАПКА -->
+    <!-- ПОИСК -->
     <div class="search-container">
         <div class="header">
             <a href="/" class="logo">Q-Explorer <span style="color:var(--primary)">.</span></a>
@@ -38,7 +38,7 @@
         <div id="favorites-container" class="scroll-row"></div>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО (Spotify/Apple) -->
+    <!-- МОДАЛКА -->
     <div id="music-modal" onclick="closeMusicModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-title">Listen on...</div>
@@ -48,7 +48,7 @@
         </div>
     </div>
 
-    <!-- ГЛАВНАЯ (Пустое состояние) -->
+    <!-- HOME -->
     {% if view == 'home' %}
     <div class="empty-state">
         <div style="font-size: 60px; margin-bottom: 20px;">🎵</div>
@@ -56,7 +56,7 @@
     </div>
     {% endif %}
 
-    <!-- РЕЗУЛЬТАТЫ ПОИСКА -->
+    <!-- RESULTS -->
     {% if view == 'results' %}
         
         <!-- Artists -->
@@ -73,7 +73,6 @@
                 {% if item.image %}
                     <img src="{{ item.image }}">
                 {% else %}
-                    <!-- Плейсхолдер -->
                     <div class="artist-placeholder" style="background-color: hsl({{ (item.artistName|length * 50) % 360 }}, 60%, 40%);">
                         {{ item.artistName[:1] }}
                     </div>
@@ -132,7 +131,7 @@
         {% endif %}
     {% endif %}
 
-    <!-- СТРАНИЦА "SEE ALL" -->
+    <!-- SEE ALL -->
     {% if view == 'see_all' %}
     <div class="page-header">
         <a href="/?q={{ query }}" class="btn-see-all" style="margin-bottom:10px; display:inline-block;">← Back to Search</a>
@@ -160,19 +159,19 @@
         <div class="grid">
             {% for item in results %}
                 {% if type == 'artists' %}
-              <a href="/artist/{{ item.artistId }}" class="card artist-card">
-                <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
-    
-                <!-- Изначально показываем плейсхолдер, но добавляем ID для JS -->
-                    <div class="artist-img-wrapper" data-artist-id="{{ item.artistId }}">
+                <a href="/artist/{{ item.artistId }}" class="card artist-card">
+                     <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
+                    
+                    {% if item.image %}
+                        <img src="{{ item.image }}">
+                    {% else %}
                         <div class="artist-placeholder" style="background-color: hsl({{ (item.artistName|length * 50) % 360 }}, 60%, 40%);">
                             {{ item.artistName[:1] }}
                         </div>
-                    </div>
-    
-                <div class="info"><div class="title">{{ item.artistName }}</div></div>
-            </a>
-
+                    {% endif %}
+                    
+                    <div class="info"><div class="title">{{ item.artistName }}</div></div>
+                </a>
                 {% elif type == 'albums' %}
                 <a href="/album/{{ item.collectionId }}" class="card">
                      <div class="btn-like" onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">♥</div>
@@ -192,7 +191,7 @@
     {% endif %}
     {% endif %}
 
-    <!-- СТРАНИЦА АРТИСТА -->
+    <!-- ARTIST DETAIL -->
     {% if view == 'artist_detail' %}
     <div class="page-header">
         <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
@@ -233,7 +232,7 @@
     {% endfor %}
     {% endif %}
 
-    <!-- СТРАНИЦА АЛЬБОМА -->
+    <!-- ALBUM DETAIL -->
     {% if view == 'album_detail' %}
     <div class="page-header">
         <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
@@ -253,9 +252,14 @@
     </div>
     <div class="song-list">
         {% for song in songs %}
-        <div class="track" onclick="openMusicModal('{{ song.spotify_link }}', '{{ album.collectionId }}', '{{ song.trackId }}')">
+        <!-- Трек с сердечком -->
+        <div class="track" style="position: relative;" onclick="openMusicModal('{{ song.spotify_link }}', '{{ album.collectionId }}', '{{ song.trackId }}')">
             <div class="t-num">{{ song.trackNumber }}</div>
             <div class="t-name">{{ song.trackName }}</div>
+            <div class="btn-like song-like" 
+                 onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ album.artworkUrl100 }}', '{{ album.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">
+                ♥
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -296,7 +300,6 @@
                 }
             });
         });
-        // Прячем, если вернулись назад
         window.addEventListener('pageshow', () => {
             document.getElementById('global-loader').style.display = 'none';
         });
@@ -309,53 +312,5 @@
             setTimeout(() => toast.style.display = 'none', 2000);
         }
     </script>
-    <script>
-    // ЛЕНИВАЯ ЗАГРУЗКА КАРТИНОК
-    document.addEventListener("DOMContentLoaded", function() {
-        const wrappers = document.querySelectorAll('.artist-img-wrapper');
-        
-        // Функция загрузки одной картинки
-        const loadImage = (wrapper) => {
-            const artistId = wrapper.getAttribute('data-artist-id');
-            if (!artistId) return;
-
-            fetch(`/api/get-artist-image/${artistId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.image) {
-                        // Создаем картинку
-                        const img = document.createElement('img');
-                        img.src = data.image;
-                        img.style.opacity = '0';
-                        img.onload = () => { img.style.opacity = '1'; }; // Плавное появление
-                        
-                        // Очищаем плейсхолдер и вставляем картинку
-                        wrapper.innerHTML = ''; 
-                        wrapper.appendChild(img);
-                        
-                        // Обновляем кнопку лайка (чтобы там тоже сохранилась картинка)
-                        const card = wrapper.closest('.card');
-                        const likeBtn = card.querySelector('.btn-like');
-                        if (likeBtn) {
-                            // Обновляем аргументы onclick (немного магии регекспов или просто замена атрибута)
-                            let onClick = likeBtn.getAttribute('onclick');
-                            // Находим пустую строку картинки в аргументах и заменяем
-                            // (Это сложный момент, но для визуализации не критичный. 
-                            // Главное - отображение).
-                        }
-                    }
-                })
-                .catch(err => console.log('No image for', artistId));
-        };
-
-        // Запускаем очередь с небольшой задержкой, чтобы не положить браузер
-        wrappers.forEach((wrapper, index) => {
-            setTimeout(() => {
-                loadImage(wrapper);
-            }, index * 200); // Каждые 200мс грузим следующую (5 картинок в секунду)
-        });
-    });
-    </script>
-
 </body>
 </html>
