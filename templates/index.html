@@ -20,7 +20,6 @@
         </form>
     </div>
 
-    <!-- ИЗБРАННОЕ -->
     <div id="favorites-section">
         <div class="fav-header">
             <div class="fav-title">❤️ My Favorites</div>
@@ -29,11 +28,9 @@
                 <span class="fav-btn-action" onclick="clearFavs()">Clear</span>
             </div>
         </div>
-        <!-- Контейнер избранного -->
         <div id="favorites-container" class="scroll-row"></div>
     </div>
 
-    <!-- Модальное окно -->
     <div id="music-modal" onclick="closeMusicModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-title">Listen on...</div>
@@ -43,7 +40,6 @@
         </div>
     </div>
 
-    <!-- ГЛАВНАЯ (Центрирование исправлено) -->
     {% if view == 'home' %}
     <div class="empty-state">
         <div style="font-size: 60px; margin-bottom: 20px;">🎵</div>
@@ -51,9 +47,7 @@
     </div>
     {% endif %}
 
-    <!-- РЕЗУЛЬТАТЫ ПОИСКА -->
     {% if view == 'results' %}
-
         {% if data.artists %}
         <div class="section-header">
             <h2 class="section-title">Artists</h2>
@@ -112,15 +106,16 @@
         {% endif %}
     {% endif %}
 
-    <!-- СТРАНИЦА SEE ALL (Исправлено отображение песнями строками) -->
     {% if view == 'see_all' %}
-    <a href="/?q={{ query }}" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back to Search</a>
-    <h1 style="font-size: 24px; margin-bottom: 20px;">All {{ type|capitalize }} for "{{ query }}"</h1>
+    <div class="page-header">
+        <a href="/?q={{ query }}" class="btn-see-all" style="margin-bottom:10px; display:inline-block;">← Back to Search</a>
+        <h1 style="font-size: 24px; margin-bottom: 20px;">All {{ type|capitalize }} for "{{ query }}"</h1>
+    </div>
+    
     {% if not results %}
         <div style="text-align:center; padding: 40px; color:#666;">No results found.</div>
     {% else %}
-
-    <!-- Для песен используем список, для остального - сетку -->
+    
     {% if type == 'songs' %}
         <div class="song-list">
             {% for item in results %}
@@ -140,7 +135,7 @@
                 {% if type == 'artists' %}
                 <a href="/artist/{{ item.artistId }}" class="card artist-card">
                      <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
-                    <img src="{{ item.image }}">
+                    <img src="{{ item.image }}"> 
                     <div class="info"><div class="title">{{ item.artistName }}</div></div>
                 </a>
                 {% elif type == 'albums' %}
@@ -156,9 +151,10 @@
     {% endif %}
     {% endif %}
 
-    <!-- ДЕТАЛИ -->
     {% if view == 'artist_detail' %}
-    <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
+    <div class="page-header">
+        <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
+    </div>
     <div class="artist-hero">
         {% if artist_image %}<img src="{{ artist_image }}">{% endif %}
         <h1>{{ artist.artistName }}</h1>
@@ -195,7 +191,9 @@
     {% endif %}
 
     {% if view == 'album_detail' %}
-    <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
+    <div class="page-header">
+        <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
+    </div>
     <div class="hero">
         <img src="{{ album.artworkUrl100 }}">
         <div class="hero-info">
