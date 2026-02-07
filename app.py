@@ -1,11 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 from api_clients import (
-    search_itunes, 
-    lookup_itunes, 
-    get_true_artist_image, 
-    get_lastfm_artist_data, # <--- Обновленная функция
-    get_lastfm_album_stats, 
-    get_similar_artists
+    search_itunes, lookup_itunes, get_true_artist_image, 
+    get_lastfm_artist_data, get_lastfm_album_stats, get_similar_artists,
+    get_tag_info, get_tag_artists # <--- НОВЫЕ
 )
 from utils import generate_spotify_link, sort_albums
 
@@ -213,3 +210,36 @@ def api_get_artist_image(artist_id):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+@app.route('/tag/<tag_name>')
+def tag_page(tag_name):
+    # Параметры из URL
+    page = request.args.get('page', 1, type=int)
+    sort_by = request.args.get('sort', 'popularity') # 'popularity' или 'alpha'
+    
+    # 1. Инфо о жанре
+    description = get_tag_info(tag_name)
+    
+    # 2. Артисты (берем 24 штуки на страницу)
+    # Last.fm всегда отдает по популярности. Если нужна алфавитная сортировка,
+    # нам пришлось бы грузить всё, но API так не умеет. 
+    # Мы будем сортировать ТОЛЬКО текущую страницу или полагаться на Last.fm.
+    # Для честного "A-Z" лучше брать популярные и сортировать их в Python.
+    
+    limit = 30
+    artists = get_tag_artists(tag_name, page, limit)
+    
+    # 3. Сортировка (Client-side logic on fetched batch)
+    if sort_by == 'alpha':
+        artists.sort(key=lambda x: x['artistName'].lower())
+    else:
+        # По популярности (они и так приходят по популярности, но на всякий случай)
+        artists.sort(key=lambda x: x['listeners'], reverse=True)
+        
+    return render_template('index.html', 
+                           view='tag_detail', 
+                           tag_name=tag_name, 
+                           description=description, 
+                           artists=artists, 
+                           page=page, 
+                           sort_by=sort_by)

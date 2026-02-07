@@ -153,3 +153,27 @@ button:hover { background: var(--primary); color: #fff; }
     .hero-info { display: flex; flex-direction: column; align-items: center; }
     .actions { justify-content: center; }
 }
+
+    .sort-btn {
+        color: #888;
+        text-decoration: none;
+        margin-right: 15px;
+        font-size: 14px;
+        border-bottom: 2px solid transparent;
+        padding-bottom: 2px;
+    }
+    .sort-btn.active, .sort-btn:hover {
+        color: #fff;
+        border-color: #1db954;
+    }
+    .page-btn {
+        background: #333;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    .page-btn:hover {
+        background: #444;
+    }
