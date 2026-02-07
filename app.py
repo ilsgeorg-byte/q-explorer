@@ -1,11 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 from api_clients import (
-    search_itunes, 
-    lookup_itunes, 
-    get_true_artist_image, 
-    get_lastfm_artist_data, # <--- Обновленная функция
-    get_lastfm_album_stats, 
-    get_similar_artists
+    search_itunes, lookup_itunes, get_true_artist_image, 
+    get_lastfm_artist_data, get_lastfm_album_stats, get_similar_artists,
+    get_tag_info, get_tag_artists  # <--- ДОБАВИТЬ ЭТО
 )
 from utils import generate_spotify_link, sort_albums
 
@@ -210,6 +207,30 @@ def album_page(collection_id):
 def api_get_artist_image(artist_id):
     image_url = get_true_artist_image(artist_id)
     return jsonify({'image': image_url})
+
+@app.route('/tag/<tag_name>')
+def tag_page(tag_name):
+    page = request.args.get('page', 1, type=int)
+    sort_by = request.args.get('sort', 'popularity')
+    
+    description = get_tag_info(tag_name)
+    artists = get_tag_artists(tag_name, page, 30)
+    
+    # Сортировка (если просят A-Z)
+    if sort_by == 'alpha':
+        artists.sort(key=lambda x: x['artistName'].lower())
+    else:
+        # По умолчанию популярные
+        artists.sort(key=lambda x: x['listeners'], reverse=True)
+        
+    return render_template('index.html', 
+                           view='tag_detail',  # <--- ВАЖНО: новый вид
+                           tag_name=tag_name, 
+                           description=description, 
+                           artists=artists, 
+                           page=page, 
+                           sort_by=sort_by)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

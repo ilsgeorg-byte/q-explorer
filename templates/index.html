@@ -304,6 +304,46 @@
         </div>
         {% endfor %}
     </div>
+
+    <!-- === НОВЫЙ БЛОК: СТРАНИЦА ЖАНРА === -->
+    {% elif view == 'tag_detail' %}
+        <div class="artist-hero">
+            <h1>#{{ tag_name|capitalize }}</h1>
+            <div style="max-width:700px; margin:15px auto; font-size:14px; color:#ccc;">{{ description|safe }}</div>
+        </div>
+        
+        <!-- Кнопки сортировки -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin:20px 0;">
+            <div class="sort-controls">
+                <span style="color:#666; margin-right:10px;">Sort:</span>
+                <a href="/tag/{{ tag_name }}?page=1&sort=popularity" style="color: {% if sort_by == 'popularity' %}#fff{% else %}#888{% endif %}; margin-right:15px;">Popularity</a>
+                <a href="/tag/{{ tag_name }}?page=1&sort=alpha" style="color: {% if sort_by == 'alpha' %}#fff{% else %}#888{% endif %};">A-Z</a>
+            </div>
+            <!-- Пагинация -->
+            <div class="pagination">
+                {% if page > 1 %}
+                <a href="/tag/{{ tag_name }}?page={{ page - 1 }}&sort={{ sort_by }}" style="background:#333; padding:5px 15px; border-radius:20px; font-size:14px;">← Prev</a>
+                {% endif %}
+                <span style="margin:0 15px; color:#666;">Page {{ page }}</span>
+                <a href="/tag/{{ tag_name }}?page={{ page + 1 }}&sort={{ sort_by }}" style="background:#333; padding:5px 15px; border-radius:20px; font-size:14px;">Next →</a>
+            </div>
+        </div>
+
+        <!-- Сетка артистов -->
+        <div class="grid">
+            {% for artist in artists %}
+            <a href="/?q={{ artist.artistName }}" class="card">
+                <div class="card-img-wrapper">
+                    <!-- Вместо фото делаем цветной квадрат, т.к. нет картинок -->
+                    <div class="card-img lazy-grad" style="width:100%; height:100%;"></div>
+                </div>
+                <div class="card-title">{{ artist.artistName }}</div>
+                <div class="card-subtitle">{{ (artist.listeners / 1000)|round|int }}K Listeners</div>
+            </a>
+            {% endfor %}
+        </div>
+
+
     {% endif %}
 
     <!-- КНОПКА НАВЕРХ И ТОСТ -->
@@ -383,6 +423,14 @@
             toast.style.display = 'block';
             setTimeout(() => toast.style.display = 'none', 2000);
         }
+
+
+                // Добавьте это внутрь существующего <script>
+        document.querySelectorAll('.lazy-grad').forEach(div => {
+            const hue = Math.floor(Math.random() * 360);
+            div.style.background = `linear-gradient(135deg, hsl(${hue}, 40%, 20%), hsl(${hue + 40}, 50%, 40%))`;
+        });
+
     </script>
 </body>
 </html>

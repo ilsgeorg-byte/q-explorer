@@ -131,3 +131,29 @@ def get_similar_artists(artist_name, limit=5):
             return data['similarartists']['artist']
     except: return []
     return []
+
+def get_tag_info(tag):
+    """Получает описание жанра"""
+    try:
+        url = f"{LASTFM_URL}?method=tag.getinfo&tag={urllib.parse.quote(tag)}&api_key={LASTFM_API_KEY}&format=json"
+        data = requests.get(url, timeout=2).json()
+        if 'tag' in data and 'wiki' in data['tag']:
+            return data['tag']['wiki'].get('summary', '').split('<a href')[0].strip()
+    except: return ""
+    return ""
+
+def get_tag_artists(tag, page=1, limit=30):
+    """Получает топ артистов жанра"""
+    try:
+        url = f"{LASTFM_URL}?method=tag.gettopartists&tag={urllib.parse.quote(tag)}&api_key={LASTFM_API_KEY}&format=json&page={page}&limit={limit}"
+        data = requests.get(url, timeout=3).json()
+        artists = []
+        if 'topartists' in data and 'artist' in data['topartists']:
+            for art in data['topartists']['artist']:
+                artists.append({
+                    'artistName': art['name'],
+                    # Картинки Last.fm не отдает, будем красить градиентом
+                    'listeners': int(art.get('listeners', 0))
+                })
+        return artists
+    except: return []
