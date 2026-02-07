@@ -132,9 +132,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // LAZY LOADING IMAGES (IntersectionObserver)
     const loadImage = (wrapper) => {
         const artistId = wrapper.getAttribute('data-artist-id');
-        if (!artistId || wrapper.querySelector('img')) return;
+        const artistName = wrapper.getAttribute('data-artist-name');
 
-        fetch(`/api/get-artist-image/${artistId}`)
+        if ((!artistId && !artistName) || wrapper.querySelector('img')) return;
+
+        const url = artistId
+            ? `/api/get-artist-image/${artistId}`
+            : `/api/get-artist-image-by-name?name=${encodeURIComponent(artistName)}`;
+
+        fetch(url)
             .then(response => response.json())
             .then(data => {
                 if (data.image) {
@@ -148,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     wrapper.appendChild(img);
                 }
             })
-            .catch(err => console.log('No image for', artistId));
+            .catch(err => console.log('No image for', artistId || artistName));
     };
 
     // Используем Observer вместо setTimeout для реальной ленивой загрузки
