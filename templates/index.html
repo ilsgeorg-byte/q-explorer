@@ -10,51 +10,89 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Outfit:wght@300;400;600;800&display=swap"
         rel="stylesheet">
+    <!-- Цвет браузерной строки для мобильных (под темную тему) -->
+    <meta name="theme-color" content="#121212">
+    <style>
+        /* Стили для кнопки "Наверх" */
+        #scroll-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: none;
+            /* Переключается через JS */
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 90;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        #scroll-top:hover {
+            transform: translateY(-5px);
+        }
+    </style>
 </head>
 
 <body>
 
     <!-- COMPONENTS -->
     {% include 'components/loader.html' %}
+
+    <!-- HEADER IS FIXED -->
     {% include 'components/header.html' %}
-    {% include 'components/favorites.html' %}
-    {% include 'components/modal.html' %}
 
-    <!-- VIEWS -->
+    <div class="container main-content">
+        {% include 'components/favorites.html' %}
+        {% include 'components/modal.html' %}
 
-    <!-- HOME -->
-    {% if view == 'home' %}
-    {% include 'views/home.html' %}
-    {% endif %}
+        <!-- VIEWS -->
 
-    <!-- RESULTS -->
-    {% if view == 'results' %}
-    {% include 'views/results.html' %}
-    {% endif %}
+        <!-- HOME -->
+        {% if view == 'home' %}
+        {% include 'views/home.html' %}
+        {% endif %}
 
-    <!-- SEE ALL -->
-    {% if view == 'see_all' %}
-    {% include 'views/see_all.html' %}
-    {% endif %}
+        <!-- RESULTS -->
+        {% if view == 'results' %}
+        {% include 'views/results.html' %}
+        {% endif %}
 
-    <!-- ARTIST DETAIL -->
-    {% if view == 'artist_detail' %}
-    {% include 'views/artist_detail.html' %}
-    {% endif %}
+        <!-- SEE ALL -->
+        {% if view == 'see_all' %}
+        {% include 'views/see_all.html' %}
+        {% endif %}
 
-    <!-- ALBUM DETAIL -->
-    {% if view == 'album_detail' %}
-    {% include 'views/album_detail.html' %}
-    {% endif %}
+        <!-- ARTIST DETAIL -->
+        {% if view == 'artist_detail' %}
+        {% include 'views/artist_detail.html' %}
+        {% endif %}
 
-    <!-- TAG DETAIL (GENRE) -->
-    {% if view == 'tag_detail' %}
-    {% include 'views/tag_detail.html' %}
-    {% endif %}
+        <!-- ALBUM DETAIL -->
+        {% if view == 'album_detail' %}
+        {% include 'views/album_detail.html' %}
+        {% endif %}
+
+        <!-- TAG DETAIL (GENRE) -->
+        {% if view == 'tag_detail' %}
+        {% include 'views/tag_detail.html' %}
+        {% endif %}
+    </div>
 
     <!-- FOOTER ELEMENTS -->
-    <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</div>
-    <div id="toast">Link copied!</div>
+    <footer
+        style="text-align: center; padding: 40px 20px; color: #555; font-size: 0.8rem; margin-top: 50px; border-top: 1px solid rgba(255,255,255,0.05);">
+        <p>
+            Data provided by <a href="https://music.apple.com" target="_blank"
+                style="color: #777; text-decoration: none;">iTunes</a>,
+            <a href="https://www.deezer.com" target="_blank" style="color: #777; text-decoration: none;">Deezer</a> &
+            <a href="https://www.last.fm" target="_blank" style="color: #777; text-decoration: none;">Last.fm</a>.
+        </p>
+    </footer>
+    <div id="scroll-top" class="btn-primary" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

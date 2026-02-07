@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 from api_clients import (
     search_itunes, lookup_itunes, get_true_artist_image, 
     get_lastfm_artist_data, get_lastfm_album_stats, get_similar_artists,
-    get_tag_info, get_tag_artists  # <--- ДОБАВИТЬ ЭТО
+    get_tag_info, get_tag_artists, search_deezer_artists
 )
 from utils import generate_spotify_link, sort_albums
 from urllib.parse import unquote 
@@ -18,10 +18,11 @@ def index():
     results = {'artists': [], 'albums': [], 'songs': []}
     ql = query.lower()
 
-    # 1. Artists (Главная: берем 4 лучших, фильтруем дубликаты)
+    # 1. Artists (Главная: берем 8 лучших, фильтруем дубликаты)
     seen_ids = set()
-    # Запрашиваем с запасом (15)
-    for art in search_itunes(query, 'musicArtist', 15):
+    seen_names = set()
+    # Запрашиваем с запасом (25)
+    for art in search_itunes(query, 'musicArtist', 25):
         aid = art.get('artistId')
         name = art.get('artistName', '')
         
@@ -29,10 +30,22 @@ def index():
         if not aid or aid in seen_ids: continue
         # Пропускаем, если имя совсем не похоже (мусор в поиске)
         if ql not in (name or "").lower(): continue
+        
+        # Фильтруем дубликаты по имени (iTunes иногда возвращает несколько "Queen" с разными ID)
+        if name.lower() in seen_names: continue
+        seen_names.add(name.lower())
 
         # Для главной страницы (всего 4 шт) грузим картинку сразу (синхронно)
         # Это замедлит поиск на ~1 сек, но зато красиво.
         art['image'] = get_true_artist_image(aid)
+        
+        # 1. Пробуем найти красивое фото через Deezer
+        deezer_res = search_deezer_artists(name, 1)
+        if deezer_res:
+            art['image'] = deezer_res[0]['image']
+        else:
+            # 2. Если не вышло, берем обложку из iTunes
+            art['image'] = get_true_artist_image(aid)
         
         # Берем данные с Last.fm (stats + tags)
         lf_data = get_lastfm_artist_data(name)
@@ -41,7 +54,7 @@ def index():
         results['artists'].append(art)
         seen_ids.add(aid)
         
-        if len(results['artists']) >= 4: break
+        if len(results['artists']) >= 8: break
     
     # 2. Albums
     for alb in search_itunes(query, 'album', 15):
@@ -77,6 +90,7 @@ def see_all(type):
     data = search_itunes(query, entity, 60)
     
     seen_ids = set()
+    seen_names = set()
     
     for item in data:
         if type == 'artists':
@@ -85,6 +99,9 @@ def see_all(type):
             
             if not aid or aid in seen_ids: continue
             if ql not in (name or "").lower(): continue
+
+            if name.lower() in seen_names: continue
+            seen_names.add(name.lower())
 
             # ВАЖНО: Тут image = None. Картинки подгрузятся через JS (Lazy Loading)
             item['image'] = None 
@@ -131,12 +148,15 @@ def artist_page(artist_id):
         future_songs = executor.submit(search_itunes, artist_name, 'song', 50)
         # 4. Albums (Raw)
         future_albums = executor.submit(lookup_itunes, artist_id, 'album', 200)
+        # 5. Deezer Image (Красивое фото артиста)
+        future_deezer = executor.submit(search_deezer_artists, artist_name, 1)
         
         # Собираем результаты
         lf_data = future_lf.result()
         similar = future_sim.result()
         top_songs_raw = future_songs.result()
         raw_albums_data = future_albums.result()
+        deezer_data = future_deezer.result()
 
     # --- ОБРАБОТКА ПОЛУЧЕННЫХ ДАННЫХ ---
     
@@ -193,11 +213,20 @@ def artist_page(artist_id):
 
     discography = sort_albums(raw_albums)
     
+    # Выбираем лучшее изображение для шапки
     artist_image = None
     if discography['albums']:
         artist_image = discography['albums'][0].get('artworkUrl100')
     elif discography['singles']:
          artist_image = discography['singles'][0].get('artworkUrl100')
+    
+    if deezer_data:
+        artist_image = deezer_data[0]['image']
+    else:
+        if discography['albums']:
+            artist_image = discography['albums'][0].get('artworkUrl100')
+        elif discography['singles']:
+             artist_image = discography['singles'][0].get('artworkUrl100')
     
     return render_template('index.html', view='artist_detail', artist=artist, discography=discography, artist_image=artist_image, similar=similar, top_songs=top_songs)
 
@@ -262,6 +291,13 @@ def api_get_artist_image_by_name():
     if not name: return jsonify({'image': None})
     
     # 1. Ищем артиста в iTunes по имени
+    # 1. Сначала пробуем Deezer (быстрее и красивее)
+    try:
+        dz = search_deezer_artists(name, 1)
+        if dz: return jsonify({'image': dz[0]['image']})
+    except: pass
+    
+    # 2. Если нет, ищем в iTunes
     try:
         results = search_itunes(name, 'musicArtist', 1)
         if results:
@@ -276,5 +312,3 @@ def api_get_artist_image_by_name():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-

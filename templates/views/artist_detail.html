@@ -1,34 +1,33 @@
 <div class="page-header">
-    <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">←
+    <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:10px; display:inline-block;">←
         Back</a>
     <span class="btn-see-all" onclick="sharePage()" style="margin-left: 20px; cursor: pointer;">🔗 Share</span>
 </div>
-<div class="artist-hero">
-    {% if artist_image %}<img src="{{ artist_image }}">{% endif %}
-    <h1>{{ artist.artistName }}</h1>
+<div class="artist-hero" style="text-align: center;">
+    {% if artist_image %}<img src="{{ artist_image }}"
+        style="width: 180px; height: 180px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">{%
+    endif %}
+    <h1 style="font-size: 3rem; margin: 0 0 10px 0;">{{ artist.artistName }}</h1>
 
-    <!-- Тэги вместо скучного жанра -->
-    <div class="genre">
-        {{ artist.primaryGenreName }}
+    <!-- Тэги -->
+    <div class="hero-meta" style="margin-bottom: 15px;">
+        <span class="tag" style="color:var(--primary); border-color:var(--primary);">{{ artist.primaryGenreName
+            }}</span>
         {% if artist.tags %}
         {% for tag in artist.tags %}
         <!-- ТЕПЕРЬ ЭТО ССЫЛКА -->
-        <a href="/tag/{{ tag }}" style="color: inherit; text-decoration: none;" title="Browse {{ tag }}">
-            <span style="opacity: 0.6; margin-left: 5px; cursor: pointer; transition: opacity 0.2s;"
-                onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
-                • {{ tag|capitalize }}
-            </span>
+        <a href="/tag/{{ tag }}" class="tag">
+            {{ tag|capitalize }}
         </a>
         {% endfor %}
         {% endif %}
+
+        {% if artist.stats %}<div class="stats-badge">{{ artist.stats }}</div>{% endif %}
     </div>
-
-
-    {% if artist.stats %}<div class="stats-hero">{{ artist.stats }}</div>{% endif %}
 
     <!-- БИОГРАФИЯ -->
     {% if artist.bio %}
-    <div style="max-width: 600px; margin: 15px auto; font-size: 14px; color: #ccc; line-height: 1.5;">
+    <div style="max-width: 700px; margin: 0 auto; font-size: 0.9rem; color: #bbb; line-height: 1.4;">
         {{ artist.bio }}
     </div>
     {% endif %}

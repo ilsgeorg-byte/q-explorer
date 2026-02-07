@@ -1,3 +1,6 @@
+/* --- SHARE & UI LOGIC --- */
+/* (Toast functions removed) */
+
 /* --- МОДАЛЬНОЕ ОКНО --- */
 function openMusicModal(spotifyLink, appleCollectionId, appleTrackId) {
     document.getElementById('modal-spotify').href = spotifyLink;
@@ -37,7 +40,10 @@ function removeHistory(e, item) {
     showHistory();
 }
 document.addEventListener('click', (e) => {
-    if (!e.target.closest('.search-container')) document.getElementById('history-dropdown').style.display = 'none';
+    if (!e.target.closest('.search-container')) {
+        const drop = document.getElementById('history-dropdown');
+        if (drop) drop.style.display = 'none';
+    }
 });
 
 /* --- ИЗБРАННОЕ --- */
@@ -50,7 +56,7 @@ function toggleLike(btn, type, id, title, img, sub, link) {
     let favs = getFavs();
     const index = favs.findIndex(f => f.id === id);
     if (index > -1) { favs.splice(index, 1); btn.classList.remove('liked'); }
-    else { favs.unshift({ type, id, title, img, sub, link }); btn.classList.add('liked'); }
+    else { favs.unshift({ type, id, title, img, sub: sub || '', link }); btn.classList.add('liked'); }
     saveFavs(favs);
 }
 function checkLikedStatus() {
@@ -67,6 +73,7 @@ function toggleFavsView() {
     isFavExpanded = !isFavExpanded;
     const container = document.getElementById('favorites-container');
     const btn = document.getElementById('fav-toggle-btn');
+    if (!container || !btn) return;
 
     if (isFavExpanded) {
         container.classList.remove('scroll-row');
@@ -83,6 +90,7 @@ function renderFavorites() {
     const favs = getFavs();
     const section = document.getElementById('favorites-section');
     const container = document.getElementById('favorites-container');
+    if (!section || !container) return;
 
     if (favs.length === 0) { section.style.display = 'none'; return; }
     section.style.display = 'block';
@@ -90,25 +98,19 @@ function renderFavorites() {
     container.innerHTML = favs.map(f => {
         let href = f.type === 'artist' ? `/artist/${f.id}` : (f.type === 'album' ? `/album/${f.id}` : '#');
         let clickAction = f.type === 'song' ? `onclick="openMusicModal('${f.link}', '${f.sub}', '')"` : '';
-        // Добавляем класс fav-card, чтобы применились стили
         let isArtist = f.type === 'artist';
 
         return `
         <a href="${href}" ${clickAction} class="card fav-card ${isArtist ? 'artist-card' : ''}">
-             <div class="btn-like liked" onclick="toggleLike(this, '${f.type}', '${f.id}', '${f.title.replace(/'/g, "\\'")}', '${f.img}', '${f.sub.replace(/'/g, "\\'")}', '${f.link}')">♥</div>
-            <img src="${f.img}">
-            <div class="info"><div class="title">${f.title}</div></div>
+             <div class="btn-like liked" onclick="toggleLike(this, '${f.type}', '${f.id}', '${f.title.replace(/'/g, "\\'")}', '${f.img}', '${(f.sub || '').replace(/'/g, "\\'")}', '${f.link}')">♥</div>
+            <div class="card-img-wrapper"><img src="${f.img}" loading="lazy"></div>
+            <div class="card-info">
+                <div class="title">${f.title}</div>
+                <div class="sub">${f.sub || ''}</div>
+            </div>
         </a>
         `;
     }).join('');
-}
-
-/* --- SHARE & UI LOGIC --- */
-function sharePage() {
-    navigator.clipboard.writeText(window.location.href);
-    const toast = document.getElementById('toast');
-    toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 2000);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -165,16 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 obs.unobserve(entry.target);
             }
         });
-    }, { rootMargin: '100px' }); // Начинаем грузить чуть заранее (100px до появления)
+    }, { rootMargin: '100px' });
 
     document.querySelectorAll('.artist-img-wrapper').forEach(wrapper => {
         observer.observe(wrapper);
-    });
-
-    // Lazy Gradients
-    document.querySelectorAll('.lazy-grad').forEach(div => {
-        const hue = Math.floor(Math.random() * 360);
-        div.style.background = `linear-gradient(135deg, hsl(${hue}, 40%, 20%), hsl(${hue + 40}, 50%, 40%))`;
     });
 });
 

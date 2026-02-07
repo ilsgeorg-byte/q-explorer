@@ -3,27 +3,38 @@
         Back</a>
     <span class="btn-see-all" onclick="sharePage()" style="margin-left: 20px; cursor: pointer;">🔗 Share</span>
 </div>
-<div class="hero">
-    <img src="{{ album.artworkUrl100 }}">
-    <div class="hero-info">
-        <h1>{{ album.collectionName }}</h1>
-        <div class="sub">{{ album.artistName }} • {{ album.releaseDate[:4] }}</div>
-        {% if album_stats %}<div class="hero-stats">{{ album_stats }}</div>{% endif %}
-        <div class="actions">
-            <a href="{{ spotify_link }}" target="_blank" class="btn btn-spotify">Spotify</a>
-            <a href="https://music.apple.com/album/{{ album.collectionId }}" target="_blank" class="btn btn-apple">Apple
-                Music</a>
+
+<div class="hero-banner">
+    <div class="hero-content">
+        <img src="{{ album.artworkUrl100 }}" class="hero-img">
+        <div class="hero-text">
+            <h1 class="hero-title">{{ album.collectionName }}</h1>
+            <div class="hero-meta">
+                <span class="tag">{{ album.artistName }}</span>
+                <span class="tag">{{ album.releaseDate[:4] }}</span>
+                {% if album_stats %}<div class="stats-badge">{{ album_stats }}</div>{% endif %}
+            </div>
+            <div class="hero-actions">
+                <a href="{{ spotify_link }}" target="_blank" class="btn btn-primary">Spotify</a>
+                <a href="https://music.apple.com/album/{{ album.collectionId }}" target="_blank"
+                    class="btn btn-glass">Apple Music</a>
+            </div>
         </div>
     </div>
 </div>
+
 <div class="song-list">
     {% for song in songs %}
-    <div class="track" style="position: relative;"
+    <div class="track-row" style="position: relative;"
         onclick="openMusicModal('{{ song.spotify_link }}', '{{ album.collectionId }}', '{{ song.trackId }}')">
-        <div class="t-num">{{ song.trackNumber }}</div>
-        <div class="t-name">{{ song.trackName }}</div>
-        <div class="btn-like song-like"
-            onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ album.artworkUrl100 }}', '{{ album.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">
+        <div class="track-num">{{ song.trackNumber }}</div>
+        <div class="track-info">
+            <div class="track-title">{{ song.trackName }}</div>
+        </div>
+        <div class="btn-like song-like" style="opacity: 0.5; position: static; margin-left: auto;"
+            onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace(" \'", "&#39;" )
+            }}', '{{ album.artworkUrl100 }}' , '{{ album.artistName|replace("\'", " &#39;")
+            }}', '{{ song.spotify_link }}' )">
             ♥
         </div>
     </div>

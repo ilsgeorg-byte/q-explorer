@@ -1,10 +1,18 @@
 <div class="search-container">
     <div class="nav-content">
         <a href="/" class="logo">Q-Explorer<span>.</span></a>
+
         <form action="/" method="get" class="search-wrapper" onsubmit="saveHistory(this.q.value)">
-            <input type="text" name="q" placeholder="Search..." value="{{ query if query else '' }}" autocomplete="off"
-                onfocus="showHistory()">
-            <button type="submit">GO</button>
+            <input type="text" name="q" placeholder="Start typing..." value="{{ query if query else '' }}"
+                autocomplete="off" onfocus="showHistory()">
+            <button type="submit" class="btn-search">
+                <!-- Simple search icon SVG -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
             <div id="history-dropdown"></div>
         </form>
     </div>
