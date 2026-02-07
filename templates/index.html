@@ -209,13 +209,21 @@
         
         <!-- Тэги вместо скучного жанра -->
         <div class="genre">
-            {{ artist.primaryGenreName }}
-            {% if artist.tags %}
-                {% for tag in artist.tags %}
-                    <span style="opacity: 0.6; margin-left: 5px;">• {{ tag|capitalize }}</span>
+    {{ artist.primaryGenreName }}
+    {% if artist.tags %}
+        {% for tag in artist.tags %}
+            <!-- ТЕПЕРЬ ЭТО ССЫЛКА -->
+            <a href="/tag/{{ tag }}" style="color: inherit; text-decoration: none;" title="Browse {{ tag }}">
+                <span style="opacity: 0.6; margin-left: 5px; cursor: pointer; transition: opacity 0.2s;" 
+                      onmouseover="this.style.opacity=1" 
+                      onmouseout="this.style.opacity=0.6">
+                            • {{ tag|capitalize }}
+                        </span>
+                    </a>
                 {% endfor %}
             {% endif %}
         </div>
+
         
         {% if artist.stats %}<div class="stats-hero">{{ artist.stats }}</div>{% endif %}
         
