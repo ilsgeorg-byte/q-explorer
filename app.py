@@ -3,7 +3,7 @@ from api_clients import (
     search_itunes, 
     lookup_itunes, 
     get_true_artist_image, 
-    get_lastfm_artist_stats, 
+    get_lastfm_artist_data, # <--- Обновленная функция
     get_lastfm_album_stats, 
     get_similar_artists
 )
@@ -20,24 +20,26 @@ def index():
     results = {'artists': [], 'albums': [], 'songs': []}
     ql = query.lower()
 
-    # 1. Artists (без Deezer, только честный iTunes)
+    # 1. Artists (Главная: берем 4 лучших, фильтруем дубликаты)
     seen_ids = set()
-    # Берем с запасом (15), чтобы отфильтровать дубликаты
+    # Запрашиваем с запасом (15)
     for art in search_itunes(query, 'musicArtist', 15):
         aid = art.get('artistId')
         name = art.get('artistName', '')
         
+        # Пропускаем без ID или уже виденных
         if not aid or aid in seen_ids: continue
-        
-        # Фильтр: имя должно содержать запрос (чтобы не показывать левое)
+        # Пропускаем, если имя совсем не похоже (мусор в поиске)
         if ql not in (name or "").lower(): continue
 
-        # Для главной страницы (всего 4 артиста) можно попробовать получить картинку через iTunes
-        # Это замедлит поиск на 1-2 секунды, но зато будут фото.
-        # Если хотите мгновенно - уберите эту строчку, будут кружочки.
-        art['image'] = get_true_artist_image(aid) 
+        # Для главной страницы (всего 4 шт) грузим картинку сразу (синхронно)
+        # Это замедлит поиск на ~1 сек, но зато красиво.
+        art['image'] = get_true_artist_image(aid)
         
-        art['stats'] = get_lastfm_artist_stats(name)
+        # Берем данные с Last.fm (stats + tags)
+        lf_data = get_lastfm_artist_data(name)
+        art['stats'] = lf_data.get('stats') if lf_data else None
+        
         results['artists'].append(art)
         seen_ids.add(aid)
         
@@ -70,10 +72,10 @@ def see_all(type):
     results = []
     ql = query.lower()
     
-    # Стандартный поиск iTunes для всего
     entity_map = {'artists': 'musicArtist', 'albums': 'album', 'songs': 'song'}
     entity = entity_map.get(type, 'album')
     
+    # Большой лимит для списка "Все"
     data = search_itunes(query, entity, 60)
     
     seen_ids = set()
@@ -86,10 +88,11 @@ def see_all(type):
             if not aid or aid in seen_ids: continue
             if ql not in (name or "").lower(): continue
 
-            # В See All мы НЕ грузим картинки (слишком долго).
-            # Оставляем None -> покажутся цветные плейсхолдеры.
-            # Если вы добавили Lazy Loading (JS), то он потом подгрузит их сам.
+            # ВАЖНО: Тут image = None. Картинки подгрузятся через JS (Lazy Loading)
             item['image'] = None 
+            
+            # Статистику для списка "Все" не грузим (долго), только имя
+            item['stats'] = None
             
             results.append(item)
             seen_ids.add(aid)
@@ -114,15 +117,46 @@ def artist_page(artist_id):
     if not data: return "Artist not found"
     
     artist = data[0]
-    artist['stats'] = get_lastfm_artist_stats(artist.get('artistName', ''))
+    
+    # 1. Расширенные данные с Last.fm (Bio, Stats, Tags)
+    lf_data = get_lastfm_artist_data(artist.get('artistName', ''))
+    if lf_data:
+        artist['stats'] = lf_data.get('stats')
+        artist['bio'] = lf_data.get('bio')
+        artist['tags'] = lf_data.get('tags')
+    else:
+        artist['stats'] = None
+        artist['bio'] = None
+        artist['tags'] = []
+    
     similar = get_similar_artists(artist.get('artistName', ''))
     
+    # 2. Топ Песни (Top Songs) - отдельный поиск
+    # Ищем песни по имени артиста, потом фильтруем по ID, чтобы не попали чужие
+    top_songs_raw = search_itunes(artist.get('artistName', ''), 'song', 25)
+    top_songs = []
+    target_id = int(artist_id)
+    
+    for s in top_songs_raw:
+        # Проверяем, что песня принадлежит именно этому артисту
+        if s.get('artistId') == target_id:
+            s['spotify_link'] = generate_spotify_link(f"{s.get('artistName')} {s.get('trackName')}")
+            # Картинку делаем побольше
+            if 'artworkUrl100' in s:
+                s['artworkUrl100'] = s['artworkUrl100'].replace('100x100bb', '300x300bb')
+            top_songs.append(s)
+            if len(top_songs) >= 5: break
+    
+    # 3. Дискография (Альбомы)
     raw_albums = [x for x in lookup_itunes(artist_id, 'album', 200) if x.get('collectionType') == 'Album' and x.get('artistId') == int(artist_id)]
     discography = sort_albums(raw_albums)
     
+    # Фото артиста берем с обложки первого альбома
     artist_image = discography['albums'][0]['artworkUrl100'] if discography['albums'] else None
+    if not artist_image and discography['singles']:
+         artist_image = discography['singles'][0]['artworkUrl100']
     
-    return render_template('index.html', view='artist_detail', artist=artist, discography=discography, artist_image=artist_image, similar=similar)
+    return render_template('index.html', view='artist_detail', artist=artist, discography=discography, artist_image=artist_image, similar=similar, top_songs=top_songs)
 
 @app.route('/album/<collection_id>')
 def album_page(collection_id):
@@ -146,7 +180,7 @@ def album_page(collection_id):
             
     return render_template('index.html', view='album_detail', album=album_info, songs=songs, spotify_link=spotify_link, album_stats=album_stats)
 
-# API для ленивой загрузки (если вы внедрили JS скрипт)
+# API для JS (Lazy Loading картинок)
 @app.route('/api/get-artist-image/<artist_id>')
 def api_get_artist_image(artist_id):
     image_url = get_true_artist_image(artist_id)

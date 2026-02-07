@@ -57,18 +57,45 @@ def get_true_artist_image(artist_id):
     except: pass
     return None
 
-def get_lastfm_artist_stats(artist_name):
+def get_lastfm_artist_data(artist_name):
+    """
+    Возвращает словарь: {stats, bio, tags}
+    """
     try:
         if not artist_name: return None
         clean = clean_name(artist_name)
         url = f"{LASTFM_URL}?method=artist.getinfo&artist={urllib.parse.quote(clean)}&api_key={LASTFM_API_KEY}&format=json"
         data = requests.get(url, timeout=2).json()
-        if 'artist' in data and 'stats' in data['artist']:
-            listeners = int(data['artist']['stats']['listeners'])
-            if listeners > 1000000: return f"👥 {listeners/1000000:.1f}M listeners"
-            elif listeners > 1000: return f"👥 {listeners/1000:.0f}K listeners"
-            else: return f"👥 {listeners} listeners"
-    except: return None
+        
+        result = {'stats': '', 'bio': '', 'tags': []}
+        
+        if 'artist' in data:
+            art = data['artist']
+            
+            # 1. Stats
+            if 'stats' in art:
+                listeners = int(art['stats'].get('listeners', 0))
+                if listeners > 1000000: result['stats'] = f"👥 {listeners/1000000:.1f}M listeners"
+                elif listeners > 1000: result['stats'] = f"👥 {listeners/1000:.0f}K listeners"
+                else: result['stats'] = f"👥 {listeners} listeners"
+            
+            # 2. Bio (удаляем HTML ссылки)
+            if 'bio' in art and 'summary' in art['bio']:
+                summary = art['bio']['summary']
+                # Убираем ссылку <a href="...">Read more on Last.fm</a>
+                summary = summary.split('<a href')[0]
+                result['bio'] = summary
+                
+            # 3. Tags
+            if 'tags' in art and 'tag' in art['tags']:
+                tags = art['tags']['tag']
+                # Берем первые 3 тэга
+                result['tags'] = [t['name'] for t in tags[:3] if isinstance(tags, list)]
+                
+        return result
+    except:
+        return None
+
 
 def get_lastfm_album_stats(artist_name, album_name):
     try:

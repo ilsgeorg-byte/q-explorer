@@ -202,12 +202,48 @@
         <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
         <span class="btn-see-all" onclick="sharePage()" style="margin-left: 20px; cursor: pointer;">🔗 Share</span>
     </div>
-    <div class="artist-hero">
+       <div class="artist-hero">
         {% if artist_image %}<img src="{{ artist_image }}">{% endif %}
         <h1>{{ artist.artistName }}</h1>
-        <div class="genre">{{ artist.primaryGenreName }}</div>
+        
+        <!-- Тэги вместо скучного жанра -->
+        <div class="genre">
+            {{ artist.primaryGenreName }}
+            {% if artist.tags %}
+                {% for tag in artist.tags %}
+                    <span style="opacity: 0.6; margin-left: 5px;">• {{ tag|capitalize }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
         {% if artist.stats %}<div class="stats-hero">{{ artist.stats }}</div>{% endif %}
+        
+        <!-- БИОГРАФИЯ -->
+        {% if artist.bio %}
+        <div style="max-width: 600px; margin: 15px auto; font-size: 14px; color: #ccc; line-height: 1.5;">
+            {{ artist.bio }}
+        </div>
+        {% endif %}
     </div>
+
+    <!-- ТОП ПЕСНИ (Сразу после Hero) -->
+    {% if top_songs %}
+    <div class="section-header"><h2 class="section-title">Top Songs</h2></div>
+    <div class="song-list" style="margin-bottom: 30px;">
+        {% for song in top_songs %}
+        <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}', '{{ song.collectionId }}', '{{ song.trackId }}')">
+            <img src="{{ song.artworkUrl100 }}" class="song-img">
+            <div class="song-info">
+                <div class="song-title">{{ song.trackName }}</div>
+                <div class="song-artist" style="opacity: 0.7;">{{ song.collectionName }}</div>
+            </div>
+            <!-- Лайк -->
+             <div class="btn-like song-like" onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">♥</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {% if similar %}
     <div class="similar-artists">
         <h3>Fans also like</h3>
