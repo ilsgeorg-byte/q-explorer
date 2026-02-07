@@ -59,7 +59,12 @@ def get_true_artist_image(artist_id):
 
 def get_lastfm_artist_data(artist_name):
     """
-    Возвращает словарь: {stats, bio, tags}
+    Возвращает словарь с данными Last.fm:
+    {
+        'stats': строка "X Last.fm listeners",
+        'bio': краткая биография,
+        'tags': список тегов
+    }
     """
     try:
         if not artist_name: return None
@@ -72,28 +77,33 @@ def get_lastfm_artist_data(artist_name):
         if 'artist' in data:
             art = data['artist']
             
-            # 1. Stats
+            # 1. Stats (ДОБАВЛЯЕМ "Last.fm")
             if 'stats' in art:
                 listeners = int(art['stats'].get('listeners', 0))
-                if listeners > 1000000: result['stats'] = f"👥 {listeners/1000000:.1f}M listeners"
-                elif listeners > 1000: result['stats'] = f"👥 {listeners/1000:.0f}K listeners"
-                else: result['stats'] = f"👥 {listeners} listeners"
+                if listeners > 1000000: 
+                    result['stats'] = f"👥 {listeners/1000000:.1f}M Last.fm listeners"
+                elif listeners > 1000: 
+                    result['stats'] = f"👥 {listeners/1000:.0f}K Last.fm listeners"
+                else: 
+                    result['stats'] = f"👥 {listeners} Last.fm listeners"
             
-            # 2. Bio (удаляем HTML ссылки)
+            # 2. Bio
             if 'bio' in art and 'summary' in art['bio']:
                 summary = art['bio']['summary']
-                # Убираем ссылку <a href="...">Read more on Last.fm</a>
                 summary = summary.split('<a href')[0]
-                result['bio'] = summary
+                result['bio'] = summary.strip()
                 
             # 3. Tags
             if 'tags' in art and 'tag' in art['tags']:
                 tags = art['tags']['tag']
-                # Берем первые 3 тэга
-                result['tags'] = [t['name'] for t in tags[:3] if isinstance(tags, list)]
-                
+                if isinstance(tags, list):
+                    result['tags'] = [t['name'] for t in tags[:4]]
+                elif isinstance(tags, dict):
+                     result['tags'] = [tags['name']]
+                     
         return result
-    except:
+    except Exception as e:
+        print(f"LastFM Error: {e}")
         return None
 
 
