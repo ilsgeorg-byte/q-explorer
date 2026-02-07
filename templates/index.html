@@ -5,362 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music Explorer</title>
     <style>
-        :root {
-            --bg-color: #121212;
-            --card-bg: #181818;
-            --text-color: #ffffff;
-            --subtext-color: #b3b3b3;
-            --accent-color: #1db954;
-            --hover-bg: #282828;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-        }
+        :root { --bg-color: #121212; --card-bg: #181818; --text-color: #ffffff; --subtext-color: #b3b3b3; --accent-color: #1db954; }
+        body { font-family: -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; }
+        a { text-decoration: none; color: inherit; }
         
-        /* HEADER & SEARCH */
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #333;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--text-color);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .search-container {
-            flex-grow: 1;
-            max-width: 500px;
-            margin: 0 20px;
-            position: relative;
-        }
-        .search-input {
-            width: 100%;
-            padding: 12px 20px;
-            border-radius: 25px;
-            border: none;
-            background-color: #ffffff;
-            color: #000;
-            font-size: 16px;
-            outline: none;
-        }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
+        .logo { font-size: 24px; font-weight: bold; }
+        .search-container { flex-grow: 1; max-width: 500px; margin: 0 20px; }
+        .search-input { width: 100%; padding: 12px 20px; border-radius: 25px; border: none; font-size: 16px; outline: none; }
         
-        /* SECTIONS & GRID */
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 40px;
-            margin-bottom: 20px;
-        }
-        .section-title {
-            font-size: 24px;
-            font-weight: bold;
-        }
-        .see-all {
-            color: var(--subtext-color);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-        .see-all:hover {
-            text-decoration: underline;
-        }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin: 40px 0 20px; }
+        .section-title { font-size: 24px; font-weight: bold; margin: 0; }
         
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 24px;
-        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px; }
+        .card { background: var(--card-bg); padding: 16px; border-radius: 8px; transition: 0.3s; display: flex; flex-direction: column; }
+        .card:hover { background: #282828; }
+        .card-img-wrapper { width: 100%; padding-top: 100%; position: relative; margin-bottom: 16px; background: #333; overflow: hidden; border-radius: 4px; }
+        .card-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        .circle-img, .circle-img img { border-radius: 50%; }
+        .card-title { font-weight: bold; font-size: 16px; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .card-subtitle { font-size: 14px; color: var(--subtext-color); }
         
-        /* CARDS */
-        .card {
-            background-color: var(--card-bg);
-            padding: 16px;
-            border-radius: 8px;
-            transition: background-color 0.3s ease;
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-        .card:hover {
-            background-color: var(--hover-bg);
-        }
-        .card-img-wrapper {
-            width: 100%;
-            padding-top: 100%; /* 1:1 Aspect Ratio */
-            position: relative;
-            margin-bottom: 16px;
-            border-radius: 4px;
-            overflow: hidden;
-            background: #333; /* Placeholder */
-        }
-        .card-img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 4px;
-            transition: opacity 0.3s;
-        }
-        .card-title {
-            font-weight: bold;
-            font-size: 16px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-bottom: 4px;
-        }
-        .card-subtitle {
-            font-size: 14px;
-            color: var(--subtext-color);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .circle-img {
-            border-radius: 50%; 
-        }
+        .artist-hero { text-align: center; padding: 40px 0; }
+        .artist-hero img { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .artist-hero h1 { font-size: 48px; margin: 0 0 10px; font-weight: 900; }
+        .genre { color: var(--subtext-color); font-size: 16px; margin-bottom: 10px; }
+        .stats-hero { color: var(--accent-color); font-weight: bold; margin-bottom: 15px; }
+        
+        .song-list { display: flex; flex-direction: column; }
+        .song-row { display: flex; align-items: center; padding: 10px; border-radius: 4px; cursor: pointer; }
+        .song-row:hover { background: rgba(255,255,255,0.1); }
+        .song-num { color: var(--subtext-color); width: 30px; text-align: right; margin-right: 20px; }
+        .song-img { width: 40px; height: 40px; margin-right: 15px; border-radius: 2px; }
+        .song-info { flex-grow: 1; }
+        .btn-like { cursor: pointer; font-size: 20px; color: #555; margin-left: 15px; }
+        .btn-like.liked { color: var(--accent-color); }
 
-        /* ARTIST HERO SECTION */
-        .artist-hero {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding: 40px 0;
-        }
-        .artist-hero img {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-        .artist-hero h1 {
-            font-size: 48px; /* Bigger Font */
-            margin: 0 0 10px 0;
-            font-weight: 900;
-        }
-        .genre {
-            color: var(--subtext-color);
-            font-size: 16px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .stats-hero {
-            color: #1db954;
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-        
-        /* SONG LIST (TABLE) */
-        .song-list {
-            display: flex;
-            flex-direction: column;
-        }
-        .song-row {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border-radius: 4px;
-            cursor: pointer; /* Clickable */
-        }
-        .song-row:hover {
-            background-color: rgba(255,255,255,0.1);
-        }
-        .song-num {
-            color: var(--subtext-color);
-            width: 30px;
-            text-align: right;
-            margin-right: 20px;
-        }
-        .song-img {
-            width: 40px;
-            height: 40px;
-            margin-right: 15px;
-            border-radius: 2px;
-        }
-        .song-info {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .song-title { color: #fff; font-size: 16px; }
-        .song-artist { color: var(--subtext-color); font-size: 14px; }
-        
-        /* ALBUM DETAIL HERO */
-        .album-hero {
-            display: flex;
-            align-items: flex-end;
-            gap: 30px;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #333;
-        }
-        .album-cover-big {
-            width: 232px;
-            height: 232px;
-            box-shadow: 0 4px 60px rgba(0,0,0,0.5);
-        }
-        .album-meta h2 { font-size: 14px; text-transform: uppercase; margin: 0; }
-        .album-meta h1 { font-size: 48px; margin: 10px 0; font-weight: 900; line-height: 1; }
-        .album-stats { color: #ccc; font-size: 14px; margin-top: 10px;}
+        .album-hero { display: flex; align-items: flex-end; gap: 30px; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid #333; }
+        .album-cover-big { width: 232px; height: 232px; box-shadow: 0 4px 60px rgba(0,0,0,0.5); }
+        .album-meta h1 { font-size: 48px; margin: 10px 0; line-height: 1; font-weight: 900; }
 
-        /* MODAL */
-        #modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: #282828;
-            padding: 20px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
-            text-align: center;
-            position: relative;
-        }
-        .btn-spotify {
-            display: inline-block;
-            background: #1db954;
-            color: white;
-            padding: 12px 30px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-        
-        /* Like Button */
-        .btn-like {
-            cursor: pointer;
-            font-size: 20px;
-            color: #555;
-            transition: color 0.2s;
-            margin-left: 15px;
-        }
-        .btn-like.liked {
-            color: #1db954;
-        }
+        .sort-controls { display: flex; align-items: center; }
+        .sort-btn { color: #888; margin-right: 15px; padding-bottom: 2px; border-bottom: 2px solid transparent; }
+        .sort-btn.active { color: #fff; border-color: var(--accent-color); }
+        .page-btn { background: #333; padding: 5px 15px; border-radius: 20px; font-size: 14px; }
 
-        /* Sorting & Pagination Controls */
-        .sort-controls {
-            display: flex;
-            align-items: center;
-        }
-        .sort-btn {
-            color: #888;
-            text-decoration: none;
-            margin-right: 15px;
-            font-size: 14px;
-            border-bottom: 2px solid transparent;
-            padding-bottom: 2px;
-            transition: color 0.2s;
-        }
-        .sort-btn.active, .sort-btn:hover {
-            color: #fff;
-            border-bottom-color: #1db954;
-        }
-        .pagination {
-            display: flex;
-            align-items: center;
-        }
-        .page-btn {
-            background: #333;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-        .page-btn:hover {
-            background: #444;
-        }
-
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #282828; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; }
+        .btn-spotify { display: inline-block; background: var(--accent-color); color: white; padding: 12px 30px; border-radius: 25px; margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <!-- NAV -->
     <div class="header">
         <a href="/" class="logo">🎵 MusicExplorer</a>
         <div class="search-container">
             <form action="/" method="GET">
-                <input type="text" name="q" class="search-input" placeholder="Search for Artists, Songs, or Albums..." value="{{ query|default('') }}">
+                <input type="text" name="q" class="search-input" placeholder="Search Artists, Albums..." value="{{ query|default('') }}">
             </form>
         </div>
-        <div><!-- User Profile / Settings placeholder --></div>
     </div>
 
-    <!-- === HOME / SEARCH RESULTS === -->
-    {% if view == 'home' or view == 'results' %}
-        {% if view == 'home' %}
+    {% if view == 'home' %}
         <div style="text-align: center; margin-top: 100px;">
-            <h1 style="font-size: 48px; margin-bottom: 20px;">Discover Music</h1>
-            <p style="color: #888; font-size: 18px;">Search for your favorite artists or albums above.</p>
+            <h1 style="font-size: 48px;">Discover Music</h1>
+            <p style="color: #888;">Search for your favorite artists above.</p>
         </div>
-        {% else %}
-        
-        <!-- Artists -->
+    {% elif view == 'results' %}
         {% if data.artists %}
-        <div class="section-header">
-            <h2 class="section-title">Artists</h2>
-            <a href="/see-all/artists?q={{ query }}" class="see-all">SEE ALL</a>
-        </div>
+        <div class="section-header"><h2>Artists</h2><a href="/see-all/artists?q={{ query }}">SEE ALL</a></div>
         <div class="grid">
             {% for artist in data.artists %}
             <a href="/artist/{{ artist.artistId }}" class="card">
-                <div class="card-img-wrapper circle-img">
-                    <img src="{{ artist.image or '/static/placeholder.png' }}" class="card-img circle-img">
-                </div>
-                <div class="card-title" style="text-align: center;">{{ artist.artistName }}</div>
-                <div class="card-subtitle" style="text-align: center;">{{ artist.stats or 'Artist' }}</div>
+                <div class="card-img-wrapper circle-img"><img src="{{ artist.image or '/static/placeholder.png' }}" class="card-img circle-img"></div>
+                <div class="card-title">{{ artist.artistName }}</div>
+                <div class="card-subtitle">{{ artist.stats or 'Artist' }}</div>
             </a>
             {% endfor %}
         </div>
         {% endif %}
-
-        <!-- Albums -->
+        
         {% if data.albums %}
-        <div class="section-header">
-            <h2 class="section-title">Albums</h2>
-            <a href="/see-all/albums?q={{ query }}" class="see-all">SEE ALL</a>
-        </div>
+        <div class="section-header"><h2>Albums</h2><a href="/see-all/albums?q={{ query }}">SEE ALL</a></div>
         <div class="grid">
             {% for alb in data.albums %}
             <a href="/album/{{ alb.collectionId }}" class="card">
-                <div class="card-img-wrapper">
-                    <img src="{{ alb.artworkUrl100 }}" class="card-img">
-                </div>
+                <div class="card-img-wrapper"><img src="{{ alb.artworkUrl100 }}" class="card-img"></div>
                 <div class="card-title">{{ alb.collectionName }}</div>
                 <div class="card-subtitle">{{ alb.year }} • {{ alb.artistName }}</div>
             </a>
@@ -368,220 +97,123 @@
         </div>
         {% endif %}
 
-        <!-- Songs -->
         {% if data.songs %}
-        <div class="section-header">
-            <h2 class="section-title">Songs</h2>
-            <a href="/see-all/songs?q={{ query }}" class="see-all">SEE ALL</a>
-        </div>
+        <div class="section-header"><h2>Songs</h2><a href="/see-all/songs?q={{ query }}">SEE ALL</a></div>
         <div class="song-list">
             {% for song in data.songs %}
-            <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}', '{{ song.collectionId }}', '{{ song.trackId }}')">
+            <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}')">
                 <img src="{{ song.artworkUrl100 }}" class="song-img">
-                <div class="song-info">
-                    <div class="song-title">{{ song.trackName }}</div>
-                    <div class="song-artist">{{ song.artistName }}</div>
-                </div>
-                <div class="btn-like song-like" onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">♥</div>
+                <div class="song-info"><div class="song-title">{{ song.trackName }}</div><div class="song-artist">{{ song.artistName }}</div></div>
+                <div class="btn-like">♥</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% elif view == 'artist_detail' %}
+        <div class="artist-hero">
+            {% if artist_image %}<img src="{{ artist_image }}">{% endif %}
+            <h1>{{ artist.artistName }}</h1>
+            <div class="genre">
+                {{ artist.primaryGenreName }}
+                {% for tag in artist.tags %}
+                    <a href="/tag/{{ tag }}" style="margin-left:5px;">• {{ tag|capitalize }}</a>
+                {% endfor %}
+            </div>
+            {% if artist.stats %}<div class="stats-hero">{{ artist.stats }}</div>{% endif %}
+            {% if artist.bio %}<div style="max-width:600px; margin:15px auto; font-size:14px; color:#ccc;">{{ artist.bio }}</div>{% endif %}
+        </div>
+
+        {% if top_songs %}
+        <div class="section-header"><h2>Top Songs</h2></div>
+        <div class="song-list">
+            {% for song in top_songs %}
+            <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}')">
+                <div class="song-num">{{ loop.index }}</div>
+                <img src="{{ song.artworkUrl100 }}" class="song-img">
+                <div class="song-info"><div class="song-title">{{ song.trackName }}</div><div class="song-artist" style="opacity:0.7;">{{ song.collectionName }}</div></div>
+                <div class="btn-like">♥</div>
             </div>
             {% endfor %}
         </div>
         {% endif %}
 
-        {% endif %} <!-- end if view == home/results -->
-    {% endif %}
-
-    <!-- === ARTIST DETAIL === -->
-    {% if view == 'artist_detail' %}
-    <div class="artist-hero">
-        {% if artist_image %}<img src="{{ artist_image }}">{% endif %}
-        <h1>{{ artist.artistName }}</h1>
-        
-        <!-- TAGS as LINKS -->
-        <div class="genre">
-            {{ artist.primaryGenreName }}
-            {% if artist.tags %}
-                {% for tag in artist.tags %}
-                    <a href="/tag/{{ tag }}" style="color: inherit; text-decoration: none;">
-                        <span style="opacity: 0.6; margin-left: 5px; cursor: pointer;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">• {{ tag|capitalize }}</span>
-                    </a>
+        {% for cat, items in discography.items() %}
+            {% if items %}
+            <div class="section-header"><h2>{{ cat|capitalize }}</h2></div>
+            <div class="grid">
+                {% for alb in items %}
+                <a href="/album/{{ alb.collectionId }}" class="card">
+                    <div class="card-img-wrapper"><img src="{{ alb.artworkUrl100 }}" class="card-img"></div>
+                    <div class="card-title">{{ alb.collectionName }}</div>
+                    <div class="card-subtitle">{{ alb.year }}</div>
+                </a>
                 {% endfor %}
-            {% endif %}
-        </div>
-        
-        {% if artist.stats %}<div class="stats-hero">{{ artist.stats }}</div>{% endif %}
-        
-        <!-- BIO -->
-        {% if artist.bio %}
-        <div style="max-width: 600px; margin: 15px auto; font-size: 14px; color: #ccc; line-height: 1.5;">
-            {{ artist.bio }}
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- TOP SONGS -->
-    {% if top_songs %}
-    <div class="section-header"><h2 class="section-title">Top Songs</h2></div>
-    <div class="song-list" style="margin-bottom: 30px;">
-        {% for song in top_songs %}
-        <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}', '{{ song.collectionId }}', '{{ song.trackId }}')">
-            <div class="song-num">{{ loop.index }}</div>
-            <img src="{{ song.artworkUrl100 }}" class="song-img">
-            <div class="song-info">
-                <div class="song-title">{{ song.trackName }}</div>
-                <div class="song-artist" style="opacity: 0.7;">{{ song.collectionName }}</div>
             </div>
-            <div class="btn-like song-like" onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">♥</div>
-        </div>
+            {% endif %}
         {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- DISCOGRAPHY (SORTED) -->
-    {% for cat, items in discography.items() %}
-        {% if items %}
-        <div class="section-header"><h2 class="section-title">{{ cat|capitalize }}</h2></div>
+    {% elif view == 'album_detail' %}
+        <div class="album-hero">
+            <img src="{{ album.artworkUrl100 }}" class="album-cover-big">
+            <div class="album-meta">
+                <h2>Album</h2>
+                <h1>{{ album.collectionName }}</h1>
+                <div><a href="/artist/{{ album.artistId }}">{{ album.artistName }}</a> • {{ album.year }}</div>
+                {% if album_stats %}<div style="color:#ccc; margin-top:10px;">{{ album_stats }}</div>{% endif %}
+            </div>
+        </div>
+        <div class="song-list">
+            {% for song in songs %}
+            <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}')">
+                <div class="song-num">{{ song.trackNumber }}</div>
+                <div class="song-info"><div class="song-title">{{ song.trackName }}</div><div class="song-artist">{{ song.artistName }}</div></div>
+                <div class="btn-like">♥</div>
+            </div>
+            {% endfor %}
+        </div>
+    {% elif view == 'tag_detail' %}
+        <div class="artist-hero">
+            <h1>#{{ tag_name|capitalize }}</h1>
+            <div style="max-width:700px; margin:15px auto; font-size:14px; color:#ccc;">{{ description|safe }}</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin:20px 0;">
+            <div class="sort-controls">
+                <span style="color:#666; margin-right:10px;">Sort:</span>
+                <a href="/tag/{{ tag_name }}?page=1&sort=popularity" class="sort-btn {% if sort_by == 'popularity' %}active{% endif %}">Popularity</a>
+                <a href="/tag/{{ tag_name }}?page=1&sort=alpha" class="sort-btn {% if sort_by == 'alpha' %}active{% endif %}">A-Z</a>
+            </div>
+            <div class="pagination">
+                {% if page > 1 %}<a href="/tag/{{ tag_name }}?page={{ page - 1 }}&sort={{ sort_by }}" class="page-btn">← Prev</a>{% endif %}
+                <span style="margin:0 15px; color:#666;">Page {{ page }}</span>
+                <a href="/tag/{{ tag_name }}?page={{ page + 1 }}&sort={{ sort_by }}" class="page-btn">Next →</a>
+            </div>
+        </div>
         <div class="grid">
-            {% for alb in items %}
-            <a href="/album/{{ alb.collectionId }}" class="card">
-                <div class="card-img-wrapper">
-                    <img src="{{ alb.artworkUrl100 }}" class="card-img">
-                </div>
-                <div class="card-title">{{ alb.collectionName }}</div>
-                <div class="card-subtitle">{{ alb.year }}</div>
+            {% for artist in artists %}
+            <a href="/?q={{ artist.artistName }}" class="card">
+                <div class="card-img-wrapper"><img src="/static/placeholder.png" class="card-img lazy-grad"></div>
+                <div class="card-title">{{ artist.artistName }}</div>
+                <div class="card-subtitle">{{ (artist.listeners / 1000)|round|int }}K Listeners</div>
             </a>
             {% endfor %}
         </div>
-        {% endif %}
-    {% endfor %}
     {% endif %}
 
-    <!-- === ALBUM DETAIL === -->
-    {% if view == 'album_detail' %}
-    <div class="album-hero">
-        <img src="{{ album.artworkUrl100 }}" class="album-cover-big">
-        <div class="album-meta">
-            <h2>Album</h2>
-            <h1>{{ album.collectionName }}</h1>
-            <div style="font-weight: bold; display: flex; align-items: center; gap: 8px;">
-                <img src="{{ album.artworkUrl60 }}" style="width: 24px; height: 24px; border-radius: 50%;"> 
-                <a href="/artist/{{ album.artistId }}" style="color: white; text-decoration: none;">{{ album.artistName }}</a>
-                • {{ album.year }} • {{ album.trackCount }} songs
-            </div>
-            {% if album_stats %}<div class="album-stats">{{ album_stats }}</div>{% endif %}
-        </div>
-    </div>
-    
-    <div class="song-list">
-        {% for song in songs %}
-        <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}', '{{ song.collectionId }}', '{{ song.trackId }}')">
-            <div class="song-num">{{ song.trackNumber }}</div>
-            <div class="song-info">
-                <div class="song-title">{{ song.trackName }}</div>
-                <div class="song-artist">{{ song.artistName }}</div>
-            </div>
-            <div style="color: #b3b3b3; margin-right: 15px;">{{ ((song.trackTimeMillis / 1000) // 60)|int }}:{{ '%02d' % ((song.trackTimeMillis / 1000) % 60)|int }}</div>
-             <div class="btn-like song-like" onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ album.artworkUrl100 }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">♥</div>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- === TAG / GENRE PAGE === -->
-    {% if view == 'tag_detail' %}
-    <div class="artist-hero">
-        <h1>#{{ tag_name|capitalize }}</h1>
-        <div style="max-width: 700px; margin: 15px auto; font-size: 14px; color: #ccc; line-height: 1.6;">
-            {{ description|safe }}
-        </div>
-    </div>
-
-    <!-- Controls -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; padding: 0 10px;">
-        <div class="sort-controls">
-            <span style="color: #666; margin-right: 10px;">Sort by:</span>
-            <a href="/tag/{{ tag_name }}?page=1&sort=popularity" class="sort-btn {% if sort_by == 'popularity' %}active{% endif %}">Popularity</a>
-            <a href="/tag/{{ tag_name }}?page=1&sort=alpha" class="sort-btn {% if sort_by == 'alpha' %}active{% endif %}">A-Z</a>
-        </div>
-        
-        <div class="pagination">
-            {% if page > 1 %}
-            <a href="/tag/{{ tag_name }}?page={{ page - 1 }}&sort={{ sort_by }}" class="page-btn">← Prev</a>
-            {% endif %}
-            <span style="margin: 0 15px; color: #666;">Page {{ page }}</span>
-            <a href="/tag/{{ tag_name }}?page={{ page + 1 }}&sort={{ sort_by }}" class="page-btn">Next →</a>
-        </div>
-    </div>
-
-    <!-- Grid -->
-    <div class="grid">
-        {% for artist in artists %}
-        <!-- Card with random gradient placeholder (JS handled) -->
-        <a href="{{ url_for('index', q=artist.artistName) }}" class="card artist-card-lazy" data-name="{{ artist.artistName }}">
-            <div class="card-img-wrapper">
-                <img src="/static/placeholder.png" class="card-img lazy-artist-img">
-            </div>
-            <div class="card-title">{{ artist.artistName }}</div>
-            <div class="card-subtitle">{{ (artist.listeners / 1000)|round|int }}K Last.fm listeners</div>
-        </a>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- === MODAL === -->
-    <div id="modal" onclick="closeModal(event)">
+    <div id="modal" onclick="if(event.target.id=='modal')this.style.display='none'">
         <div class="modal-content">
-            <h2 style="margin-top: 0;">Play Track</h2>
-            <p>Listen on Spotify or YouTube:</p>
+            <h2>Play Track</h2>
             <a id="spotify-link" href="#" target="_blank" class="btn-spotify">Open in Spotify</a>
-            <br><br>
-            <a id="youtube-link" href="#" target="_blank" style="color: #fff; text-decoration: underline;">Search on YouTube</a>
-            <br><br>
-            <button onclick="document.getElementById('modal').style.display='none'" style="background: transparent; border: 1px solid #555; color: #fff; padding: 8px 16px; border-radius: 20px; cursor: pointer;">Close</button>
+            <br><br><button onclick="document.getElementById('modal').style.display='none'" style="background:transparent; border:1px solid #555; color:#fff; padding:8px 16px; border-radius:20px; cursor:pointer;">Close</button>
         </div>
     </div>
 
     <script>
-        // Modal Logic
-        function openMusicModal(spotifyUrl, albumId, trackId) {
-            document.getElementById('spotify-link').href = spotifyUrl;
-            // Generate YouTube Search Link
-            // Since we don't have the song name here directly in params sometimes, we rely on Spotify query
-            // But better: Spotify Link is generated in Python as search query.
-            // Let's just make a generic search based on the query inside spotify link
-            const query = spotifyUrl.split('search/')[1];
-            document.getElementById('youtube-link').href = 'https://www.youtube.com/results?search_query=' + query;
-            
+        function openMusicModal(link) {
+            document.getElementById('spotify-link').href = link;
             document.getElementById('modal').style.display = 'flex';
         }
-
-        function closeModal(event) {
-            if (event.target.id === 'modal') {
-                document.getElementById('modal').style.display = 'none';
-            }
-        }
-
-        // Like Logic (Stub)
-        function toggleLike(btn, type, id, name, img, sub, link) {
-            event.stopPropagation(); // Don't trigger row click
-            btn.classList.toggle('liked');
-            if(btn.classList.contains('liked')) {
-                btn.innerHTML = '♥'; // Filled
-                // Here you would fetch('/api/like')
-            } else {
-                btn.innerHTML = '♡'; // Outline (if using icon font) or just color change
-            }
-        }
-        
-        // Lazy Image Placeholder Gradient for Tag Page
-        document.addEventListener("DOMContentLoaded", function() {
-            const imgs = document.querySelectorAll('.lazy-artist-img');
-            imgs.forEach(img => {
-                if (img.getAttribute('src').includes('placeholder')) {
-                    const hue = Math.floor(Math.random() * 360);
-                    img.style.background = `linear-gradient(135deg, hsl(${hue}, 40%, 20%), hsl(${hue + 40}, 50%, 40%))`;
-                }
-            });
+        document.querySelectorAll('.lazy-grad').forEach(img => {
+            const hue = Math.floor(Math.random()*360);
+            img.style.background = `linear-gradient(135deg, hsl(${hue},40%,20%), hsl(${hue+40},50%,40%))`;
         });
     </script>
 </body>

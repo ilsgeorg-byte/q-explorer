@@ -3,31 +3,28 @@ import urllib.parse
 
 def clean_name(name):
     """
-    Превращает "In Rock (2018 Remastered Version)" -> "In Rock"
-    Убирает мусор в скобках и после дефисов, если это техническая инфа.
+    Очищает название от мусора.
+    Пример: "In Rock (2018 Remastered Version)" -> "In Rock"
     """
     if not name: return ""
     
-    # 1. Убираем содержимое скобок () и []
-    # Было: "Deep Purple In Rock (2018 Remastered Version)" -> "Deep Purple In Rock"
+    # 1. Убираем всё в скобках () и []
     clean = re.sub(r'\s*[\(\[].*?[\)\]]', '', name)
     
-    # 2. Убираем " - Remastered" и прочее, если оно без скобок (редко, но бывает)
-    # Пример: "Album Name - Deluxe Edition" -> "Album Name"
+    # 2. Убираем хвосты типа " - Remastered", " - Deluxe" без скобок
     clean = re.sub(r'\s-\s.*(Remaster|Deluxe|Edition|Version|Remix).*', '', clean, flags=re.IGNORECASE)
     
     return clean.strip()
 
 def normalize_title(title):
     """
-    Для сравнения (дедупликации).
-    Убираем вообще всё, оставляем только буквы/цифры, чтобы найти дубли.
+    Превращает название в "ключ" для поиска дубликатов.
+    "The Dark Side of the Moon (Remaster)" -> "thedarksideofthemoon"
     """
     if not title: return ""
-    clean = re.sub(r'\s*[\(\[].*?[\)\]]', '', title)
+    clean = re.sub(r'\s*[\(\[].*?[\)\]]', '', title) # Убираем скобки
     clean = clean.lower().strip()
-    # Оставляем только a-z и 0-9
-    clean = re.sub(r'[^a-z0-9]', '', clean)
+    clean = re.sub(r'[^a-z0-9]', '', clean) # Оставляем только буквы и цифры
     return clean
 
 def generate_spotify_link(query):
@@ -35,15 +32,17 @@ def generate_spotify_link(query):
     return f"https://open.spotify.com/search/{urllib.parse.quote(query)}"
 
 def sort_albums(albums):
+    """
+    Сортирует альбомы по категориям и удаляет дубликаты (оставляя ранние версии).
+    """
     categories = {
-        'albums': [],
-        'live': [],
-        'compilations': [],
-        'singles': []
+        'albums': [],       # Студийные
+        'live': [],         # Концертные
+        'compilations': [], # Сборники
+        'singles': []       # Синглы и EP
     }
     
-    # Словарь для дедупликации студийных альбомов
-    unique_studio = {} 
+    unique_studio = {} # Для дедупликации студийных
 
     for alb in albums:
         original_title = alb.get('collectionName', '').strip()
@@ -59,22 +58,19 @@ def sort_albums(albums):
         lower_title = original_title.lower()
         track_count = alb.get('trackCount', 0)
         
-        # --- ЛОГИКА ФИЛЬТРАЦИИ ---
+        # --- ЛОГИКА РАСПРЕДЕЛЕНИЯ ---
 
         # 1. Singles & EPs
-        # Ищем слово "EP" как отдельное слово (через границы слова \b),
-        # чтобы не реагировать на "Deep", "Sleep", "Keep".
+        # Ищем 'EP' как отдельное слово или явный маркер ' - single'
         is_explicit_ep = bool(re.search(r'\bep\b', lower_title))
         is_single = ' - single' in lower_title
         
         if track_count < 5 or is_single or is_explicit_ep:
-            # Даже если это EP, название тоже стоит почистить (убрать "(EP)")
             alb['collectionName'] = clean_name(original_title)
             categories['singles'].append(alb)
             continue
             
         # 2. Live Albums
-        # Ищем ключевые слова для концертов
         if any(x in lower_title for x in ['live', 'concert', 'tour', 'wembley', 'bowl', 'montreal', 'budokan', 'at the', 'bbc']):
             alb['collectionName'] = clean_name(original_title)
             categories['live'].append(alb)
@@ -86,19 +82,18 @@ def sort_albums(albums):
             categories['compilations'].append(alb)
             continue
             
-        # 4. STUDIO ALBUMS (С Дедупликацией и Чисткой)
+        # 4. STUDIO ALBUMS (С Дедупликацией)
         
-        # Сначала генерируем "чистый ключ" для поиска дубликатов
+        # Нормализуем ключ для проверки на дубликат
         norm_key = normalize_title(original_title)
         
-        # ВАЖНО: Сразу чистим название для отображения на сайте!
-        # Теперь "In Rock (2018 Remaster)" станет просто "In Rock" прямо в объекте
+        # Очищаем название для показа (убираем Remastered 2011)
         alb['collectionName'] = clean_name(original_title)
         
         if norm_key in unique_studio:
             existing_alb = unique_studio[norm_key]
             
-            # Сравниваем даты: если текущий старше (меньше год), берем его
+            # Если текущий альбом старше (меньше год выпуска), берем его как оригинал
             existing_date = existing_alb.get('releaseDate', '9999')
             current_date = alb.get('releaseDate', '9999')
             
@@ -107,10 +102,10 @@ def sort_albums(albums):
         else:
             unique_studio[norm_key] = alb
 
-    # Выгружаем уникальные студийные
+    # Добавляем уникальные студийные
     categories['albums'] = list(unique_studio.values())
 
-    # Финальная сортировка по дате
+    # Сортируем все списки по дате (свежие сверху)
     for key in categories:
         categories[key].sort(key=lambda x: x.get('releaseDate', ''), reverse=True)
         
