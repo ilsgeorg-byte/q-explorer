@@ -1,0 +1,57 @@
+<div class="artist-hero">
+    <h1 style="font-size: 56px; margin-bottom: 20px;">{{ tag_name|capitalize }}</h1>
+    <div style="max-width:800px; margin:0 auto; font-size:16px; color:#ccc; line-height: 1.6;">{{ description|safe
+        }}</div>
+</div>
+
+<!-- Controls Container -->
+<div
+    style="max-width: 1200px; margin: 40px auto 20px; padding: 0 20px; display:flex; justify-content:space-between; align-items:center;">
+    <div class="sort-controls">
+        <span style="color:#666; margin-right:10px;">Sort by:</span>
+        <a href="/tag/{{ tag_name }}?page=1&amp;sort=popularity"
+            style="color: {% if sort_by == 'popularity' %}#fff{% else %}#888{% endif %}; margin-right:15px; font-weight: bold;">Popularity</a>
+        <a href="/tag/{{ tag_name }}?page=1&amp;sort=alpha"
+            style="color: {% if sort_by == 'alpha' %}#fff{% else %}#888{% endif %}; font-weight: bold;">A-Z</a>
+    </div>
+
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="/tag/{{ tag_name }}?page={{ page - 1 }}&amp;sort={{ sort_by }}"
+            style="background:#333; padding:8px 20px; border-radius:20px; font-size:14px; margin-right: 15px;">←
+            Prev</a>
+        {% endif %}
+        <span style="color:#666;">Page {{ page }}</span>
+        <a href="/tag/{{ tag_name }}?page={{ page + 1 }}&amp;sort={{ sort_by }}"
+            style="background:#333; padding:8px 20px; border-radius:20px; font-size:14px; margin-left: 15px;">Next
+            →</a>
+    </div>
+</div>
+
+<!-- Grid -->
+<div class="grid" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+    {% for artist in artists %}
+    <a href="/?q={{ artist.artistName }}" class="card">
+        <div class="artist-img-wrapper" data-artist-name="{{ artist.artistName }}">
+            <!-- Цветной квадрат с первой буквой имени -->
+            <div class="artist-placeholder lazy-grad"
+                style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size: 48px; font-weight: bold; color: rgba(255,255,255,0.2);">
+                {{ artist.artistName[0]|upper }}
+            </div>
+        </div>
+        <div class="card-title">{{ artist.artistName }}</div>
+        <!-- Форматируем число: 1,234,567 -> 1.2M -->
+        <div class="card-subtitle">
+            {% if artist.listeners > 0 %}
+            {% if artist.listeners > 1000000 %}
+            {{ (artist.listeners / 1000000)|round(1) }}M Listeners
+            {% else %}
+            {{ (artist.listeners / 1000)|round|int }}K Listeners
+            {% endif %}
+            {% else %}
+            #{{ loop.index + (page - 1) * 30 }} in {{ tag_name|capitalize }}
+            {% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>

@@ -3,3 +3,5 @@ requests
 cloudscraper
 gunicorn
 beautifulsoup4
+requests-cache
+python-dotenv

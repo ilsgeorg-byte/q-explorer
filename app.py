@@ -111,13 +111,36 @@ def see_all(type):
 
 @app.route('/artist/<artist_id>')
 def artist_page(artist_id):
+    # Сначала получаем базовую инфу (это быстро, 1 запрос)
     data = lookup_itunes(artist_id)
     if not data: return "Artist not found"
     
     artist = data[0]
+    artist_name = artist.get('artistName', '')
     
-    # 1. Last.fm Data
-    lf_data = get_lastfm_artist_data(artist.get('artistName', ''))
+    # ПАРАЛЛЕЛЬНАЯ ЗАГРУЗКА (ThreadPoolExecutor)
+    # Запускаем 4 тяжелых запроса одновременно
+    from concurrent.futures import ThreadPoolExecutor
+    
+    with ThreadPoolExecutor() as executor:
+        # 1. Last.fm Info
+        future_lf = executor.submit(get_lastfm_artist_data, artist_name)
+        # 2. Similar Artists
+        future_sim = executor.submit(get_similar_artists, artist_name)
+        # 3. Top Songs (Raw)
+        future_songs = executor.submit(search_itunes, artist_name, 'song', 50)
+        # 4. Albums (Raw)
+        future_albums = executor.submit(lookup_itunes, artist_id, 'album', 200)
+        
+        # Собираем результаты
+        lf_data = future_lf.result()
+        similar = future_sim.result()
+        top_songs_raw = future_songs.result()
+        raw_albums_data = future_albums.result()
+
+    # --- ОБРАБОТКА ПОЛУЧЕННЫХ ДАННЫХ ---
+    
+    # 1. Применяем Last.fm
     if lf_data:
         artist['stats'] = lf_data.get('stats')
         artist['bio'] = lf_data.get('bio')
@@ -127,21 +150,13 @@ def artist_page(artist_id):
         artist['bio'] = None
         artist['tags'] = []
     
-    similar = get_similar_artists(artist.get('artistName', ''))
-    
-    # 2. Топ Песни (Top Songs) - УЛУЧШЕННАЯ ЛОГИКА
-    # Запрашиваем 50 треков, чтобы точно найти нужные среди мусора
-    top_songs_raw = search_itunes(artist.get('artistName', ''), 'song', 50)
+    # 2. Обрабатываем Топ Песни
     top_songs = []
-    
-    # Множество для защиты от дубликатов (чтобы не было 3 версии одной песни)
     seen_titles = set()
     target_id = int(artist_id)
-    # Имя артиста в нижнем регистре для мягкого поиска
-    target_name_lower = artist.get('artistName', '').lower()
+    target_name_lower = artist_name.lower()
     
     def add_song(s):
-        # "Clean" название для проверки дублей: "Song (Remaster)" -> "song"
         clean_title = s.get('trackName', '').lower().split('(')[0].split('-')[0].strip()
         if clean_title in seen_titles: return
         
@@ -152,27 +167,25 @@ def artist_page(artist_id):
         top_songs.append(s)
         seen_titles.add(clean_title)
 
-    # Проход 1: СТРОГИЙ (Точное совпадение ID)
+    # Проход 1: СТРОГИЙ
     for s in top_songs_raw:
         if s.get('artistId') == target_id:
             add_song(s)
             if len(top_songs) >= 5: break
             
-    # Проход 2: МЯГКИЙ (Если песен мало, ищем по Имени)
-    # Это спасет коллаборации (Queen & Bowie) и кривые тэги iTunes
+    # Проход 2: МЯГКИЙ
     if len(top_songs) < 5:
         for s in top_songs_raw:
             if len(top_songs) >= 5: break
-            # Пропускаем, если ID совпадает (уже добавили в 1 проходе)
             if s.get('artistId') == target_id: continue
             
             song_artist = s.get('artistName', '').lower()
-            # Если имя нашего артиста есть внутри исполнителя трека
             if target_name_lower in song_artist:
                 add_song(s)
 
-    # 3. Дискография (без изменений)
-    raw_albums = [x for x in lookup_itunes(artist_id, 'album', 200) if x.get('collectionType') == 'Album' and x.get('artistId') == int(artist_id)]
+    # 3. Обрабатываем Альбомы
+    # Фильтруем только альбомы этого артиста (на всякий случай)
+    raw_albums = [x for x in raw_albums_data if x.get('collectionType') == 'Album' and x.get('artistId') == int(artist_id)]
     discography = sort_albums(raw_albums)
     
     artist_image = discography['albums'][0]['artworkUrl100'] if discography['albums'] else None

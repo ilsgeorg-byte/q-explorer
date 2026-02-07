@@ -1,0 +1,80 @@
+<!-- Artists -->
+{% if data.artists %}
+<div class="section-header">
+    <h2 class="section-title">Artists</h2>
+    <a href="/see-all/artists?q={{ query }}" class="btn-see-all">See All</a>
+</div>
+<div class="grid">
+    {% for item in data.artists %}
+    <a href="/artist/{{ item.artistId }}" class="card artist-card">
+        <div class="btn-like"
+            onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">
+            ♥</div>
+
+        <div class="artist-img-wrapper" data-artist-id="{{ item.artistId }}">
+            {% if item.image %}
+            <img src="{{ item.image }}">
+            {% else %}
+            <div class="artist-placeholder"
+                style="background-color: hsl({{ (item.artistName|length * 50) % 360 }}, 60%, 40%);">
+                {{ item.artistName[:1] }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="info">
+            <div class="title">{{ item.artistName }}</div>
+            {% if item.stats %}<span class="artist-stats">{{ item.stats }}</span>{% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Albums -->
+{% if data.albums %}
+<div class="section-header">
+    <h2 class="section-title">Albums</h2>
+    <a href="/see-all/albums?q={{ query }}" class="btn-see-all">See All</a>
+</div>
+<div class="grid">
+    {% for item in data.albums %}
+    <a href="/album/{{ item.collectionId }}" class="card">
+        <div class="btn-like"
+            onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">
+            ♥</div>
+        <img src="{{ item.artworkUrl100 }}">
+        <div class="info">
+            <div class="title">{{ item.collectionName }}</div>
+            <div class="sub">
+                {{ item.artistName }}
+                {% if item.year %}• {{ item.year }}{% endif %}
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Songs -->
+{% if data.songs %}
+<div class="section-header">
+    <h2 class="section-title">Songs</h2>
+    <a href="/see-all/songs?q={{ query }}" class="btn-see-all">See All</a>
+</div>
+<div class="song-list">
+    {% for item in data.songs %}
+    <div class="song-row"
+        onclick="openMusicModal('{{ item.spotify_link }}', '{{ item.collectionId }}', '{{ item.trackId }}')">
+        <img src="{{ item.artworkUrl100 }}" class="song-img">
+        <div class="song-info">
+            <div class="song-title">{{ item.trackName }}</div>
+            <div class="song-artist">{{ item.artistName }}</div>
+        </div>
+        <div class="song-like btn-like"
+            onclick="toggleLike(this, 'song', '{{ item.trackId }}', '{{ item.trackName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.spotify_link }}')">
+            ♥</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

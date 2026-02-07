@@ -1,0 +1,70 @@
+<div class="page-header">
+    <a href="/?q={{ query }}" class="btn-see-all" style="margin-bottom:10px; display:inline-block;">← Back to
+        Search</a>
+    <h1 style="font-size: 24px; margin-bottom: 20px;">All {{ type|capitalize }} for "{{ query }}"</h1>
+</div>
+
+{% if not results %}
+<div style="text-align:center; padding: 40px; color:#666;">No results found.</div>
+{% else %}
+
+{% if type == 'songs' %}
+<div class="song-list">
+    {% for item in results %}
+    <div class="song-row"
+        onclick="openMusicModal('{{ item.spotify_link }}', '{{ item.collectionId }}', '{{ item.trackId }}')">
+        <img src="{{ item.artworkUrl100 }}" class="song-img">
+        <div class="song-info">
+            <div class="song-title">{{ item.trackName }}</div>
+            <div class="song-artist">{{ item.artistName }}</div>
+        </div>
+        <div class="song-like btn-like"
+            onclick="toggleLike(this, 'song', '{{ item.trackId }}', '{{ item.trackName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.spotify_link }}')">
+            ♥</div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="grid">
+    {% for item in results %}
+    {% if type == 'artists' %}
+    <a href="/artist/{{ item.artistId }}" class="card artist-card">
+        <div class="btn-like"
+            onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">
+            ♥</div>
+
+        <!-- WRAPPER ДЛЯ ЛЕНИВОЙ ЗАГРУЗКИ -->
+        <div class="artist-img-wrapper" data-artist-id="{{ item.artistId }}">
+            {% if item.image %}
+            <img src="{{ item.image }}">
+            {% else %}
+            <div class="artist-placeholder"
+                style="background-color: hsl({{ (item.artistName|length * 50) % 360 }}, 60%, 40%);">
+                {{ item.artistName[:1] }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="info">
+            <div class="title">{{ item.artistName }}</div>
+        </div>
+    </a>
+    {% elif type == 'albums' %}
+    <a href="/album/{{ item.collectionId }}" class="card">
+        <div class="btn-like"
+            onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">
+            ♥</div>
+        <img src="{{ item.artworkUrl100 }}">
+        <div class="info">
+            <div class="title">{{ item.collectionName }}</div>
+            <div class="sub">
+                {{ item.artistName }}
+                {% if item.year %}• {{ item.year }}{% endif %}
+            </div>
+        </div>
+    </a>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endif %}

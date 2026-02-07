@@ -1,8 +1,18 @@
 import requests
 import urllib.parse
 from utils import clean_name
+import requests_cache
+import os
+from dotenv import load_dotenv
 
-LASTFM_API_KEY = "23579f4b7b17523bef4d3a1fd3edc8ce"
+# Загружаем переменные из .env
+load_dotenv()
+
+# Устанавливаем кэш (сохраняет ответы в файл 'q_cache.sqlite')
+# expire_after=86400 (24 часа)
+requests_cache.install_cache('q_cache', expire_after=86400)
+
+LASTFM_API_KEY = os.getenv("LASTFM_API_KEY")
 LASTFM_URL = "http://ws.audioscrobbler.com/2.0/"
 
 def search_itunes(query, entity, limit):
