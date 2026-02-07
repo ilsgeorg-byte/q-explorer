@@ -234,6 +234,27 @@ def tag_page(tag_name):
                            page=page, 
                            sort_by=sort_by)
 
+# ... (предыдущий код)
+
+@app.route('/api/get-artist-image-by-name')
+def api_get_artist_image_by_name():
+    name = request.args.get('name')
+    if not name: return jsonify({'image': None})
+    
+    # 1. Ищем артиста в iTunes по имени
+    try:
+        results = search_itunes(name, 'musicArtist', 1)
+        if results:
+            artist_id = results[0].get('artistId')
+            # 2. Получаем его качественное фото
+            img = get_true_artist_image(artist_id)
+            return jsonify({'image': img})
+    except:
+        pass
+        
+    return jsonify({'image': None})
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
