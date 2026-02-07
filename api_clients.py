@@ -149,11 +149,18 @@ def get_tag_artists(tag, page=1, limit=30):
         data = requests.get(url, timeout=3).json()
         artists = []
         if 'topartists' in data and 'artist' in data['topartists']:
+                        # Внутри get_tag_artists
             for art in data['topartists']['artist']:
+                # Last.fm может отдать listeners как строку "12345" или число 12345
+                try:
+                    listeners = int(art.get('listeners', 0))
+                except:
+                    listeners = 0
+                    
                 artists.append({
                     'artistName': art['name'],
-                    # Картинки Last.fm не отдает, будем красить градиентом
-                    'listeners': int(art.get('listeners', 0))
+                    'listeners': listeners
                 })
+
         return artists
     except: return []
