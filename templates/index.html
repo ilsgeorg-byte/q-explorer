@@ -5,54 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music Explorer</title>
     <style>
-        :root { --bg-color: #121212; --card-bg: #181818; --text-color: #ffffff; --subtext-color: #b3b3b3; --accent-color: #1db954; }
-        body { font-family: -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; }
+        :root { --bg: #121212; --card: #181818; --text: #fff; --sub: #b3b3b3; --accent: #1db954; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
         a { text-decoration: none; color: inherit; }
         
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
         .logo { font-size: 24px; font-weight: bold; }
         .search-container { flex-grow: 1; max-width: 500px; margin: 0 20px; }
         .search-input { width: 100%; padding: 12px 20px; border-radius: 25px; border: none; font-size: 16px; outline: none; }
         
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin: 40px 0 20px; }
-        .section-title { font-size: 24px; font-weight: bold; margin: 0; }
+        .section-header { display: flex; justify-content: space-between; margin: 40px 0 20px; }
+        .section-title { font-size: 24px; font-weight: bold; }
         
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px; }
-        .card { background: var(--card-bg); padding: 16px; border-radius: 8px; transition: 0.3s; display: flex; flex-direction: column; }
+        .card { background: var(--card); padding: 16px; border-radius: 8px; transition: 0.3s; display: flex; flex-direction: column; }
         .card:hover { background: #282828; }
-        .card-img-wrapper { width: 100%; padding-top: 100%; position: relative; margin-bottom: 16px; background: #333; overflow: hidden; border-radius: 4px; }
+        .card-img-wrapper { width: 100%; padding-top: 100%; position: relative; margin-bottom: 16px; background: #333; border-radius: 4px; overflow: hidden; }
         .card-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
         .circle-img, .circle-img img { border-radius: 50%; }
-        .card-title { font-weight: bold; font-size: 16px; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .card-subtitle { font-size: 14px; color: var(--subtext-color); }
+        .card-title { font-weight: bold; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-subtitle { font-size: 14px; color: var(--sub); }
         
         .artist-hero { text-align: center; padding: 40px 0; }
         .artist-hero img { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
         .artist-hero h1 { font-size: 48px; margin: 0 0 10px; font-weight: 900; }
-        .genre { color: var(--subtext-color); font-size: 16px; margin-bottom: 10px; }
-        .stats-hero { color: var(--accent-color); font-weight: bold; margin-bottom: 15px; }
+        .genre { color: var(--sub); margin-bottom: 10px; }
+        .stats-hero { color: var(--accent); font-weight: bold; margin-bottom: 15px; }
         
         .song-list { display: flex; flex-direction: column; }
         .song-row { display: flex; align-items: center; padding: 10px; border-radius: 4px; cursor: pointer; }
         .song-row:hover { background: rgba(255,255,255,0.1); }
-        .song-num { color: var(--subtext-color); width: 30px; text-align: right; margin-right: 20px; }
+        .song-num { color: var(--sub); width: 30px; text-align: right; margin-right: 20px; }
         .song-img { width: 40px; height: 40px; margin-right: 15px; border-radius: 2px; }
         .song-info { flex-grow: 1; }
-        .btn-like { cursor: pointer; font-size: 20px; color: #555; margin-left: 15px; }
-        .btn-like.liked { color: var(--accent-color); }
-
+        
         .album-hero { display: flex; align-items: flex-end; gap: 30px; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid #333; }
         .album-cover-big { width: 232px; height: 232px; box-shadow: 0 4px 60px rgba(0,0,0,0.5); }
         .album-meta h1 { font-size: 48px; margin: 10px 0; line-height: 1; font-weight: 900; }
-
-        .sort-controls { display: flex; align-items: center; }
-        .sort-btn { color: #888; margin-right: 15px; padding-bottom: 2px; border-bottom: 2px solid transparent; }
-        .sort-btn.active { color: #fff; border-color: var(--accent-color); }
-        .page-btn { background: #333; padding: 5px 15px; border-radius: 20px; font-size: 14px; }
-
+        
         #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #282828; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; }
-        .btn-spotify { display: inline-block; background: var(--accent-color); color: white; padding: 12px 30px; border-radius: 25px; margin-top: 20px; font-weight: bold; }
+        .btn-spotify { display: inline-block; background: var(--accent); color: white; padding: 12px 30px; border-radius: 25px; margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -60,7 +53,7 @@
         <a href="/" class="logo">🎵 MusicExplorer</a>
         <div class="search-container">
             <form action="/" method="GET">
-                <input type="text" name="q" class="search-input" placeholder="Search Artists, Albums..." value="{{ query|default('') }}">
+                <input type="text" name="q" class="search-input" placeholder="Search..." value="{{ query|default('') }}">
             </form>
         </div>
     </div>
@@ -103,8 +96,8 @@
             {% for song in data.songs %}
             <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}')">
                 <img src="{{ song.artworkUrl100 }}" class="song-img">
-                <div class="song-info"><div class="song-title">{{ song.trackName }}</div><div class="song-artist">{{ song.artistName }}</div></div>
-                <div class="btn-like">♥</div>
+                <div class="song-info"><div class="card-title" style="margin:0;">{{ song.trackName }}</div><div class="card-subtitle">{{ song.artistName }}</div></div>
+                <div style="font-size:20px; color:#555;">♥</div>
             </div>
             {% endfor %}
         </div>
@@ -116,7 +109,7 @@
             <div class="genre">
                 {{ artist.primaryGenreName }}
                 {% for tag in artist.tags %}
-                    <a href="/tag/{{ tag }}" style="margin-left:5px;">• {{ tag|capitalize }}</a>
+                    <span style="opacity: 0.6; margin-left: 5px;">• {{ tag|capitalize }}</span>
                 {% endfor %}
             </div>
             {% if artist.stats %}<div class="stats-hero">{{ artist.stats }}</div>{% endif %}
@@ -125,13 +118,13 @@
 
         {% if top_songs %}
         <div class="section-header"><h2>Top Songs</h2></div>
-        <div class="song-list">
+        <div class="song-list" style="margin-bottom:30px;">
             {% for song in top_songs %}
             <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}')">
                 <div class="song-num">{{ loop.index }}</div>
                 <img src="{{ song.artworkUrl100 }}" class="song-img">
-                <div class="song-info"><div class="song-title">{{ song.trackName }}</div><div class="song-artist" style="opacity:0.7;">{{ song.collectionName }}</div></div>
-                <div class="btn-like">♥</div>
+                <div class="song-info"><div class="card-title" style="margin:0;">{{ song.trackName }}</div><div class="card-subtitle">{{ song.collectionName }}</div></div>
+                <div style="font-size:20px; color:#555;">♥</div>
             </div>
             {% endfor %}
         </div>
@@ -165,35 +158,9 @@
             {% for song in songs %}
             <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}')">
                 <div class="song-num">{{ song.trackNumber }}</div>
-                <div class="song-info"><div class="song-title">{{ song.trackName }}</div><div class="song-artist">{{ song.artistName }}</div></div>
-                <div class="btn-like">♥</div>
+                <div class="song-info"><div class="card-title" style="margin:0;">{{ song.trackName }}</div><div class="card-subtitle">{{ song.artistName }}</div></div>
+                <div style="font-size:20px; color:#555;">♥</div>
             </div>
-            {% endfor %}
-        </div>
-    {% elif view == 'tag_detail' %}
-        <div class="artist-hero">
-            <h1>#{{ tag_name|capitalize }}</h1>
-            <div style="max-width:700px; margin:15px auto; font-size:14px; color:#ccc;">{{ description|safe }}</div>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin:20px 0;">
-            <div class="sort-controls">
-                <span style="color:#666; margin-right:10px;">Sort:</span>
-                <a href="/tag/{{ tag_name }}?page=1&sort=popularity" class="sort-btn {% if sort_by == 'popularity' %}active{% endif %}">Popularity</a>
-                <a href="/tag/{{ tag_name }}?page=1&sort=alpha" class="sort-btn {% if sort_by == 'alpha' %}active{% endif %}">A-Z</a>
-            </div>
-            <div class="pagination">
-                {% if page > 1 %}<a href="/tag/{{ tag_name }}?page={{ page - 1 }}&sort={{ sort_by }}" class="page-btn">← Prev</a>{% endif %}
-                <span style="margin:0 15px; color:#666;">Page {{ page }}</span>
-                <a href="/tag/{{ tag_name }}?page={{ page + 1 }}&sort={{ sort_by }}" class="page-btn">Next →</a>
-            </div>
-        </div>
-        <div class="grid">
-            {% for artist in artists %}
-            <a href="/?q={{ artist.artistName }}" class="card">
-                <div class="card-img-wrapper"><img src="/static/placeholder.png" class="card-img lazy-grad"></div>
-                <div class="card-title">{{ artist.artistName }}</div>
-                <div class="card-subtitle">{{ (artist.listeners / 1000)|round|int }}K Listeners</div>
-            </a>
             {% endfor %}
         </div>
     {% endif %}
@@ -205,16 +172,11 @@
             <br><br><button onclick="document.getElementById('modal').style.display='none'" style="background:transparent; border:1px solid #555; color:#fff; padding:8px 16px; border-radius:20px; cursor:pointer;">Close</button>
         </div>
     </div>
-
     <script>
         function openMusicModal(link) {
             document.getElementById('spotify-link').href = link;
             document.getElementById('modal').style.display = 'flex';
         }
-        document.querySelectorAll('.lazy-grad').forEach(img => {
-            const hue = Math.floor(Math.random()*360);
-            img.style.background = `linear-gradient(135deg, hsl(${hue},40%,20%), hsl(${hue+40},50%,40%))`;
-        });
     </script>
 </body>
 </html>

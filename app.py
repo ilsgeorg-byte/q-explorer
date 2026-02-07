@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, url_for
+from flask import Flask, render_template, request, jsonify
 from api_clients import *
 from utils import generate_spotify_link, sort_albums
 
@@ -22,8 +22,8 @@ def index():
         if ql not in (name or "").lower(): continue
 
         art['image'] = get_true_artist_image(aid)
-        lf_data = get_lastfm_artist_data(name)
-        art['stats'] = lf_data.get('stats') if lf_data else None
+        lf = get_lastfm_artist_data(name)
+        art['stats'] = lf.get('stats') if lf else None
         
         results['artists'].append(art)
         seen_ids.add(aid)
@@ -41,8 +41,7 @@ def index():
     # Songs
     for song in search_itunes(query, 'song', 15):
         if ql in (song.get('trackName', '') or '').lower():
-            q = f"{song.get('artistName', '')} {song.get('trackName', '')}"
-            song['spotify_link'] = generate_spotify_link(q)
+            song['spotify_link'] = generate_spotify_link(f"{song.get('artistName')} {song.get('trackName')}")
             results['songs'].append(song)
     results['songs'] = results['songs'][:10]
         
@@ -55,8 +54,7 @@ def see_all(type):
     
     results = []
     ql = query.lower()
-    entity_map = {'artists': 'musicArtist', 'albums': 'album', 'songs': 'song'}
-    entity = entity_map.get(type, 'album')
+    entity = {'artists': 'musicArtist', 'albums': 'album', 'songs': 'song'}.get(type, 'album')
     data = search_itunes(query, entity, 60)
     seen_ids = set()
     
@@ -64,7 +62,7 @@ def see_all(type):
         if type == 'artists':
             aid = item.get('artistId')
             if not aid or aid in seen_ids: continue
-            item['image'] = None 
+            item['image'] = None # Lazy
             item['stats'] = None
             results.append(item)
             seen_ids.add(aid)
@@ -85,44 +83,39 @@ def artist_page(artist_id):
     if not data: return "Artist not found"
     artist = data[0]
     
-    # Last.fm Data
-    lf_data = get_lastfm_artist_data(artist.get('artistName', ''))
-    if lf_data:
-        artist['stats'] = lf_data.get('stats')
-        artist['bio'] = lf_data.get('bio')
-        artist['tags'] = lf_data.get('tags')
+    lf = get_lastfm_artist_data(artist.get('artistName', ''))
+    if lf:
+        artist['stats'] = lf.get('stats')
+        artist['bio'] = lf.get('bio')
+        artist['tags'] = lf.get('tags')
     
     similar = get_similar_artists(artist.get('artistName', ''))
     
-    # Top Songs (Умный поиск: сначала по ID, потом по имени)
+    # Top Songs (Умный поиск)
     top_songs_raw = search_itunes(artist.get('artistName', ''), 'song', 50)
     top_songs = []
-    seen_titles = set()
+    seen = set()
     target_id = int(artist_id)
-    target_name_lower = artist.get('artistName', '').lower()
     
     def add_song(s):
-        # Очистка названия для дедупликации
         clean = s.get('trackName', '').lower().split('(')[0].split('-')[0].strip()
-        if clean in seen_titles: return
-        
+        if clean in seen: return
         s['spotify_link'] = generate_spotify_link(f"{s.get('artistName')} {s.get('trackName')}")
         if 'artworkUrl100' in s: s['artworkUrl100'] = s['artworkUrl100'].replace('100x100bb', '300x300bb')
         top_songs.append(s)
-        seen_titles.add(clean)
+        seen.add(clean)
 
-    # Проход 1: Строгий ID
     for s in top_songs_raw:
         if s.get('artistId') == target_id:
             add_song(s)
             if len(top_songs) >= 5: break
             
-    # Проход 2: Мягкое Имя (если песен мало)
     if len(top_songs) < 5:
+        target_name = artist.get('artistName', '').lower()
         for s in top_songs_raw:
             if len(top_songs) >= 5: break
             if s.get('artistId') == target_id: continue
-            if target_name_lower in s.get('artistName', '').lower():
+            if target_name in s.get('artistName', '').lower():
                 add_song(s)
 
     # Discography
@@ -140,13 +133,13 @@ def album_page(collection_id):
     data = lookup_itunes(collection_id, 'song')
     if not data: return "Album not found"
     
-    album_info = data[0]
-    album_info['artworkUrl100'] = album_info.get('artworkUrl100', '').replace('100x100bb', '600x600bb')
-    date = album_info.get('releaseDate', '')
-    album_info['year'] = date[:4] if date else ''
+    alb = data[0]
+    alb['artworkUrl100'] = alb.get('artworkUrl100', '').replace('100x100bb', '600x600bb')
+    date = alb.get('releaseDate', '')
+    alb['year'] = date[:4] if date else ''
     
-    album_stats = get_lastfm_album_stats(album_info.get('artistName'), album_info.get('collectionName'))
-    spotify_link = generate_spotify_link(f"{album_info.get('artistName')} {album_info.get('collectionName')}")
+    stats = get_lastfm_album_stats(alb.get('artistName'), alb.get('collectionName'))
+    link = generate_spotify_link(f"{alb.get('artistName')} {alb.get('collectionName')}")
     
     songs = []
     for item in data[1:]:
@@ -154,22 +147,7 @@ def album_page(collection_id):
             item['spotify_link'] = generate_spotify_link(f"{item.get('artistName')} {item.get('trackName')}")
             songs.append(item)
             
-    return render_template('index.html', view='album_detail', album=album_info, songs=songs, spotify_link=spotify_link, album_stats=album_stats)
-
-@app.route('/tag/<tag_name>')
-def tag_page(tag_name):
-    page = request.args.get('page', 1, type=int)
-    sort_by = request.args.get('sort', 'popularity')
-    
-    description = get_tag_info(tag_name)
-    artists = get_tag_artists(tag_name, page, 30)
-    
-    if sort_by == 'alpha':
-        artists.sort(key=lambda x: x['artistName'].lower())
-    else:
-        artists.sort(key=lambda x: x['listeners'], reverse=True)
-        
-    return render_template('index.html', view='tag_detail', tag_name=tag_name, description=description, artists=artists, page=page, sort_by=sort_by)
+    return render_template('index.html', view='album_detail', album=alb, songs=songs, spotify_link=link, album_stats=stats)
 
 if __name__ == '__main__':
     app.run(debug=True)
