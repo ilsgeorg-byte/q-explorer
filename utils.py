@@ -1,24 +1,32 @@
 import re
 import urllib.parse
-from datetime import datetime
 
 def clean_name(name):
+    """
+    Превращает "In Rock (2018 Remastered Version)" -> "In Rock"
+    Убирает мусор в скобках и после дефисов, если это техническая инфа.
+    """
     if not name: return ""
-    # Убираем всё в скобках: " (Deluxe)", " [Remastered]", " (2011 Version)"
+    
+    # 1. Убираем содержимое скобок () и []
+    # Было: "Deep Purple In Rock (2018 Remastered Version)" -> "Deep Purple In Rock"
     clean = re.sub(r'\s*[\(\[].*?[\)\]]', '', name)
+    
+    # 2. Убираем " - Remastered" и прочее, если оно без скобок (редко, но бывает)
+    # Пример: "Album Name - Deluxe Edition" -> "Album Name"
+    clean = re.sub(r'\s-\s.*(Remaster|Deluxe|Edition|Version|Remix).*', '', clean, flags=re.IGNORECASE)
+    
     return clean.strip()
 
 def normalize_title(title):
     """
-    Делает название "чистым" для сравнения версий.
-    Leviathan (Deluxe) -> leviathan
+    Для сравнения (дедупликации).
+    Убираем вообще всё, оставляем только буквы/цифры, чтобы найти дубли.
     """
     if not title: return ""
-    # Убираем скобки
     clean = re.sub(r'\s*[\(\[].*?[\)\]]', '', title)
-    # Убираем мусор и приводим к нижнему регистру
     clean = clean.lower().strip()
-    # Убираем спецсимволы, оставляем только буквы и цифры
+    # Оставляем только a-z и 0-9
     clean = re.sub(r'[^a-z0-9]', '', clean)
     return clean
 
@@ -27,82 +35,82 @@ def generate_spotify_link(query):
     return f"https://open.spotify.com/search/{urllib.parse.quote(query)}"
 
 def sort_albums(albums):
-    """
-    Сортирует и чистит альбомы:
-    1. Распределяет по категориям (Live, Compilations, Singles, Albums).
-    2. Для Studio Albums делает дедупликацию (оставляет только оригиналы).
-    """
     categories = {
-        'albums': [],       # Сюда попадут только уникальные студийные
+        'albums': [],
         'live': [],
         'compilations': [],
         'singles': []
     }
     
     # Словарь для дедупликации студийных альбомов
-    # Ключ: нормализованное название, Значение: альбом
     unique_studio = {} 
 
     for alb in albums:
-        title = alb.get('collectionName', '').strip()
-        if not title: continue
+        original_title = alb.get('collectionName', '').strip()
+        if not original_title: continue
         
-        # Улучшаем картинку сразу
+        # Улучшаем качество обложки
         if 'artworkUrl100' in alb:
             alb['artworkUrl100'] = alb['artworkUrl100'].replace('100x100bb', '300x300bb')
             
         date_str = alb.get('releaseDate', '')
         alb['year'] = date_str[:4] if date_str else ''
         
-        lower_title = title.lower()
+        lower_title = original_title.lower()
         track_count = alb.get('trackCount', 0)
         
         # --- ЛОГИКА ФИЛЬТРАЦИИ ---
 
         # 1. Singles & EPs
-        # Если в названии есть " EP" (с пробелом) или заканчивается на "EP"
-        is_explicit_ep = ' ep' in lower_title or lower_title.endswith('ep')
+        # Ищем слово "EP" как отдельное слово (через границы слова \b),
+        # чтобы не реагировать на "Deep", "Sleep", "Keep".
+        is_explicit_ep = bool(re.search(r'\bep\b', lower_title))
         is_single = ' - single' in lower_title
         
         if track_count < 5 or is_single or is_explicit_ep:
+            # Даже если это EP, название тоже стоит почистить (убрать "(EP)")
+            alb['collectionName'] = clean_name(original_title)
             categories['singles'].append(alb)
             continue
             
         # 2. Live Albums
-        if any(x in lower_title for x in ['live', 'concert', 'tour', 'wembley', 'bowl', 'montreal', 'budokan', 'at the']):
+        # Ищем ключевые слова для концертов
+        if any(x in lower_title for x in ['live', 'concert', 'tour', 'wembley', 'bowl', 'montreal', 'budokan', 'at the', 'bbc']):
+            alb['collectionName'] = clean_name(original_title)
             categories['live'].append(alb)
             continue
             
         # 3. Compilations
         if any(x in lower_title for x in ['greatest hits', 'best of', 'anthology', 'collection', 'essential', 'platinum', 'gold', 'years', 'hits', 'box set']):
+            alb['collectionName'] = clean_name(original_title)
             categories['compilations'].append(alb)
             continue
             
-        # 4. STUDIO ALBUMS (С Дедупликацией)
-        # Если мы дошли сюда, это скорее всего студийный альбом.
+        # 4. STUDIO ALBUMS (С Дедупликацией и Чисткой)
         
-        norm_key = normalize_title(title)
+        # Сначала генерируем "чистый ключ" для поиска дубликатов
+        norm_key = normalize_title(original_title)
+        
+        # ВАЖНО: Сразу чистим название для отображения на сайте!
+        # Теперь "In Rock (2018 Remaster)" станет просто "In Rock" прямо в объекте
+        alb['collectionName'] = clean_name(original_title)
         
         if norm_key in unique_studio:
-            # У нас уже есть альбом с таким названием (например, лежит Deluxe, а пришел Original)
             existing_alb = unique_studio[norm_key]
             
-            # Сравниваем даты: оставляем тот, который СТАРШЕ (Original)
+            # Сравниваем даты: если текущий старше (меньше год), берем его
             existing_date = existing_alb.get('releaseDate', '9999')
             current_date = alb.get('releaseDate', '9999')
             
             if current_date < existing_date:
-                # Текущий альбом старше - заменяем им то, что было в словаре
                 unique_studio[norm_key] = alb
-            # Иначе: оставляем старый, текущий (более новый ремастер/делюкс) игнорируем
         else:
-            # Новый уникальный альбом
             unique_studio[norm_key] = alb
 
-    # Перекладываем уникальные студийные альбомы из словаря в список
+    # Выгружаем уникальные студийные
     categories['albums'] = list(unique_studio.values())
 
-    # Сортируем каждую категорию по дате (Новые сверху)
+    # Финальная сортировка по дате
     for key in categories:
         categories[key].sort(key=lambda x: x.get('releaseDate', ''), reverse=True)
         
