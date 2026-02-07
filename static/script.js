@@ -43,7 +43,7 @@ document.addEventListener('click', (e) => {
 /* --- ИЗБРАННОЕ --- */
 function getFavs() { return JSON.parse(localStorage.getItem('q_favs') || '[]'); }
 function saveFavs(favs) { localStorage.setItem('q_favs', JSON.stringify(favs)); renderFavorites(); }
-function clearFavs() { if(confirm('Clear all?')) { localStorage.removeItem('q_favs'); renderFavorites(); checkLikedStatus(); } }
+function clearFavs() { if (confirm('Clear all?')) { localStorage.removeItem('q_favs'); renderFavorites(); checkLikedStatus(); } }
 
 function toggleLike(btn, type, id, title, img, sub, link) {
     event.stopPropagation(); event.preventDefault();
@@ -102,3 +102,89 @@ function renderFavorites() {
         `;
     }).join('');
 }
+
+/* --- SHARE & UI LOGIC --- */
+function sharePage() {
+    navigator.clipboard.writeText(window.location.href);
+    const toast = document.getElementById('toast');
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderFavorites();
+    checkLikedStatus();
+
+    // Плейсхолдер с подсказками
+    const hints = ["Pink Floyd", "Metallica", "Taylor Swift", "Queen", "Hans Zimmer", "The Beatles", "Eminem"];
+    const input = document.querySelector('input[name="q"]');
+    if (input) input.placeholder = "Try: " + hints[Math.floor(Math.random() * hints.length)];
+
+    // Кнопка наверх
+    const scrollTopBtn = document.getElementById('scroll-top');
+    if (scrollTopBtn) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) scrollTopBtn.style.display = 'flex';
+            else scrollTopBtn.style.display = 'none';
+        });
+    }
+
+    // LAZY LOADING IMAGES (IntersectionObserver)
+    const loadImage = (wrapper) => {
+        const artistId = wrapper.getAttribute('data-artist-id');
+        if (!artistId || wrapper.querySelector('img')) return;
+
+        fetch(`/api/get-artist-image/${artistId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.image) {
+                    const img = document.createElement('img');
+                    img.src = data.image;
+                    img.style.opacity = '0'; // Скрыта
+                    img.style.transition = 'opacity 0.5s'; // Плавное появление
+                    img.onload = () => { img.style.opacity = '1'; };
+
+                    wrapper.innerHTML = ''; // Убираем плейсхолдер
+                    wrapper.appendChild(img);
+                }
+            })
+            .catch(err => console.log('No image for', artistId));
+    };
+
+    // Используем Observer вместо setTimeout для реальной ленивой загрузки
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                loadImage(entry.target);
+                obs.unobserve(entry.target);
+            }
+        });
+    }, { rootMargin: '100px' }); // Начинаем грузить чуть заранее (100px до появления)
+
+    document.querySelectorAll('.artist-img-wrapper').forEach(wrapper => {
+        observer.observe(wrapper);
+    });
+
+    // Lazy Gradients
+    document.querySelectorAll('.lazy-grad').forEach(div => {
+        const hue = Math.floor(Math.random() * 360);
+        div.style.background = `linear-gradient(135deg, hsl(${hue}, 40%, 20%), hsl(${hue + 40}, 50%, 40%))`;
+    });
+});
+
+// ЛОАДЕР
+const loader = document.getElementById('global-loader');
+const form = document.querySelector('form');
+if (form) form.addEventListener('submit', () => { if (loader) loader.style.display = 'flex'; });
+
+// Делегирование событий для ссылок
+document.body.addEventListener('click', (e) => {
+    const link = e.target.closest('a');
+    if (link) {
+        const href = link.getAttribute('href');
+        if (href && !href.startsWith('#') && !href.startsWith('javascript') && link.target !== '_blank') {
+            if (loader) loader.style.display = 'flex';
+        }
+    }
+});
+window.addEventListener('pageshow', () => { if (loader) loader.style.display = 'none'; });
