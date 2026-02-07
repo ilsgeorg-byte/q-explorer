@@ -118,7 +118,7 @@ def artist_page(artist_id):
     
     artist = data[0]
     
-    # 1. Расширенные данные с Last.fm (Bio, Stats, Tags)
+    # 1. Last.fm Data
     lf_data = get_lastfm_artist_data(artist.get('artistName', ''))
     if lf_data:
         artist['stats'] = lf_data.get('stats')
@@ -131,27 +131,52 @@ def artist_page(artist_id):
     
     similar = get_similar_artists(artist.get('artistName', ''))
     
-    # 2. Топ Песни (Top Songs) - отдельный поиск
-    # Ищем песни по имени артиста, потом фильтруем по ID, чтобы не попали чужие
-    top_songs_raw = search_itunes(artist.get('artistName', ''), 'song', 25)
+    # 2. Топ Песни (Top Songs) - УЛУЧШЕННАЯ ЛОГИКА
+    # Запрашиваем 50 треков, чтобы точно найти нужные среди мусора
+    top_songs_raw = search_itunes(artist.get('artistName', ''), 'song', 50)
     top_songs = []
+    
+    # Множество для защиты от дубликатов (чтобы не было 3 версии одной песни)
+    seen_titles = set()
     target_id = int(artist_id)
+    # Имя артиста в нижнем регистре для мягкого поиска
+    target_name_lower = artist.get('artistName', '').lower()
     
+    def add_song(s):
+        # "Clean" название для проверки дублей: "Song (Remaster)" -> "song"
+        clean_title = s.get('trackName', '').lower().split('(')[0].split('-')[0].strip()
+        if clean_title in seen_titles: return
+        
+        s['spotify_link'] = generate_spotify_link(f"{s.get('artistName')} {s.get('trackName')}")
+        if 'artworkUrl100' in s:
+            s['artworkUrl100'] = s['artworkUrl100'].replace('100x100bb', '300x300bb')
+            
+        top_songs.append(s)
+        seen_titles.add(clean_title)
+
+    # Проход 1: СТРОГИЙ (Точное совпадение ID)
     for s in top_songs_raw:
-        # Проверяем, что песня принадлежит именно этому артисту
         if s.get('artistId') == target_id:
-            s['spotify_link'] = generate_spotify_link(f"{s.get('artistName')} {s.get('trackName')}")
-            # Картинку делаем побольше
-            if 'artworkUrl100' in s:
-                s['artworkUrl100'] = s['artworkUrl100'].replace('100x100bb', '300x300bb')
-            top_songs.append(s)
+            add_song(s)
             if len(top_songs) >= 5: break
-    
-    # 3. Дискография (Альбомы)
+            
+    # Проход 2: МЯГКИЙ (Если песен мало, ищем по Имени)
+    # Это спасет коллаборации (Queen & Bowie) и кривые тэги iTunes
+    if len(top_songs) < 5:
+        for s in top_songs_raw:
+            if len(top_songs) >= 5: break
+            # Пропускаем, если ID совпадает (уже добавили в 1 проходе)
+            if s.get('artistId') == target_id: continue
+            
+            song_artist = s.get('artistName', '').lower()
+            # Если имя нашего артиста есть внутри исполнителя трека
+            if target_name_lower in song_artist:
+                add_song(s)
+
+    # 3. Дискография (без изменений)
     raw_albums = [x for x in lookup_itunes(artist_id, 'album', 200) if x.get('collectionType') == 'Album' and x.get('artistId') == int(artist_id)]
     discography = sort_albums(raw_albums)
     
-    # Фото артиста берем с обложки первого альбома
     artist_image = discography['albums'][0]['artworkUrl100'] if discography['albums'] else None
     if not artist_image and discography['singles']:
          artist_image = discography['singles'][0]['artworkUrl100']
