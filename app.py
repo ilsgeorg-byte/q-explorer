@@ -184,13 +184,20 @@ def artist_page(artist_id):
                 add_song(s)
 
     # 3. Обрабатываем Альбомы
-    # Фильтруем только альбомы этого артиста (на всякий случай)
-    raw_albums = [x for x in raw_albums_data if x.get('collectionType') == 'Album' and x.get('artistId') == int(artist_id)]
+    # Фильтруем только альбомы (wrapperType='collection', collectionType='Album')
+    # Убираем проверку artistId, так как lookup по ID уже вернул релевантные альбомы
+    if raw_albums_data:
+        raw_albums = [x for x in raw_albums_data if x.get('collectionType') == 'Album']
+    else:
+        raw_albums = []
+
     discography = sort_albums(raw_albums)
     
-    artist_image = discography['albums'][0]['artworkUrl100'] if discography['albums'] else None
-    if not artist_image and discography['singles']:
-         artist_image = discography['singles'][0]['artworkUrl100']
+    artist_image = None
+    if discography['albums']:
+        artist_image = discography['albums'][0].get('artworkUrl100')
+    elif discography['singles']:
+         artist_image = discography['singles'][0].get('artworkUrl100')
     
     return render_template('index.html', view='artist_detail', artist=artist, discography=discography, artist_image=artist_image, similar=similar, top_songs=top_songs)
 

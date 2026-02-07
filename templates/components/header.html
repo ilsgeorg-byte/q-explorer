@@ -1,11 +1,11 @@
 <div class="search-container">
-    <div class="header">
+    <div class="nav-content">
         <a href="/" class="logo">Q-Explorer<span>.</span></a>
+        <form action="/" method="get" class="search-wrapper" onsubmit="saveHistory(this.q.value)">
+            <input type="text" name="q" placeholder="Search..." value="{{ query if query else '' }}" autocomplete="off"
+                onfocus="showHistory()">
+            <button type="submit">GO</button>
+            <div id="history-dropdown"></div>
+        </form>
     </div>
-    <form action="/" method="get" class="search-wrapper" onsubmit="saveHistory(this.q.value)">
-        <input type="text" name="q" placeholder="Search..." value="{{ query if query else '' }}" autocomplete="off"
-            onfocus="showHistory()">
-        <button type="submit">GO</button>
-        <div id="history-dropdown"></div>
-    </form>
 </div>
