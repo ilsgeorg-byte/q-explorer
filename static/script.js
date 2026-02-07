@@ -1,53 +1,104 @@
-document.addEventListener("DOMContentLoaded", function() {
-    
-    // 1. Генерация случайных градиентов для артистов без фото (Tag Page)
-    // Находит все картинки с классом lazy-grad и дает им уникальный цвет
-    const lazyImages = document.querySelectorAll('.lazy-grad');
-    lazyImages.forEach(img => {
-        // Генерируем случайный оттенок (Hue) от 0 до 360
-        const hue = Math.floor(Math.random() * 360);
-        // Создаем градиент
-        img.style.background = `linear-gradient(135deg, hsl(${hue}, 40%, 20%), hsl(${hue + 40}, 50%, 40%))`;
-    });
+/* --- МОДАЛЬНОЕ ОКНО --- */
+function openMusicModal(spotifyLink, appleCollectionId, appleTrackId) {
+    document.getElementById('modal-spotify').href = spotifyLink;
+    let appleLink = `https://music.apple.com/album/${appleCollectionId}`;
+    if (appleTrackId) appleLink += `?i=${appleTrackId}`;
+    document.getElementById('modal-apple').href = appleLink;
+    document.getElementById('music-modal').style.display = 'flex';
+}
+function closeMusicModal() { document.getElementById('music-modal').style.display = 'none'; }
 
-    // 2. Обработка клика по лайку (чтобы не запускать песню)
-    const likeButtons = document.querySelectorAll('.btn-like');
-    likeButtons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation(); // Останавливаем всплытие (чтобы не сработал клик по строке)
-            this.classList.toggle('liked'); // Меняем цвет
-            
-            // Здесь можно добавить AJAX запрос для сохранения лайка
-            // fetch('/api/like', { method: 'POST', body: ... })
-            
-            if (this.classList.contains('liked')) {
-                // Анимация или логика для лайка
-                console.log("Liked!");
-            }
-        });
-    });
-
+/* --- ИСТОРИЯ --- */
+function getHistory() { return JSON.parse(localStorage.getItem('q_history') || '[]'); }
+function saveHistory(query) {
+    if (!query) return;
+    let hist = getHistory();
+    hist = hist.filter(h => h.toLowerCase() !== query.toLowerCase());
+    hist.unshift(query);
+    if (hist.length > 5) hist.pop();
+    localStorage.setItem('q_history', JSON.stringify(hist));
+}
+function showHistory() {
+    const hist = getHistory();
+    const drop = document.getElementById('history-dropdown');
+    if (hist.length === 0) { drop.style.display = 'none'; return; }
+    drop.innerHTML = hist.map(item => `
+        <div class="history-item" onclick="window.location.href='/?q=${encodeURIComponent(item)}'">
+            <span>🕒 ${item}</span>
+            <span class="history-remove" onclick="removeHistory(event, '${item}')">×</span>
+        </div>`).join('');
+    drop.style.display = 'block';
+}
+function removeHistory(e, item) {
+    e.stopPropagation();
+    let hist = getHistory();
+    hist = hist.filter(h => h !== item);
+    localStorage.setItem('q_history', JSON.stringify(hist));
+    showHistory();
+}
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-container')) document.getElementById('history-dropdown').style.display = 'none';
 });
 
-// 3. Логика модального окна
-function openMusicModal(link) {
-    const modal = document.getElementById('modal');
-    const spotifyLink = document.getElementById('spotify-link');
-    
-    if (link && link !== '#') {
-        spotifyLink.href = link;
-        spotifyLink.style.display = 'inline-block';
-        spotifyLink.innerText = 'Listen on Spotify';
-    } else {
-        spotifyLink.style.display = 'none';
-    }
-    
-    modal.style.display = 'flex';
+/* --- ИЗБРАННОЕ --- */
+function getFavs() { return JSON.parse(localStorage.getItem('q_favs') || '[]'); }
+function saveFavs(favs) { localStorage.setItem('q_favs', JSON.stringify(favs)); renderFavorites(); }
+function clearFavs() { if(confirm('Clear all?')) { localStorage.removeItem('q_favs'); renderFavorites(); checkLikedStatus(); } }
+
+function toggleLike(btn, type, id, title, img, sub, link) {
+    event.stopPropagation(); event.preventDefault();
+    let favs = getFavs();
+    const index = favs.findIndex(f => f.id === id);
+    if (index > -1) { favs.splice(index, 1); btn.classList.remove('liked'); }
+    else { favs.unshift({ type, id, title, img, sub, link }); btn.classList.add('liked'); }
+    saveFavs(favs);
+}
+function checkLikedStatus() {
+    let favs = getFavs();
+    document.querySelectorAll('.btn-like').forEach(btn => {
+        const idMatch = btn.getAttribute('onclick').match(/'(\d+)'/);
+        if (idMatch && favs.find(f => f.id === idMatch[1])) btn.classList.add('liked');
+    });
 }
 
-function closeModal(event) {
-    // Закрываем, если кликнули по темному фону (id="modal")
-    if (event.target.id === 'modal') {
-        document.getElementById('modal').style.display = 'none';
+// ПЕРЕКЛЮЧЕНИЕ ВИДА ИЗБРАННОГО
+let isFavExpanded = false;
+function toggleFavsView() {
+    isFavExpanded = !isFavExpanded;
+    const container = document.getElementById('favorites-container');
+    const btn = document.getElementById('fav-toggle-btn');
+
+    if (isFavExpanded) {
+        container.classList.remove('scroll-row');
+        container.classList.add('grid');
+        btn.textContent = 'Collapse';
+    } else {
+        container.classList.remove('grid');
+        container.classList.add('scroll-row');
+        btn.textContent = 'See All';
     }
+}
+
+function renderFavorites() {
+    const favs = getFavs();
+    const section = document.getElementById('favorites-section');
+    const container = document.getElementById('favorites-container');
+
+    if (favs.length === 0) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+
+    container.innerHTML = favs.map(f => {
+        let href = f.type === 'artist' ? `/artist/${f.id}` : (f.type === 'album' ? `/album/${f.id}` : '#');
+        let clickAction = f.type === 'song' ? `onclick="openMusicModal('${f.link}', '${f.sub}', '')"` : '';
+        // Добавляем класс fav-card, чтобы применились стили
+        let isArtist = f.type === 'artist';
+
+        return `
+        <a href="${href}" ${clickAction} class="card fav-card ${isArtist ? 'artist-card' : ''}">
+             <div class="btn-like liked" onclick="toggleLike(this, '${f.type}', '${f.id}', '${f.title.replace(/'/g, "\\'")}', '${f.img}', '${f.sub.replace(/'/g, "\\'")}', '${f.link}')">♥</div>
+            <img src="${f.img}">
+            <div class="info"><div class="title">${f.title}</div></div>
+        </a>
+        `;
+    }).join('');
 }
