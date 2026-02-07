@@ -6,6 +6,7 @@
     <title>Q-Explorer</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Pirata+One&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -17,7 +18,7 @@
     <!-- ПОИСК -->
     <div class="search-container">
         <div class="header">
-            <a href="/" class="logo">Q-Explorer <span style="color:var(--primary)">.</span></a>
+            <a href="/" class="logo">Q-Explorer<span>.</span></a>
         </div>
         <form action="/" method="get" class="search-wrapper" onsubmit="saveHistory(this.q.value)">
             <input type="text" name="q" placeholder="Search..." value="{{ query if query else '' }}" autocomplete="off" onfocus="showHistory()">

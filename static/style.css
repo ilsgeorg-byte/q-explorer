@@ -16,7 +16,24 @@ a { text-decoration: none; color: inherit; }
 
 /* --- GHOST SEARCH STYLE --- */
 .search-container { position: fixed; top: 0; left: 0; right: 0; background: rgba(18,18,18,0.98); backdrop-filter: blur(15px); padding: 15px 20px; z-index: 900; border-bottom: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-.logo { font-size: 24px; font-weight: 800; display: block; margin-bottom: 5px; }
+        .logo {
+            font-family: 'Pirata One', cursive; /* Готический шрифт */
+            font-size: 42px;                    /* Делаем крупнее */
+            font-weight: normal;                /* Готика сама по себе жирная */
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5); /* Легкое кровавое свечение */
+        }
+        
+        /* Если хотите, чтобы точка в конце была красной */
+        .logo span {
+            color: #e50914; /* Netflix red */
+        }
+
 .search-wrapper { display: flex; gap: 10px; position: relative; }
 
 input { 
