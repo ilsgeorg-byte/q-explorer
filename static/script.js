@@ -125,10 +125,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Кнопка наверх
     const scrollTopBtn = document.getElementById('scroll-top');
     if (scrollTopBtn) {
+        let ticking = false;
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) scrollTopBtn.style.display = 'flex';
-            else scrollTopBtn.style.display = 'none';
-        });
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    if (window.scrollY > 300) scrollTopBtn.classList.add('show');
+                    else scrollTopBtn.classList.remove('show');
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }, { passive: true });
     }
 
     // LAZY LOADING IMAGES (IntersectionObserver)

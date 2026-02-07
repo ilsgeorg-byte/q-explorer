@@ -1,6 +1,7 @@
-<div class="artist-hero">
-    <h1 style="font-size: 56px; margin-bottom: 20px;">{{ tag_name|capitalize }}</h1>
-    <div style="max-width:800px; margin:0 auto; font-size:16px; color:#ccc; line-height: 1.6;">{{ description|safe
+<div class="artist-hero"
+    style="text-align: center; display: flex; flex-direction: column; align-items: center; padding: 30px 0;">
+    <h1 style="font-size: 3.5rem; margin-bottom: 15px;">{{ tag_name|capitalize }}</h1>
+    <div style="max-width:700px; margin:0 auto; font-size: 0.95rem; color:#bbb; line-height: 1.5;">{{ description|safe
         }}</div>
 </div>
 
@@ -31,7 +32,7 @@
 <!-- Grid -->
 <div class="grid" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
     {% for artist in artists %}
-    <a href="/?q={{ artist.artistName }}" class="card">
+    <a href="/?q={{ artist.artistName }}" class="card" style="text-align: center;">
         <div class="artist-img-wrapper" data-artist-name="{{ artist.artistName }}">
             <!-- Цветной квадрат с первой буквой имени -->
             <div class="artist-placeholder lazy-grad"

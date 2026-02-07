@@ -4,22 +4,23 @@
     <span class="btn-see-all" onclick="sharePage()" style="margin-left: 20px; cursor: pointer;">🔗 Share</span>
 </div>
 
-<div class="hero-banner">
-    <div class="hero-content">
-        <img src="{{ album.artworkUrl100 }}" class="hero-img">
-        <div class="hero-text">
-            <h1 class="hero-title">{{ album.collectionName }}</h1>
-            <div class="hero-meta">
-                <span class="tag">{{ album.artistName }}</span>
-                <span class="tag">{{ album.releaseDate[:4] }}</span>
-                {% if album_stats %}<div class="stats-badge">{{ album_stats }}</div>{% endif %}
-            </div>
-            <div class="hero-actions">
-                <a href="{{ spotify_link }}" target="_blank" class="btn btn-primary">Spotify</a>
-                <a href="https://music.apple.com/album/{{ album.collectionId }}" target="_blank"
-                    class="btn btn-glass">Apple Music</a>
-            </div>
-        </div>
+<div class="album-hero"
+    style="text-align: center; display: flex; flex-direction: column; align-items: center; padding-bottom: 20px;">
+    <img src="{{ album.artworkUrl100 }}"
+        style="width: 220px; height: 220px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px;">
+    <h1 style="font-size: 2.5rem; margin: 0 0 10px 0; line-height: 1.2;">{{ album.collectionName }}</h1>
+
+    <div class="hero-meta"
+        style="justify-content: center; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <span class="tag" style="margin: 0;">{{ album.artistName }}</span>
+        <span class="tag" style="margin: 0;">{{ album.releaseDate[:4] }}</span>
+        {% if album_stats %}<div class="stats-badge" style="margin: 0;">{{ album_stats }}</div>{% endif %}
+    </div>
+
+    <div class="hero-actions" style="justify-content: center; display: flex; gap: 15px;">
+        <a href="{{ spotify_link }}" target="_blank" class="btn btn-primary">Spotify</a>
+        <a href="https://music.apple.com/album/{{ album.collectionId }}" target="_blank" class="btn btn-glass">Apple
+            Music</a>
     </div>
 </div>
 

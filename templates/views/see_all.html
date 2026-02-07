@@ -11,14 +11,14 @@
 {% if type == 'songs' %}
 <div class="song-list">
     {% for item in results %}
-    <div class="song-row"
+    <div class="song-row" style="display: flex; align-items: center;"
         onclick="openMusicModal('{{ item.spotify_link }}', '{{ item.collectionId }}', '{{ item.trackId }}')">
         <img src="{{ item.artworkUrl100 }}" class="song-img">
         <div class="song-info">
             <div class="song-title">{{ item.trackName }}</div>
             <div class="song-artist">{{ item.artistName }}</div>
         </div>
-        <div class="song-like btn-like"
+        <div class="song-like btn-like" style="margin-left: auto; position: static; opacity: 0.8;"
             onclick="toggleLike(this, 'song', '{{ item.trackId }}', '{{ item.trackName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.spotify_link }}')">
             ♥</div>
     </div>
@@ -45,7 +45,7 @@
             {% endif %}
         </div>
 
-        <div class="info">
+        <div class="info" style="text-align: center;">
             <div class="title">{{ item.artistName }}</div>
         </div>
     </a>
@@ -55,7 +55,7 @@
             onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">
             ♥</div>
         <img src="{{ item.artworkUrl100 }}">
-        <div class="info">
+        <div class="info" style="text-align: center;">
             <div class="title">{{ item.collectionName }}</div>
             <div class="sub">
                 {{ item.artistName }}

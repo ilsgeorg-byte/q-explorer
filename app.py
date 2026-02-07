@@ -255,6 +255,17 @@ def album_page(collection_id):
 # API для JS (Lazy Loading картинок)
 @app.route('/api/get-artist-image/<artist_id>')
 def api_get_artist_image(artist_id):
+    # 1. Сначала пробуем Deezer (нужно имя артиста)
+    try:
+        data = lookup_itunes(artist_id)
+        if data:
+            name = data[0].get('artistName')
+            if name:
+                dz = search_deezer_artists(name, 1)
+                if dz: return jsonify({'image': dz[0]['image']})
+    except: pass
+
+    # 2. Если не вышло — берем обложку из iTunes
     image_url = get_true_artist_image(artist_id)
     return jsonify({'image': image_url})
 
