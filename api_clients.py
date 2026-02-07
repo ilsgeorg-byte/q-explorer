@@ -146,14 +146,24 @@ def get_tag_artists(tag, page=1, limit=30):
     """Получает топ артистов жанра"""
     try:
         url = f"{LASTFM_URL}?method=tag.gettopartists&tag={urllib.parse.quote(tag)}&api_key={LASTFM_API_KEY}&format=json&page={page}&limit={limit}"
-        data = requests.get(url, timeout=3).json()
+        response = requests.get(url, timeout=3)
+        data = response.json()
+        
+        # ДЕБАГ: Если снова увидите 0, посмотрите в консоль (терминал), что там печатается
+        # print(f"DEBUG TAG DATA: {data}") 
+        
         artists = []
         if 'topartists' in data and 'artist' in data['topartists']:
-                        # Внутри get_tag_artists
             for art in data['topartists']['artist']:
-                # Last.fm может отдать listeners как строку "12345" или число 12345
+                # Пробуем достать listeners разными способами
+                raw_listeners = art.get('listeners', 0)
+                
+                # Иногда это словарь {'#text': '123'}, иногда строка, иногда число
+                if isinstance(raw_listeners, dict):
+                    raw_listeners = raw_listeners.get('#text', 0)
+                
                 try:
-                    listeners = int(art.get('listeners', 0))
+                    listeners = int(raw_listeners)
                 except:
                     listeners = 0
                     
@@ -161,6 +171,8 @@ def get_tag_artists(tag, page=1, limit=30):
                     'artistName': art['name'],
                     'listeners': listeners
                 })
-
         return artists
-    except: return []
+    except Exception as e:
+        print(f"Error fetching tag artists: {e}")
+        return []
+

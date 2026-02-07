@@ -316,7 +316,7 @@
     <!-- === НОВЫЙ БЛОК: СТРАНИЦА ЖАНРА === -->
         {% elif view == 'tag_detail' %}
         <div class="artist-hero">
-            <h1 style="font-size: 56px; margin-bottom: 20px;">#{{ tag_name|capitalize }}</h1>
+            <h1 style="font-size: 56px; margin-bottom: 20px;">{{ tag_name|capitalize }}</h1>
             <div style="max-width:800px; margin:0 auto; font-size:16px; color:#ccc; line-height: 1.6;">{{ description|safe }}</div>
         </div>
         
