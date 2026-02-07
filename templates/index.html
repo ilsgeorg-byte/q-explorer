@@ -3,451 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Q-Explorer</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Music Explorer</title>
+    <!-- Готический шрифт -->
     <link href="https://fonts.googleapis.com/css2?family=Pirata+One&display=swap" rel="stylesheet">
+    <!-- Ссылка на стили -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Ссылка на скрипт -->
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
 </head>
 <body>
-
-    <!-- ЗАГРУЗЧИК -->
-    <div id="global-loader">
-        <div class="spinner"></div>
-    </div>
-
-    <!-- ПОИСК -->
-    <div class="search-container">
-        <div class="header">
-            <a href="/" class="logo">Q-Explorer<span>.</span></a>
-        </div>
-        <form action="/" method="get" class="search-wrapper" onsubmit="saveHistory(this.q.value)">
-            <input type="text" name="q" placeholder="Search..." value="{{ query if query else '' }}" autocomplete="off" onfocus="showHistory()">
-            <button type="submit">GO</button>
-            <div id="history-dropdown"></div>
-        </form>
-    </div>
-
-    <!-- ИЗБРАННОЕ -->
-    <div id="favorites-section">
-        <div class="fav-header">
-            <div class="fav-title">❤️ My Favorites</div>
-            <div class="fav-controls">
-                <span class="fav-btn-action" onclick="toggleFavsView()" id="fav-toggle-btn">See All</span>
-                <span class="fav-btn-action" onclick="clearFavs()">Clear</span>
-            </div>
-        </div>
-        <div id="favorites-container" class="scroll-row"></div>
-    </div>
-
-    <!-- МОДАЛКА -->
-    <div id="music-modal" onclick="closeMusicModal()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="modal-title">Listen on...</div>
-            <a id="modal-spotify" href="#" target="_blank" class="modal-btn m-spotify">Spotify</a>
-            <a id="modal-apple" href="#" target="_blank" class="modal-btn m-apple">Apple Music</a>
-            <div class="modal-btn m-cancel" onclick="closeMusicModal()">Cancel</div>
+    <div class="header">
+        <a href="/" class="logo">Q-Explorer<span>.</span></a>
+        <div class="search-container">
+            <form action="/" method="GET">
+                <input type="text" name="q" class="search-input" placeholder="Try: Pink Floyd, Queen..." value="{{ query|default('') }}">
+            </form>
         </div>
     </div>
 
-    <!-- HOME -->
+    <!-- === HOME === -->
     {% if view == 'home' %}
-    <div class="empty-state">
-        <div style="font-size: 60px; margin-bottom: 20px;">🎵</div>
-        Start searching for music
-    </div>
-    {% endif %}
-
-    <!-- RESULTS -->
-    {% if view == 'results' %}
-        
-        <!-- Artists -->
+        <div class="home-container">
+            <h1>Discover Music</h1>
+            <p>Search for your favorite artists above.</p>
+        </div>
+    
+    <!-- === SEARCH RESULTS === -->
+    {% elif view == 'results' %}
         {% if data.artists %}
-        <div class="section-header">
-            <h2 class="section-title">Artists</h2>
-            <a href="/see-all/artists?q={{ query }}" class="btn-see-all">See All</a>
-        </div>
+        <div class="section-header"><h2>Artists</h2><a href="/see-all/artists?q={{ query }}" class="see-all-link">SEE ALL</a></div>
         <div class="grid">
-            {% for item in data.artists %}
-            <a href="/artist/{{ item.artistId }}" class="card artist-card">
-                <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
-                
-                <div class="artist-img-wrapper" data-artist-id="{{ item.artistId }}">
-                    {% if item.image %}
-                        <img src="{{ item.image }}">
-                    {% else %}
-                        <div class="artist-placeholder" style="background-color: hsl({{ (item.artistName|length * 50) % 360 }}, 60%, 40%);">
-                            {{ item.artistName[:1] }}
-                        </div>
-                    {% endif %}
-                </div>
-                
-                <div class="info">
-                    <div class="title">{{ item.artistName }}</div>
-                    {% if item.stats %}<span class="artist-stats">{{ item.stats }}</span>{% endif %}
-                </div>
+            {% for artist in data.artists %}
+            <a href="/artist/{{ artist.artistId }}" class="card">
+                <div class="card-img-wrapper circle-img"><img src="{{ artist.image or '/static/placeholder.png' }}" class="card-img circle-img"></div>
+                <div class="card-title">{{ artist.artistName }}</div>
+                <div class="card-subtitle">{{ artist.stats or 'Artist' }}</div>
             </a>
             {% endfor %}
         </div>
         {% endif %}
-
-        <!-- Albums -->
+        
         {% if data.albums %}
-        <div class="section-header">
-            <h2 class="section-title">Albums</h2>
-            <a href="/see-all/albums?q={{ query }}" class="btn-see-all">See All</a>
-        </div>
+        <div class="section-header"><h2>Albums</h2><a href="/see-all/albums?q={{ query }}" class="see-all-link">SEE ALL</a></div>
         <div class="grid">
-            {% for item in data.albums %}
-            <a href="/album/{{ item.collectionId }}" class="card">
-                <div class="btn-like" onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">♥</div>
-                <img src="{{ item.artworkUrl100 }}">
-                <div class="info">
-                    <div class="title">{{ item.collectionName }}</div>
-                    <div class="sub">
-                        {{ item.artistName }} 
-                        {% if item.year %}• {{ item.year }}{% endif %}
-                    </div>
-                </div>
+            {% for alb in data.albums %}
+            <a href="/album/{{ alb.collectionId }}" class="card">
+                <div class="card-img-wrapper"><img src="{{ alb.artworkUrl100 }}" class="card-img"></div>
+                <div class="card-title">{{ alb.collectionName }}</div>
+                <div class="card-subtitle">{{ alb.year }} • {{ alb.artistName }}</div>
             </a>
             {% endfor %}
         </div>
         {% endif %}
 
-        <!-- Songs -->
         {% if data.songs %}
-        <div class="section-header">
-            <h2 class="section-title">Songs</h2>
-            <a href="/see-all/songs?q={{ query }}" class="btn-see-all">See All</a>
-        </div>
+        <div class="section-header"><h2>Songs</h2><a href="/see-all/songs?q={{ query }}" class="see-all-link">SEE ALL</a></div>
         <div class="song-list">
-            {% for item in data.songs %}
-            <div class="song-row" onclick="openMusicModal('{{ item.spotify_link }}', '{{ item.collectionId }}', '{{ item.trackId }}')">
-                <img src="{{ item.artworkUrl100 }}" class="song-img">
-                <div class="song-info">
-                    <div class="song-title">{{ item.trackName }}</div>
-                    <div class="song-artist">{{ item.artistName }}</div>
-                </div>
-                <div class="song-like btn-like" onclick="toggleLike(this, 'song', '{{ item.trackId }}', '{{ item.trackName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.spotify_link }}')">♥</div>
+            {% for song in data.songs %}
+            <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}')">
+                <img src="{{ song.artworkUrl100 }}" class="song-img">
+                <div class="song-info"><div class="song-title">{{ song.trackName }}</div><div class="song-subtitle">{{ song.artistName }}</div></div>
+                <div class="btn-like">♥</div>
             </div>
             {% endfor %}
         </div>
         {% endif %}
-    {% endif %}
 
-    <!-- SEE ALL -->
-    {% if view == 'see_all' %}
-    <div class="page-header">
-        <a href="/?q={{ query }}" class="btn-see-all" style="margin-bottom:10px; display:inline-block;">← Back to Search</a>
-        <h1 style="font-size: 24px; margin-bottom: 20px;">All {{ type|capitalize }} for "{{ query }}"</h1>
-    </div>
-    
-    {% if not results %}
-        <div style="text-align:center; padding: 40px; color:#666;">No results found.</div>
-    {% else %}
-    
-    {% if type == 'songs' %}
-        <div class="song-list">
-            {% for item in results %}
-             <div class="song-row" onclick="openMusicModal('{{ item.spotify_link }}', '{{ item.collectionId }}', '{{ item.trackId }}')">
-                <img src="{{ item.artworkUrl100 }}" class="song-img">
-                <div class="song-info">
-                    <div class="song-title">{{ item.trackName }}</div>
-                    <div class="song-artist">{{ item.artistName }}</div>
-                </div>
-                <div class="song-like btn-like" onclick="toggleLike(this, 'song', '{{ item.trackId }}', '{{ item.trackName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.spotify_link }}')">♥</div>
-            </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="grid">
-            {% for item in results %}
-                {% if type == 'artists' %}
-                <a href="/artist/{{ item.artistId }}" class="card artist-card">
-                     <div class="btn-like" onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">♥</div>
-                    
-                    <!-- WRAPPER ДЛЯ ЛЕНИВОЙ ЗАГРУЗКИ -->
-                    <div class="artist-img-wrapper" data-artist-id="{{ item.artistId }}">
-                        {% if item.image %}
-                            <img src="{{ item.image }}">
-                        {% else %}
-                            <div class="artist-placeholder" style="background-color: hsl({{ (item.artistName|length * 50) % 360 }}, 60%, 40%);">
-                                {{ item.artistName[:1] }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="info"><div class="title">{{ item.artistName }}</div></div>
-                </a>
-                {% elif type == 'albums' %}
-                <a href="/album/{{ item.collectionId }}" class="card">
-                     <div class="btn-like" onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">♥</div>
-                    <img src="{{ item.artworkUrl100 }}">
-                    <div class="info">
-                        <div class="title">{{ item.collectionName }}</div>
-                        <div class="sub">
-                            {{ item.artistName }} 
-                            {% if item.year %}• {{ item.year }}{% endif %}
-                        </div>
-                    </div>
-                </a>
-                {% endif %}
-            {% endfor %}
-        </div>
-    {% endif %}
-    {% endif %}
-    {% endif %}
-
-    <!-- ARTIST DETAIL -->
-    {% if view == 'artist_detail' %}
-    <div class="page-header">
-        <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
-        <span class="btn-see-all" onclick="sharePage()" style="margin-left: 20px; cursor: pointer;">🔗 Share</span>
-    </div>
-       <div class="artist-hero">
-        {% if artist_image %}<img src="{{ artist_image }}">{% endif %}
-        <h1>{{ artist.artistName }}</h1>
-        
-        <!-- Тэги вместо скучного жанра -->
-        <div class="genre">
-    {{ artist.primaryGenreName }}
-    {% if artist.tags %}
-        {% for tag in artist.tags %}
-            <!-- ТЕПЕРЬ ЭТО ССЫЛКА -->
-            <a href="/tag/{{ tag }}" style="color: inherit; text-decoration: none;" title="Browse {{ tag }}">
-                <span style="opacity: 0.6; margin-left: 5px; cursor: pointer; transition: opacity 0.2s;" 
-                      onmouseover="this.style.opacity=1" 
-                      onmouseout="this.style.opacity=0.6">
-                            • {{ tag|capitalize }}
-                        </span>
-                    </a>
-                {% endfor %}
-            {% endif %}
-        </div>
-
-        
-        {% if artist.stats %}<div class="stats-hero">{{ artist.stats }}</div>{% endif %}
-        
-        <!-- БИОГРАФИЯ -->
-        {% if artist.bio %}
-        <div style="max-width: 600px; margin: 15px auto; font-size: 14px; color: #ccc; line-height: 1.5;">
-            {{ artist.bio }}
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- ТОП ПЕСНИ (Сразу после Hero) -->
-    {% if top_songs %}
-    <div class="section-header"><h2 class="section-title">Top Songs</h2></div>
-    <div class="song-list" style="margin-bottom: 30px;">
-        {% for song in top_songs %}
-        <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}', '{{ song.collectionId }}', '{{ song.trackId }}')">
-            <img src="{{ song.artworkUrl100 }}" class="song-img">
-            <div class="song-info">
-                <div class="song-title">{{ song.trackName }}</div>
-                <div class="song-artist" style="opacity: 0.7;">{{ song.collectionName }}</div>
-            </div>
-            <!-- Лайк -->
-             <div class="btn-like song-like" onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">♥</div>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if similar %}
-    <div class="similar-artists">
-        <h3>Fans also like</h3>
-        <div class="scroll-row">
-            {% for sim in similar %}
-            <a href="/?q={{ sim.name }}" class="similar-card">
-                <div class="sim-circle">{{ sim.name[:1] }}</div>
-                <span>{{ sim.name }}</span>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-    {% for cat, items in discography.items() %}
-        {% if items %}
-        <div class="section-header"><h2 class="section-title">{{ cat|capitalize }}</h2></div>
-        <div class="grid">
-            {% for item in items %}
-            <a href="/album/{{ item.collectionId }}" class="card">
-                <div class="btn-like" onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">♥</div>
-                <img src="{{ item.artworkUrl100 }}">
-                <div class="info"><div class="title">{{ item.collectionName }}</div><div class="sub">{{ item.releaseDate[:4] }}</div></div>
-            </a>
-            {% endfor %}
-        </div>
-        {% endif %}
-    {% endfor %}
-    {% endif %}
-
-    <!-- ALBUM DETAIL -->
-    {% if view == 'album_detail' %}
-    <div class="page-header">
-        <a href="javascript:history.back()" class="btn-see-all" style="margin-bottom:20px; display:inline-block;">← Back</a>
-        <span class="btn-see-all" onclick="sharePage()" style="margin-left: 20px; cursor: pointer;">🔗 Share</span>
-    </div>
-    <div class="hero">
-        <img src="{{ album.artworkUrl100 }}">
-        <div class="hero-info">
-            <h1>{{ album.collectionName }}</h1>
-            <div class="sub">{{ album.artistName }} • {{ album.releaseDate[:4] }}</div>
-            {% if album_stats %}<div class="hero-stats">{{ album_stats }}</div>{% endif %}
-            <div class="actions">
-                <a href="{{ spotify_link }}" target="_blank" class="btn btn-spotify">Spotify</a>
-                <a href="https://music.apple.com/album/{{ album.collectionId }}" target="_blank" class="btn btn-apple">Apple Music</a>
-            </div>
-        </div>
-    </div>
-    <div class="song-list">
-        {% for song in songs %}
-        <div class="track" style="position: relative;" onclick="openMusicModal('{{ song.spotify_link }}', '{{ album.collectionId }}', '{{ song.trackId }}')">
-            <div class="t-num">{{ song.trackNumber }}</div>
-            <div class="t-name">{{ song.trackName }}</div>
-            <div class="btn-like song-like" 
-                 onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ album.artworkUrl100 }}', '{{ album.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">
-                ♥
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- === НОВЫЙ БЛОК: СТРАНИЦА ЖАНРА === -->
-        {% elif view == 'tag_detail' %}
+    <!-- === ARTIST DETAIL === -->
+    {% elif view == 'artist_detail' %}
         <div class="artist-hero">
-            <h1 style="font-size: 56px; margin-bottom: 20px;">{{ tag_name|capitalize }}</h1>
-            <div style="max-width:800px; margin:0 auto; font-size:16px; color:#ccc; line-height: 1.6;">{{ description|safe }}</div>
+            {% if artist_image %}<img src="{{ artist_image }}">{% endif %}
+            <h1>{{ artist.artistName }}</h1>
+            
+            <div class="genre">
+                {{ artist.primaryGenreName }}
+                {% if artist.tags %}
+                    {% for tag in artist.tags %}
+                        <a href="/tag/{{ tag }}" class="tag-link" title="Browse {{ tag }}">
+                            <span>• {{ tag|capitalize }}</span>
+                        </a>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            {% if artist.stats %}<div class="stats-hero">{{ artist.stats }}</div>{% endif %}
+            {% if artist.bio %}<div class="bio-text">{{ artist.bio|safe }}</div>{% endif %}
+        </div>
+
+        {% if top_songs %}
+        <div class="section-header"><h2>Top Songs</h2></div>
+        <div class="song-list" style="margin-bottom:30px;">
+            {% for song in top_songs %}
+            <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}')">
+                <div class="song-num">{{ loop.index }}</div>
+                <img src="{{ song.artworkUrl100 }}" class="song-img">
+                <div class="song-info"><div class="song-title">{{ song.trackName }}</div><div class="song-subtitle">{{ song.collectionName }}</div></div>
+                <div class="btn-like">♥</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% for cat, items in discography.items() %}
+            {% if items %}
+            <div class="section-header"><h2>{{ cat|capitalize }}</h2></div>
+            <div class="grid">
+                {% for alb in items %}
+                <a href="/album/{{ alb.collectionId }}" class="card">
+                    <div class="card-img-wrapper"><img src="{{ alb.artworkUrl100 }}" class="card-img"></div>
+                    <div class="card-title">{{ alb.collectionName }}</div>
+                    <div class="card-subtitle">{{ alb.year }}</div>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endfor %}
+
+    <!-- === ALBUM DETAIL === -->
+    {% elif view == 'album_detail' %}
+        <div class="album-hero">
+            <img src="{{ album.artworkUrl100 }}" class="album-cover-big">
+            <div class="album-meta">
+                <h2>Album</h2>
+                <h1>{{ album.collectionName }}</h1>
+                <div><a href="/artist/{{ album.artistId }}">{{ album.artistName }}</a> • {{ album.year }}</div>
+                {% if album_stats %}<div style="color:#ccc; margin-top:10px;">{{ album_stats }}</div>{% endif %}
+            </div>
+        </div>
+        <div class="song-list">
+            {% for song in songs %}
+            <div class="song-row" onclick="openMusicModal('{{ song.spotify_link }}')">
+                <div class="song-num">{{ song.trackNumber }}</div>
+                <div class="song-info"><div class="song-title">{{ song.trackName }}</div><div class="song-subtitle">{{ song.artistName }}</div></div>
+                <div class="btn-like">♥</div>
+            </div>
+            {% endfor %}
+        </div>
+    
+    <!-- === TAG (GENRE) DETAIL === -->
+    {% elif view == 'tag_detail' %}
+        <div class="artist-hero">
+            <h1 class="tag-title">{{ tag_name|capitalize }}</h1>
+            <div class="bio-text">{{ description|safe }}</div>
         </div>
         
-        <!-- Controls Container -->
-        <div style="max-width: 1200px; margin: 40px auto 20px; padding: 0 20px; display:flex; justify-content:space-between; align-items:center;">
+        <!-- Controls -->
+        <div class="tag-controls">
             <div class="sort-controls">
                 <span style="color:#666; margin-right:10px;">Sort by:</span>
-                <a href="/tag/{{ tag_name }}?page=1&sort=popularity" style="color: {% if sort_by == 'popularity' %}#fff{% else %}#888{% endif %}; margin-right:15px; font-weight: bold;">Popularity</a>
-                <a href="/tag/{{ tag_name }}?page=1&sort=alpha" style="color: {% if sort_by == 'alpha' %}#fff{% else %}#888{% endif %}; font-weight: bold;">A-Z</a>
+                <a href="/tag/{{ tag_name }}?page=1&sort=popularity" class="sort-link {% if sort_by == 'popularity' %}active{% endif %}">Popularity</a>
+                <a href="/tag/{{ tag_name }}?page=1&sort=alpha" class="sort-link {% if sort_by == 'alpha' %}active{% endif %}">A-Z</a>
             </div>
             
             <div class="pagination">
                 {% if page > 1 %}
-                <a href="/tag/{{ tag_name }}?page={{ page - 1 }}&sort={{ sort_by }}" style="background:#333; padding:8px 20px; border-radius:20px; font-size:14px; margin-right: 15px;">← Prev</a>
+                <a href="/tag/{{ tag_name }}?page={{ page - 1 }}&sort={{ sort_by }}" class="page-btn">← Prev</a>
                 {% endif %}
                 <span style="color:#666;">Page {{ page }}</span>
-                <a href="/tag/{{ tag_name }}?page={{ page + 1 }}&sort={{ sort_by }}" style="background:#333; padding:8px 20px; border-radius:20px; font-size:14px; margin-left: 15px;">Next →</a>
+                <a href="/tag/{{ tag_name }}?page={{ page + 1 }}&sort={{ sort_by }}" class="page-btn">Next →</a>
             </div>
         </div>
 
         <!-- Grid -->
-        <div class="grid" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+        <div class="tag-grid">
             {% for artist in artists %}
             <a href="/?q={{ artist.artistName }}" class="card">
                 <div class="card-img-wrapper">
-                    <!-- Цветной квадрат с первой буквой имени -->
-                    <div class="card-img lazy-grad" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size: 48px; font-weight: bold; color: rgba(255,255,255,0.2);">
-                        {{ artist.artistName[0]|upper }}
-                    </div>
+                    <!-- Заглушка для JS -->
+                    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
+                         class="card-img lazy-load-by-name" 
+                         data-name="{{ artist.artistName }}"
+                         style="background: #333;">
                 </div>
+                
                 <div class="card-title">{{ artist.artistName }}</div>
-                <!-- Форматируем число: 1,234,567 -> 1.2M -->
+                
                 <div class="card-subtitle">
-                    {% if artist.listeners > 1000000 %}
-                        {{ (artist.listeners / 1000000)|round(1) }}M Listeners
+                    {% if artist.listeners > 0 %}
+                        {% if artist.listeners > 1000000 %}
+                            {{ (artist.listeners / 1000000)|round(1) }}M Listeners
+                        {% else %}
+                            {{ (artist.listeners / 1000)|round|int }}K Listeners
+                        {% endif %}
                     {% else %}
-                        {{ (artist.listeners / 1000)|round|int }}K Listeners
+                        Artist
                     {% endif %}
                 </div>
             </a>
             {% endfor %}
         </div>
-
-
     {% endif %}
 
-    <!-- КНОПКА НАВЕРХ И ТОСТ -->
-    <div id="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</div>
-    <div id="toast">Link copied!</div>
+    <!-- MODAL -->
+    <div id="modal">
+        <div class="modal-content">
+            <h2>Play Track</h2>
+            <a id="spotify-link" href="#" target="_blank" class="btn-spotify">Open in Spotify</a>
+            <br><br><button id="close-modal-btn" style="background:transparent; border:1px solid #555; color:#fff; padding:8px 16px; border-radius:20px; cursor:pointer;">Close</button>
+        </div>
+    </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => { 
-            renderFavorites(); 
-            checkLikedStatus();
-            
-            // Плейсхолдер с подсказками
-            const hints = ["Pink Floyd", "Metallica", "Taylor Swift", "Queen", "Hans Zimmer", "The Beatles", "Eminem"];
-            const input = document.querySelector('input[name="q"]');
-            if(input) input.placeholder = "Try: " + hints[Math.floor(Math.random() * hints.length)];
-            
-            // Кнопка наверх
-            window.addEventListener('scroll', () => {
-                const btn = document.getElementById('scroll-top');
-                if (window.scrollY > 300) btn.style.display = 'flex';
-                else btn.style.display = 'none';
-            });
-            
-            // LAZY LOADING IMAGES (Важная часть!)
-            const wrappers = document.querySelectorAll('.artist-img-wrapper');
-            const loadImage = (wrapper) => {
-                const artistId = wrapper.getAttribute('data-artist-id');
-                // Если нет ID или уже есть картинка, пропускаем
-                if (!artistId || wrapper.querySelector('img')) return;
-
-                fetch(`/api/get-artist-image/${artistId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.image) {
-                            const img = document.createElement('img');
-                            img.src = data.image;
-                            img.style.opacity = '0'; // Скрыта
-                            img.style.transition = 'opacity 0.5s'; // Плавное появление
-                            img.onload = () => { img.style.opacity = '1'; };
-                            
-                            wrapper.innerHTML = ''; // Убираем плейсхолдер
-                            wrapper.appendChild(img);
-                        }
-                    })
-                    .catch(err => console.log('No image for', artistId));
-            };
-
-            // Запускаем очередь с задержкой 300мс
-            wrappers.forEach((wrapper, index) => {
-                setTimeout(() => {
-                    loadImage(wrapper);
-                }, index * 300);
-            });
-        });
-
-        // ЛОАДЕР
-        document.querySelector('form').addEventListener('submit', () => {
-            document.getElementById('global-loader').style.display = 'flex';
-        });
-        document.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', (e) => {
-                const href = link.getAttribute('href');
-                if (href && !href.startsWith('#') && !href.startsWith('javascript') && link.target !== '_blank') {
-                    document.getElementById('global-loader').style.display = 'flex';
-                }
-            });
-        });
-        window.addEventListener('pageshow', () => {
-            document.getElementById('global-loader').style.display = 'none';
-        });
-        
-        // SHARE
-        function sharePage() {
-            navigator.clipboard.writeText(window.location.href);
-            const toast = document.getElementById('toast');
-            toast.style.display = 'block';
-            setTimeout(() => toast.style.display = 'none', 2000);
-        }
-
-
-                // Добавьте это внутрь существующего <script>
-        document.querySelectorAll('.lazy-grad').forEach(div => {
-            const hue = Math.floor(Math.random() * 360);
-            div.style.background = `linear-gradient(135deg, hsl(${hue}, 40%, 20%), hsl(${hue + 40}, 50%, 40%))`;
-        });
-
-    </script>
 </body>
 </html>
