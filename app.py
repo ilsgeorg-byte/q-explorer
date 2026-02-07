@@ -5,6 +5,7 @@ from api_clients import (
     get_tag_info, get_tag_artists  # <--- ДОБАВИТЬ ЭТО
 )
 from utils import generate_spotify_link, sort_albums
+from urllib.parse import unquote 
 
 app = Flask(__name__)
 
@@ -210,22 +211,24 @@ def api_get_artist_image(artist_id):
 
 @app.route('/tag/<tag_name>')
 def tag_page(tag_name):
+    # Декодируем: "Glam%20rock" -> "Glam rock"
+    decoded_tag = unquote(tag_name)
+    
     page = request.args.get('page', 1, type=int)
     sort_by = request.args.get('sort', 'popularity')
     
-    description = get_tag_info(tag_name)
-    artists = get_tag_artists(tag_name, page, 30)
+    # Используем decoded_tag для запросов
+    description = get_tag_info(decoded_tag)
+    artists = get_tag_artists(decoded_tag, page, 30)
     
-    # Сортировка (если просят A-Z)
     if sort_by == 'alpha':
         artists.sort(key=lambda x: x['artistName'].lower())
     else:
-        # По умолчанию популярные
         artists.sort(key=lambda x: x['listeners'], reverse=True)
         
     return render_template('index.html', 
-                           view='tag_detail',  # <--- ВАЖНО: новый вид
-                           tag_name=tag_name, 
+                           view='tag_detail', 
+                           tag_name=decoded_tag,  # <--- Передаем "чистое" имя
                            description=description, 
                            artists=artists, 
                            page=page, 
