@@ -3,14 +3,29 @@ import urllib.parse
 from utils import clean_name
 import requests_cache
 import os
+import tempfile
 from dotenv import load_dotenv
 
 # Загружаем переменные из .env
 load_dotenv()
 
-# Устанавливаем кэш (сохраняет ответы в файл 'q_cache.sqlite')
-# expire_after=86400 (24 часа)
-requests_cache.install_cache('q_cache', expire_after=86400)
+# Устанавливаем кэш
+# Vercel имеет Read-Only файловую систему, кроме /tmp
+# Поэтому мы пытаемся писать в /tmp, если не получается — используем память.
+
+cache_path = 'q_cache'
+backend = 'sqlite'
+
+# Проверяем, можем ли мы писать в текущую директорию
+if not os.access('.', os.W_OK):
+    # Если нет (как на Vercel), используем временную папку
+    cache_path = os.path.join(tempfile.gettempdir(), 'q_cache')
+
+try:
+    requests_cache.install_cache(cache_name=cache_path, backend=backend, expire_after=86400)
+except Exception:
+    # Если совсем все плохо (например, нет доступа к диску) — используем память
+    requests_cache.install_cache(backend='memory', expire_after=86400)
 
 LASTFM_API_KEY = os.getenv("LASTFM_API_KEY")
 LASTFM_URL = "http://ws.audioscrobbler.com/2.0/"
