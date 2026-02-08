@@ -1620,55 +1620,50 @@ button:hover {
 }
 
 .genre-input-wrapper {
+    position: relative;
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.04);
-    /* Как в шапке */
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    /* Как в шапке */
-    border-radius: 12px;
-    /* Как в шапке */
-    padding: 4px;
     width: 100%;
     max-width: 500px;
-    transition: 0.3s;
-}
-
-.genre-input-wrapper:focus-within {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 0 0 4px var(--primary-dim);
-    /* Эффект фокуса как в шапке */
 }
 
 .genre-input-wrapper input {
-    flex: 1;
-    background: transparent;
-    border: none;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
     color: #fff;
-    padding: 10px 15px;
+    padding: 12px 20px;
+    padding-right: 50px;
+    /* Место под кнопку */
     font-size: 16px;
     outline: none;
-    min-width: 0;
-}
-
-.genre-input-wrapper button {
-    background: var(--primary-grad);
-    color: #fff;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 8px;
-    /* Чуть меньше контейнера */
-    font-weight: 700;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(255, 46, 91, 0.3);
     transition: 0.3s;
 }
 
+.genre-input-wrapper input:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 4px var(--primary-dim);
+}
+
+.genre-input-wrapper button {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-sub);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 18px;
+    box-shadow: none;
+    transition: 0.2s;
+}
+
 .genre-input-wrapper button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(255, 46, 91, 0.4);
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    transform: none;
+    box-shadow: none;
 }
