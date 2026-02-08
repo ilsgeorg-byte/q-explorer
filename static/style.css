@@ -1579,3 +1579,20 @@ button:hover {
     justify-content: center;
     z-index: 9999;
 }
+
+/* TAG DETAIL CONTROLS */
+.tag-controls {
+    max-width: 1200px;
+    margin: 40px auto 20px;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .tag-controls {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
