@@ -228,3 +228,20 @@ document.body.addEventListener('click', (e) => {
     }
 });
 window.addEventListener('pageshow', () => { if (loader) loader.style.display = 'none'; });
+
+/* --- GENRE SEARCH --- */
+function goToGenre() {
+    const input = document.getElementById('genre-input');
+    if (!input) return;
+    const val = input.value.trim();
+    if (val) {
+        // Кодируем, чтобы пробелы превратились в %20 (Thrash Metal -> Thrash%20Metal)
+        window.location.href = '/tag/' + encodeURIComponent(val);
+    }
+}
+// Обработка нажатия Enter в поле жанра
+document.addEventListener('keypress', (e) => {
+    if (e.target.id === 'genre-input' && e.key === 'Enter') {
+        goToGenre();
+    }
+});
