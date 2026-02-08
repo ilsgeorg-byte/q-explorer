@@ -1,5 +1,34 @@
-<div class="empty-state">
-    <div style="font-size: 80px; margin-bottom: 20px;">🎵</div>
-    <div style="font-size: 24px; font-weight: 600;">Start exploring music</div>
-    <div style="color: var(--text-sub); margin-top: 10px;">Search for your favorite artists above</div>
+<div class="hero-banner"
+    style="margin-top: 0; text-align: center; align-items: center; justify-content: center; flex-direction: column; padding: 60px 20px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%); border: 1px solid rgba(255,255,255,0.05);">
+    <h1
+        style="font-size: 2.5rem; margin-bottom: 15px; background: linear-gradient(to right, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        Discover New Music</h1>
+    <p style="color: var(--text-sub); font-size: 1.1rem; max-width: 500px; margin: 0 auto;">
+        Search for your favorite artists or explore popular genres below.
+    </p>
+</div>
+
+<div class="section-header">
+    <h2 class="section-title">Browse Genres</h2>
+</div>
+
+<div class="grid">
+    {% set genres = [
+    {'name': 'Rock', 'icon': '🎸', 'color': '#ff2e5b'},
+    {'name': 'Pop', 'icon': '🎤', 'color': '#00f2ff'},
+    {'name': 'Hip-Hop', 'icon': '🎧', 'color': '#ff9900'},
+    {'name': 'Electronic', 'icon': '🎹', 'color': '#a020f0'},
+    {'name': 'Jazz', 'icon': '🎷', 'color': '#00ff88'},
+    {'name': 'Classical', 'icon': '🎻', 'color': '#ff0055'},
+    {'name': 'Metal', 'icon': '🤘', 'color': '#888888'},
+    {'name': 'Indie', 'icon': '⛺', 'color': '#00ccff'}
+    ] %}
+
+    {% for g in genres %}
+    <a href="/tag/{{ g.name }}" class="card genre-card"
+        style="text-align: center; justify-content: center; min-height: 140px; border-top: 4px solid {{ g.color }};">
+        <div style="font-size: 3rem; margin-bottom: 10px;">{{ g.icon }}</div>
+        <div class="title" style="font-size: 1.2rem;">{{ g.name }}</div>
+    </a>
+    {% endfor %}
 </div>
