@@ -13,7 +13,7 @@ load_dotenv()
 # Vercel имеет Read-Only файловую систему, кроме /tmp
 # Поэтому мы пытаемся писать в /tmp, если не получается — используем память.
 
-cache_path = 'q_cache'
+cache_path = 'q_cache_v2'
 backend = 'sqlite'
 
 # Проверяем, можем ли мы писать в текущую директорию

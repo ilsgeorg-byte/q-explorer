@@ -1648,24 +1648,15 @@ button:hover {
 }
 
 .genre-input-wrapper button {
-    background: var(--primary);
-    /* Fallback */
-    background: var(--primary-grad);
-    color: #fff;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    cursor: pointer;
-    box-shadow: 0 8px 20px rgba(255, 46, 91, 0.3);
-    transition: 0.3s;
-}
+    background: var(--primary padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 14px;
+            text-transforg: 1.5px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rs
+    }
 
-.genre-input-wrapper button:hover {
-    background: #ff4770;
-    transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(255, 46, 91, 0.5);
+    .genre-input-wrappnslateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 0, 85, 0.6);
 }
