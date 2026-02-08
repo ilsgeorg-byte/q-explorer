@@ -1,4 +1,22 @@
 <div class="section-header">
+    <h2 class="section-title">Trending Artists</h2>
+</div>
+<div class="grid">
+    {% set trending = ['The Weeknd', 'Taylor Swift', 'Drake', 'Billie Eilish', 'Kendrick Lamar', 'Dua Lipa', 'Kanye
+    West', 'Ariana Grande'] %}
+    {% for name in trending %}
+    <a href="/redirect-artist?name={{ name }}" class="card artist-card">
+        <div class="artist-img-wrapper" data-artist-name="{{ name }}">
+            <div class="artist-placeholder" style="background-color: #222;">{{ name[:1] }}</div>
+        </div>
+        <div class="info" style="text-align: center;">
+            <div class="title">{{ name }}</div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+<div class="section-header">
     <h2 class="section-title">Browse Genres</h2>
 </div>
 
@@ -30,22 +48,4 @@
         <input type="text" id="genre-input" placeholder="e.g. Thrash Metal, Synthwave, Lo-Fi...">
         <button onclick="goToGenre()">Explore</button>
     </div>
-</div>
-
-<div class="section-header">
-    <h2 class="section-title">Trending Artists</h2>
-</div>
-<div class="grid">
-    {% set trending = ['The Weeknd', 'Taylor Swift', 'Drake', 'Billie Eilish', 'Kendrick Lamar', 'Dua Lipa', 'Kanye
-    West', 'Ariana Grande'] %}
-    {% for name in trending %}
-    <a href="/redirect-artist?name={{ name }}" class="card artist-card">
-        <div class="artist-img-wrapper" data-artist-name="{{ name }}">
-            <div class="artist-placeholder" style="background-color: #222;">{{ name[:1] }}</div>
-        </div>
-        <div class="info" style="text-align: center;">
-            <div class="title">{{ name }}</div>
-        </div>
-    </a>
-    {% endfor %}
 </div>
