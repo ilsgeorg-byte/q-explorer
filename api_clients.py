@@ -13,7 +13,7 @@ load_dotenv()
 # Vercel имеет Read-Only файловую систему, кроме /tmp
 # Поэтому мы пытаемся писать в /tmp, если не получается — используем память.
 
-cache_path = 'q_cache_v2'
+cache_path = 'q_cache_v3'
 backend = 'sqlite'
 
 # Проверяем, можем ли мы писать в текущую директорию
@@ -91,7 +91,8 @@ def get_true_artist_image(artist_id):
         for item in results:
             if item.get('collectionType') == 'Album' and item.get('artworkUrl100'):
                 # Фильтр для Канье Уэста: пропускаем альбом Donda (черная обложка)
-                if 'donda' in item.get('collectionName', '').lower(): continue
+                cname = item.get('collectionName', '').lower()
+                if 'donda' in cname or 'vultures' in cname: continue
                 return item['artworkUrl100'].replace('100x100bb', '400x400bb')
     except: pass
     return None
