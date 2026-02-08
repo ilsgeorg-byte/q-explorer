@@ -33,9 +33,7 @@
             <div class="track-title">{{ song.trackName }}</div>
         </div>
         <div class="btn-like song-like" style="opacity: 0.5; position: static; margin-left: auto;"
-            onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace(" \'", "&#39;" )
-            }}', '{{ album.artworkUrl100 }}' , '{{ album.artistName|replace("\'", " &#39;")
-            }}', '{{ song.spotify_link }}' )">
+            onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ album.artworkUrl100 }}', '{{ album.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">
             ♥
         </div>
     </div>

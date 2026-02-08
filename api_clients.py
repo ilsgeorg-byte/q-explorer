@@ -53,7 +53,7 @@ def search_deezer_artists(query, limit):
             results.append({
                 'artistId': item['id'], # Это ID Deezer, но нам для картинки пойдет
                 'artistName': item['name'],
-                'image': item['picture_medium'], # ВОТ ОНА, КАРТИНКА!
+                'image': item.get('picture_xl') or item.get('picture_big') or item.get('picture_medium'),
                 'primaryGenreName': 'Music',
                 'source': 'deezer' # Метка, что это Deezer
             })
@@ -200,4 +200,3 @@ def get_tag_artists(tag, page=1, limit=30):
     except Exception as e:
         print(f"Error fetching tag artists: {e}")
         return []
-

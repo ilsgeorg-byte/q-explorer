@@ -81,7 +81,7 @@ def sort_albums(albums):
             continue
             
         # 3. Compilations
-        if any(x in lower_title for x in ['greatest hits', 'best of', 'anthology', 'collection', 'essential', 'platinum', 'gold', 'years', 'hits', 'box set']):
+        if any(x in lower_title for x in ['greatest hits', 'best of', 'anthology', 'collection', 'essential', 'platinum', 'gold', 'years', 'hits', 'box set', 'decade', 'definitive', 'ultimate', 'rarities', 'retrospective', 'archive', 'sessions', 'very best']):
             alb['collectionName'] = clean_name(original_title)
             categories['compilations'].append(alb)
             continue

@@ -6,6 +6,7 @@ from api_clients import (
 )
 from utils import generate_spotify_link, sort_albums
 from urllib.parse import unquote 
+from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
 
@@ -21,6 +22,9 @@ def index():
     # 1. Artists (Главная: берем 8 лучших, фильтруем дубликаты)
     seen_ids = set()
     seen_names = set()
+    
+    # Сначала собираем кандидатов (быстро)
+    candidates = []
     # Запрашиваем с запасом (25)
     for art in search_itunes(query, 'musicArtist', 25):
         aid = art.get('artistId')
@@ -34,27 +38,31 @@ def index():
         # Фильтруем дубликаты по имени (iTunes иногда возвращает несколько "Queen" с разными ID)
         if name.lower() in seen_names: continue
         seen_names.add(name.lower())
-
-        # Для главной страницы (всего 4 шт) грузим картинку сразу (синхронно)
-        # Это замедлит поиск на ~1 сек, но зато красиво.
-        art['image'] = get_true_artist_image(aid)
         
-        # 1. Пробуем найти красивое фото через Deezer
-        deezer_res = search_deezer_artists(name, 1)
-        if deezer_res:
-            art['image'] = deezer_res[0]['image']
-        else:
-            # 2. Если не вышло, берем обложку из iTunes
-            art['image'] = get_true_artist_image(aid)
-        
-        # Берем данные с Last.fm (stats + tags)
-        lf_data = get_lastfm_artist_data(name)
-        art['stats'] = lf_data.get('stats') if lf_data else None
-        
-        results['artists'].append(art)
+        candidates.append(art)
         seen_ids.add(aid)
         
-        if len(results['artists']) >= 8: break
+        if len(candidates) >= 8: break
+    
+    # Теперь обогащаем данные ПАРАЛЛЕЛЬНО (Deezer + Last.fm)
+    def enrich_artist(art):
+        name = art.get('artistName', '')
+        aid = art.get('artistId')
+        
+        # 1. Картинка (Deezer или iTunes)
+        dz = search_deezer_artists(name, 1)
+        if dz:
+            art['image'] = dz[0]['image']
+        else:
+            art['image'] = get_true_artist_image(aid)
+            
+        # 2. Статистика (Last.fm)
+        lf = get_lastfm_artist_data(name)
+        art['stats'] = lf.get('stats') if lf else None
+        return art
+
+    with ThreadPoolExecutor() as executor:
+        results['artists'] = list(executor.map(enrich_artist, candidates))
     
     # 2. Albums
     for alb in search_itunes(query, 'album', 15):
@@ -232,7 +240,8 @@ def artist_page(artist_id):
 
 @app.route('/album/<collection_id>')
 def album_page(collection_id):
-    data = lookup_itunes(collection_id, 'song')
+    # Увеличиваем лимит до 200, так как бокс-сеты могут содержать много треков
+    data = lookup_itunes(collection_id, 'song', 200)
     if not data: return "Album not found"
     
     album_info = data[0]
@@ -249,6 +258,9 @@ def album_page(collection_id):
         if item.get('kind') == 'song':
             item['spotify_link'] = generate_spotify_link(f"{item.get('artistName')} {item.get('trackName')}")
             songs.append(item)
+            
+    # Сортируем по номеру диска и трека (важно для бокс-сетов)
+    songs.sort(key=lambda x: (x.get('discNumber', 1), x.get('trackNumber', 1)))
             
     return render_template('index.html', view='album_detail', album=album_info, songs=songs, spotify_link=spotify_link, album_stats=album_stats)
 
