@@ -1646,27 +1646,3 @@ button:hover {
     border-color: rgba(255, 255, 255, 0.2);
     box-shadow: 0 0 0 4px var(--primary-dim);
 }
-
-.genre-input-wrapper button {
-    position: absolute;
-    right: 8px;
-    background: transparent;
-    border: none;
-    color: var(--text-sub);
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
-    font-size: 18px;
-    box-shadow: none;
-    transition: 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.genre-input-wrapper button:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.1);
-    transform: none;
-    box-shadow: none;
-}
