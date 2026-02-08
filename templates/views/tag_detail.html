@@ -32,7 +32,7 @@
 <!-- Grid -->
 <div class="grid" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
     {% for artist in artists %}
-    <a href="/?q={{ artist.artistName }}" class="card" style="text-align: center;">
+    <a href="/?q={{ artist.artistName }}" class="card" style="text-align: center;" onclick="void(0)">
         <div class="artist-img-wrapper" data-artist-name="{{ artist.artistName }}">
             <!-- Цветной квадрат с первой буквой имени -->
             <div class="artist-placeholder lazy-grad"

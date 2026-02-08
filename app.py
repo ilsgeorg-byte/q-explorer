@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from api_clients import (
     search_itunes, lookup_itunes, get_true_artist_image, 
     get_lastfm_artist_data, get_lastfm_album_stats, get_similar_artists,
@@ -332,6 +332,21 @@ def api_get_artist_image_by_name():
         pass
         
     return jsonify({'image': None})
+
+# НОВЫЙ МАРШРУТ: Умный редирект по имени артиста
+@app.route('/redirect-artist')
+def redirect_artist():
+    name = request.args.get('name')
+    if not name: return redirect(url_for('index'))
+
+    # Ищем артиста в iTunes (берем первого попавшегося)
+    results = search_itunes(name, 'musicArtist', 1)
+    if results:
+        # Если нашли — сразу идем на его страницу
+        return redirect(url_for('artist_page', artist_id=results[0]['artistId']))
+
+    # Если не нашли — отправляем в обычный поиск
+    return redirect(url_for('index', q=name))
 
 if __name__ == '__main__':
     app.run(debug=True)
