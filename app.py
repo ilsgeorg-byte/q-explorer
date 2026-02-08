@@ -342,11 +342,12 @@ def api_get_artist_image_by_name():
 
     # 3. Fallback: Если фото артиста нет, берем обложку первого попавшегося альбома
     try:
-        albums = search_itunes(name, 'album', 10)
+        albums = search_itunes(name, 'album', 60)
         for alb in albums:
             if alb.get('artworkUrl100'):
-                # Пропускаем Donda
-                if 'donda' in alb.get('collectionName', '').lower(): continue
+                # Пропускаем Donda и Vultures (часто темные/пустые обложки)
+                cname = alb.get('collectionName', '').lower()
+                if 'donda' in cname or 'vultures' in cname: continue
                 return jsonify({'image': alb['artworkUrl100'].replace('100x100bb', '400x400bb')})
     except:
         pass

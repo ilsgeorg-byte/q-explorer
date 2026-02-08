@@ -1648,6 +1648,8 @@ button:hover {
 }
 
 .genre-input-wrapper button {
+    background: var(--primary);
+    /* Fallback */
     background: var(--primary-grad);
     color: #fff;
     border: none;
@@ -1658,12 +1660,12 @@ button:hover {
     text-transform: uppercase;
     letter-spacing: 1px;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(255, 46, 91, 0.3);
+    box-shadow: 0 8px 20px rgba(255, 46, 91, 0.3);
     transition: 0.3s;
 }
 
 .genre-input-wrapper button:hover {
     background: #ff4770;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 46, 91, 0.5);
+    box-shadow: 0 12px 30px rgba(255, 46, 91, 0.5);
 }
