@@ -49,16 +49,19 @@ def index():
         name = art.get('artistName', '')
         aid = art.get('artistId')
         
-        # 1. Картинка (Deezer или iTunes)
+        # 1. Картинка и Статистика (Deezer)
         dz = search_deezer_artists(name, 1)
+        deezer_stats = None
         if dz:
             art['image'] = dz[0]['image']
+            deezer_stats = dz[0].get('stats')
         else:
             art['image'] = get_true_artist_image(aid)
             
         # 2. Статистика (Last.fm)
         lf = get_lastfm_artist_data(name)
-        art['stats'] = lf.get('stats') if lf else None
+        # Если Last.fm вернул пустоту, берем Deezer
+        art['stats'] = lf.get('stats') if lf and lf.get('stats') else deezer_stats
         return art
 
     with ThreadPoolExecutor() as executor:
@@ -177,6 +180,10 @@ def artist_page(artist_id):
         artist['stats'] = None
         artist['bio'] = None
         artist['tags'] = []
+        
+    # Если Last.fm не дал статистику, пробуем взять из Deezer
+    if not artist['stats'] and deezer_data:
+        artist['stats'] = deezer_data[0].get('stats')
     
     # 2. Обрабатываем Топ Песни
     top_songs = []

@@ -50,12 +50,23 @@ def search_deezer_artists(query, limit):
         # Превращаем формат Deezer в наш формат (похожий на iTunes)
         results = []
         for item in data:
+            # Форматируем количество фанатов
+            fans = item.get('nb_fan', 0)
+            stats = ""
+            if fans > 1000000:
+                stats = f"👥 {fans/1000000:.1f}M Deezer fans"
+            elif fans > 1000:
+                stats = f"👥 {fans/1000:.0f}K Deezer fans"
+            elif fans > 0:
+                stats = f"👥 {fans} Deezer fans"
+
             results.append({
                 'artistId': item['id'], # Это ID Deezer, но нам для картинки пойдет
                 'artistName': item['name'],
                 'image': item.get('picture_xl') or item.get('picture_big') or item.get('picture_medium'),
                 'primaryGenreName': 'Music',
-                'source': 'deezer' # Метка, что это Deezer
+                'source': 'deezer', # Метка, что это Deezer
+                'stats': stats
             })
         return results
     except Exception as e:
