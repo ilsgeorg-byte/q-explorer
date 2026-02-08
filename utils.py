@@ -39,15 +39,11 @@ def generate_youtube_link(query):
     return f"https://music.youtube.com/search?q={urllib.parse.quote(query)}"
 
 def sort_albums(albums):
-    categories = {
-        'albums': [],
-        'live': [],
-        'compilations': [],
-        'singles': []
-    }
-    
-    # Словарь для дедупликации студийных альбомов
-    unique_studio = {} 
+    # Словари для дедупликации каждой категории
+    unique_studio = {}
+    unique_singles = {}
+    unique_live = {}
+    unique_compilations = {}
 
     for alb in albums:
         original_title = alb.get('collectionName', '').strip()
@@ -63,58 +59,60 @@ def sort_albums(albums):
         lower_title = original_title.lower()
         track_count = alb.get('trackCount', 0)
         
-        # --- ЛОГИКА ФИЛЬТРАЦИИ ---
+        # Генерируем ключ для дедупликации
+        norm_key = normalize_title(original_title)
+        
+        # Чистим название сразу
+        # ВАЖНО: Делаем копию названия БЕЗ модификации исходного в цикле, если вдруг потребуется оригинал
+        # Но здесь мы меняем объект 'alb' напрямую, так что ОК.
+        alb['collectionName'] = clean_name(original_title)
+        
+        # --- ЛОГИКА ФИЛЬТРАЦИИ И РАСПРЕДЕЛЕНИЯ ---
+        target_dict = unique_studio # По умолчанию считаем студийным
 
         # 1. Singles & EPs
-        # Ищем слово "EP" как отдельное слово (через границы слова \b),
-        # чтобы не реагировать на "Deep", "Sleep", "Keep".
         is_explicit_ep = bool(re.search(r'\bep\b', lower_title))
         is_single = ' - single' in lower_title
         
         if track_count < 5 or is_single or is_explicit_ep:
-            # Даже если это EP, название тоже стоит почистить (убрать "(EP)")
-            alb['collectionName'] = clean_name(original_title)
-            categories['singles'].append(alb)
-            continue
+            target_dict = unique_singles
             
-        # 2. Live Albums
-        # Ищем ключевые слова для концертов
-        if any(x in lower_title for x in ['live', 'concert', 'tour', 'wembley', 'bowl', 'montreal', 'budokan', 'at the', 'bbc']):
-            alb['collectionName'] = clean_name(original_title)
-            categories['live'].append(alb)
-            continue
+        # 2. Live Albums (Приоритет над синглами? Нет, лайв может быть синглом, но обычно лайв альбомы длинные. 
+        # Если лайв короткий - пусть будет синглом? Или лайвом? 
+        # Обычно пользователь хочет видеть концерты отдельно.
+        # Давайте проверим: если в названии "Live", то это скорее Live, даже если короткий.)
+        elif any(x in lower_title for x in ['live', 'concert', 'tour', 'wembley', 'bowl', 'montreal', 'budokan', 'at the', 'bbc']):
+             target_dict = unique_live
             
         # 3. Compilations
-        if any(x in lower_title for x in ['greatest hits', 'best of', 'anthology', 'collection', 'essential', 'platinum', 'gold', 'years', 'hits', 'box set', 'decade', 'definitive', 'ultimate', 'rarities', 'retrospective', 'archive', 'sessions', 'very best']):
-            alb['collectionName'] = clean_name(original_title)
-            categories['compilations'].append(alb)
-            continue
+        elif any(x in lower_title for x in ['greatest hits', 'best of', 'anthology', 'collection', 'essential', 'platinum', 'gold', 'years', 'hits', 'box set', 'decade', 'definitive', 'ultimate', 'rarities', 'retrospective', 'archive', 'sessions', 'very best']):
+            target_dict = unique_compilations
+
+        # --- ДЕДУПЛИКАЦИЯ ---
+        # Если такой альбом уже есть в целевой категории
+        if norm_key in target_dict:
+            existing_alb = target_dict[norm_key]
             
-        # 4. STUDIO ALBUMS (С Дедупликацией и Чисткой)
-        
-        # Сначала генерируем "чистый ключ" для поиска дубликатов
-        norm_key = normalize_title(original_title)
-        
-        # ВАЖНО: Сразу чистим название для отображения на сайте!
-        # Теперь "In Rock (2018 Remaster)" станет просто "In Rock" прямо в объекте
-        alb['collectionName'] = clean_name(original_title)
-        
-        if norm_key in unique_studio:
-            existing_alb = unique_studio[norm_key]
-            
-            # Сравниваем даты: если текущий старше (меньше год), берем его
+            # Сравниваем даты: оставляем более РАННИЙ релиз (оригинал), а не переиздание
+            # Или наоборот? Обычно хотят оригинал.
             existing_date = existing_alb.get('releaseDate', '9999')
             current_date = alb.get('releaseDate', '9999')
             
             if current_date < existing_date:
-                unique_studio[norm_key] = alb
+                target_dict[norm_key] = alb
+            # Иначе оставляем старый
         else:
-            unique_studio[norm_key] = alb
+            target_dict[norm_key] = alb
 
-    # Выгружаем уникальные студийные
-    categories['albums'] = list(unique_studio.values())
+    # Выгружаем списки
+    categories = {
+        'albums': list(unique_studio.values()),
+        'singles': list(unique_singles.values()),
+        'live': list(unique_live.values()),
+        'compilations': list(unique_compilations.values())
+    }
 
-    # Финальная сортировка по дате
+    # Финальная сортировка по дате (от новых к старым)
     for key in categories:
         categories[key].sort(key=lambda x: x.get('releaseDate', ''), reverse=True)
         
