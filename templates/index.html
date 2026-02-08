@@ -56,6 +56,47 @@
                 /* Чуть уменьшаем шрифт заголовка */
             }
         }
+
+        /* Footer Styles */
+        .site-footer {
+            background-color: #0a0a0a;
+            padding: 60px 20px 40px;
+            margin-top: 80px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .footer-logo {
+            font-family: 'Pirata One', cursive;
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+
+        .footer-links a,
+        .footer-credits a {
+            color: #888;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover,
+        .footer-credits a:hover {
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -105,14 +146,20 @@
     </div>
 
     <!-- FOOTER ELEMENTS -->
-    <footer
-        style="text-align: center; padding: 40px 20px; color: #555; font-size: 0.8rem; margin-top: 50px; border-top: 1px solid rgba(255,255,255,0.05);">
-        <p>
-            Data provided by <a href="https://music.apple.com" target="_blank"
-                style="color: #777; text-decoration: none;">iTunes</a>,
-            <a href="https://www.deezer.com" target="_blank" style="color: #777; text-decoration: none;">Deezer</a> &
-            <a href="https://www.last.fm" target="_blank" style="color: #777; text-decoration: none;">Last.fm</a>.
-        </p>
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-logo">Q-Explorer</div>
+            <div class="footer-links">
+                <a href="/">Home</a>
+                <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Search</a>
+            </div>
+            <div class="footer-credits">
+                Data provided by <a href="https://music.apple.com" target="_blank">iTunes</a> • <a
+                    href="https://www.deezer.com" target="_blank">Deezer</a> • <a href="https://www.last.fm"
+                    target="_blank">Last.fm</a>
+            </div>
+            <div style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;">&copy; 2025 Q-Explorer</div>
+        </div>
     </footer>
     <div id="scroll-top" class="btn-glass" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</div>
 
