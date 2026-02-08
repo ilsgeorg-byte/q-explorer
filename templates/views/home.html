@@ -1,13 +1,3 @@
-<div class="hero-banner"
-    style="margin-top: 0; text-align: center; align-items: center; justify-content: center; flex-direction: column; padding: 60px 20px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%); border: 1px solid rgba(255,255,255,0.05);">
-    <h1
-        style="font-size: 2.5rem; margin-bottom: 15px; background: linear-gradient(to right, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-        Discover New Music</h1>
-    <p style="color: var(--text-sub); font-size: 1.1rem; max-width: 500px; margin: 0 auto;">
-        Search for your favorite artists or explore popular genres below.
-    </p>
-</div>
-
 <div class="section-header">
     <h2 class="section-title">Browse Genres</h2>
 </div>
@@ -29,6 +19,24 @@
         style="text-align: center; justify-content: center; min-height: 140px; border-top: 4px solid {{ g.color }};">
         <div style="font-size: 3rem; margin-bottom: 10px;">{{ g.icon }}</div>
         <div class="title" style="font-size: 1.2rem;">{{ g.name }}</div>
+    </a>
+    {% endfor %}
+</div>
+
+<div class="section-header">
+    <h2 class="section-title">Trending Artists</h2>
+</div>
+<div class="grid">
+    {% set trending = ['The Weeknd', 'Taylor Swift', 'Drake', 'Billie Eilish', 'Kendrick Lamar', 'Dua Lipa', 'Kanye
+    West', 'Ariana Grande'] %}
+    {% for name in trending %}
+    <a href="/redirect-artist?name={{ name }}" class="card artist-card">
+        <div class="artist-img-wrapper" data-artist-name="{{ name }}">
+            <div class="artist-placeholder" style="background-color: #222;">{{ name[:1] }}</div>
+        </div>
+        <div class="info" style="text-align: center;">
+            <div class="title">{{ name }}</div>
+        </div>
     </a>
     {% endfor %}
 </div>
