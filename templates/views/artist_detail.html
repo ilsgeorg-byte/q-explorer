@@ -40,7 +40,7 @@
 </div>
 <div class="song-list" style="margin-bottom: 30px;">
     {% for song in top_songs %}
-    <div class="song-row"
+    <div class="song-row" style="display: flex; align-items: center;"
         onclick="openMusicModal('{{ song.spotify_link }}', '{{ song.collectionId }}', '{{ song.trackId }}')">
         <img src="{{ song.artworkUrl100 }}" class="song-img">
         <div class="song-info">
@@ -48,7 +48,7 @@
             <div class="song-artist" style="opacity: 0.7;">{{ song.collectionName }}</div>
         </div>
         <!-- Лайк -->
-        <div class="btn-like song-like"
+        <div class="btn-like song-like" style="margin-left: auto; position: static; opacity: 1;"
             onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">
             ♥</div>
     </div>
@@ -90,7 +90,7 @@
 <div class="grid">
     {% for item in items %}
     <a href="/album/{{ item.collectionId }}" class="card" onclick="void(0)">
-        <div class="btn-like"
+        <div class="btn-like" style="opacity: 1;"
             onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">
             ♥</div>
         <img src="{{ item.artworkUrl100 }}">

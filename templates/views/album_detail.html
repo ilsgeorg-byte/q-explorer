@@ -26,13 +26,14 @@
 
 <div class="song-list">
     {% for song in songs %}
-    <div class="track-row" style="position: relative;"
+    <div class="track-row"
+        style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"
         onclick="openMusicModal('{{ song.spotify_link }}', '{{ album.collectionId }}', '{{ song.trackId }}')">
         <div class="track-num">{{ song.trackNumber }}</div>
         <div class="track-info">
             <div class="track-title">{{ song.trackName }}</div>
         </div>
-        <div class="btn-like song-like" style="opacity: 0.5; position: static; margin-left: auto;"
+        <div class="btn-like song-like" style="opacity: 1; position: static; margin-left: auto;"
             onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ album.artworkUrl100 }}', '{{ album.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">
             ♥
         </div>
