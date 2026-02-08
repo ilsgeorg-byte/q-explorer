@@ -624,6 +624,16 @@ input[name="q"]:focus {
     background: #f0f0f0;
 }
 
+.p-youtube {
+    background: #FF0000;
+    color: #fff;
+}
+
+.p-youtube:hover {
+    background: #cc0000;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+}
+
 .p-cancel {
     background: transparent;
     color: var(--text-sub);
@@ -1514,6 +1524,17 @@ button:hover {
 .m-apple:hover {
     background: #fff;
     color: #000;
+}
+
+.m-youtube {
+    background: rgba(255, 0, 0, 0.1);
+    border-color: #FF0000;
+    color: #FF0000;
+}
+
+.m-youtube:hover {
+    background: #FF0000;
+    color: #fff;
 }
 
 .m-cancel {

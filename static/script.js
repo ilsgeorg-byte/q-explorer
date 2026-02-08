@@ -19,10 +19,7 @@ function openMusicModal(spotifyLink, appleCollectionId, appleTrackId, youtubeLin
             ytBtn.id = 'modal-youtube';
             ytBtn.target = '_blank';
             // Определяем класс кнопки в зависимости от структуры модалки
-            ytBtn.className = modalContainer.classList.contains('modal-card') ? 'platform-btn' : 'modal-btn';
-            ytBtn.style.backgroundColor = '#FF0000';
-            ytBtn.style.color = 'white';
-            ytBtn.style.border = 'none';
+            ytBtn.className = modalContainer.classList.contains('modal-card') ? 'platform-btn p-youtube' : 'modal-btn m-youtube';
             ytBtn.textContent = 'YouTube Music';
 
             // Вставляем перед кнопкой отмены
