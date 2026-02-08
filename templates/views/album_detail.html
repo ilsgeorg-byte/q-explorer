@@ -8,7 +8,14 @@
     style="text-align: center; display: flex; flex-direction: column; align-items: center; padding-bottom: 20px;">
     <img src="{{ album.artworkUrl100 }}"
         style="width: 220px; height: 220px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px;">
-    <h1 style="font-size: 2.5rem; margin: 0 0 10px 0; line-height: 1.2;">{{ album.collectionName }}</h1>
+
+    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+        <h1 style="font-size: 2.5rem; margin: 0; line-height: 1.2;">{{ album.collectionName }}</h1>
+        <div class="btn-like hero-like"
+            onclick="toggleLike(this, 'album', '{{ album.collectionId }}', '{{ album.collectionName|replace('\'', '\\\'') }}', '{{ album.artworkUrl100 }}', '{{ album.artistName|replace('\'', '\\\'') }}', '')">
+            ♥
+        </div>
+    </div>
 
     <div class="hero-meta"
         style="justify-content: center; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
@@ -35,7 +42,7 @@
         <div class="track-info">
             <div class="track-title">{{ song.trackName }}</div>
         </div>
-        <div class="btn-like song-like" style="opacity: 1; position: static; margin-left: auto;"
+        <div class="btn-like song-like" style="position: static; margin-left: auto;"
             onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ album.artworkUrl100 }}', '{{ album.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">
             ♥
         </div>

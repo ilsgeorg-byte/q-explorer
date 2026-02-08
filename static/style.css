@@ -1101,13 +1101,18 @@ button:hover {
     z-index: 20;
     transition: 0.3s;
     font-size: 16px;
-    opacity: 0;
-    transform: translateY(-5px);
+    opacity: 1;
+    /* Всегда видно */
+    transform: scale(1);
+    /* Нормальный размер */
+    background: rgba(0, 0, 0, 0.4);
+    /* Чуть темнее фон для контраста */
 }
 
 .card:hover .btn-like {
-    opacity: 1;
-    transform: translateY(0);
+    background: rgba(0, 0, 0, 0.6);
+    transform: scale(1.1);
+    /* Увеличение при наведении на карточку */
 }
 
 .btn-like:hover {
@@ -1120,6 +1125,20 @@ button:hover {
     opacity: 1;
     color: var(--primary);
     background: rgba(255, 255, 255, 0.1);
+}
+
+/* HERO LIKE BUTTON (Для шапки артиста/альбома) */
+.hero-like {
+    position: static;
+    /* Не абсолютное позиционирование */
+    width: 42px;
+    height: 42px;
+    font-size: 22px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-left: 15px;
+    display: inline-flex;
+    transform: none !important;
 }
 
 /* SEE ALL BUTTON */

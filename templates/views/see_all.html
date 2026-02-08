@@ -18,7 +18,7 @@
             <div class="song-title">{{ item.trackName }}</div>
             <div class="song-artist">{{ item.artistName }}</div>
         </div>
-        <div class="song-like btn-like" style="margin-left: auto; position: static; opacity: 1;"
+        <div class="song-like btn-like" style="margin-left: auto; position: static;"
             onclick="toggleLike(this, 'song', '{{ item.trackId }}', '{{ item.trackName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.spotify_link }}')">
             ♥</div>
     </div>
@@ -29,7 +29,7 @@
     {% for item in results %}
     {% if type == 'artists' %}
     <a href="/artist/{{ item.artistId }}" class="card artist-card" onclick="void(0)">
-        <div class="btn-like" style="opacity: 1;"
+        <div class="btn-like"
             onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">
             ♥</div>
 
@@ -51,7 +51,7 @@
     </a>
     {% elif type == 'albums' %}
     <a href="/album/{{ item.collectionId }}" class="card" onclick="void(0)">
-        <div class="btn-like" style="opacity: 1;"
+        <div class="btn-like"
             onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">
             ♥</div>
         <img src="{{ item.artworkUrl100 }}">
