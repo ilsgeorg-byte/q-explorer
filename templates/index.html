@@ -30,6 +30,8 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             opacity: 0;
             pointer-events: none;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         #scroll-top:hover {
@@ -112,7 +114,7 @@
             <a href="https://www.last.fm" target="_blank" style="color: #777; text-decoration: none;">Last.fm</a>.
         </p>
     </footer>
-    <div id="scroll-top" class="btn-primary" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</div>
+    <div id="scroll-top" class="btn-glass" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
