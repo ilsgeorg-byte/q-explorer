@@ -7,7 +7,7 @@
     {% for name in trending %}
     <a href="/redirect-artist?name={{ name }}" class="card artist-card">
         <div class="artist-img-wrapper" data-artist-name="{{ name }}">
-            <div class="artist-placeholder" style="background-color: #222;">{{ name[:1] }}</div>
+            <div class="artist-placeholder artist-placeholder-default">{{ name[:1] }}</div>
         </div>
         <div class="info" style="text-align: center;">
             <div class="title">{{ name }}</div>
@@ -33,10 +33,9 @@
     ] %}
 
     {% for g in genres %}
-    <a href="/tag/{{ g.name }}" class="card genre-card"
-        style="text-align: center; justify-content: center; min-height: 140px; border-top: 4px solid {{ g.color }};">
-        <div style="font-size: 3rem; margin-bottom: 10px;">{{ g.icon }}</div>
-        <div class="title" style="font-size: 1.2rem;">{{ g.name }}</div>
+    <a href="/tag/{{ g.name }}" class="card genre-card genre-card-inner" style="border-top: 4px solid {{ g.color }};">
+        <div class="genre-icon">{{ g.icon }}</div>
+        <div class="title genre-title">{{ g.name }}</div>
     </a>
     {% endfor %}
 </div>

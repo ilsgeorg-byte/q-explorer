@@ -1,8 +1,6 @@
-<div class="artist-hero"
-    style="text-align: center; display: flex; flex-direction: column; align-items: center; padding: 30px 0;">
+<div class="artist-hero hero-center">
     <h1 style="font-size: 3.5rem; margin-bottom: 15px;">{{ tag_name|capitalize }}</h1>
-    <div style="max-width:700px; margin:0 auto; font-size: 0.95rem; color:#bbb; line-height: 1.5;">{{ description|safe
-        }}</div>
+    <div class="hero-bio">{{ description|safe }}</div>
 </div>
 
 <!-- Controls Container -->
@@ -10,32 +8,29 @@
     <div class="sort-controls">
         <span style="color:#666; margin-right:10px;">Sort by:</span>
         <a href="/tag/{{ tag_name }}?page=1&amp;sort=popularity"
-            style="color: {% if sort_by == 'popularity' %}#fff{% else %}#888{% endif %}; margin-right:15px; font-weight: bold;">Popularity</a>
+            class="{% if sort_by == 'popularity' %}sort-active{% else %}sort-inactive{% endif %}"
+            style="margin-right:15px; font-weight: bold;">Popularity</a>
         <a href="/tag/{{ tag_name }}?page=1&amp;sort=alpha"
-            style="color: {% if sort_by == 'alpha' %}#fff{% else %}#888{% endif %}; font-weight: bold;">A-Z</a>
+            class="{% if sort_by == 'alpha' %}sort-active{% else %}sort-inactive{% endif %}"
+            style="font-weight: bold;">A-Z</a>
     </div>
 
     <div class="pagination">
         {% if page > 1 %}
-        <a href="/tag/{{ tag_name }}?page={{ page - 1 }}&amp;sort={{ sort_by }}"
-            style="background:#333; padding:8px 20px; border-radius:20px; font-size:14px; margin-right: 15px;">←
-            Prev</a>
+        <a href="/tag/{{ tag_name }}?page={{ page - 1 }}&amp;sort={{ sort_by }}" class="pagination-link">← Prev</a>
         {% endif %}
-        <span style="color:#666;">Page {{ page }}</span>
-        <a href="/tag/{{ tag_name }}?page={{ page + 1 }}&amp;sort={{ sort_by }}"
-            style="background:#333; padding:8px 20px; border-radius:20px; font-size:14px; margin-left: 15px;">Next
-            →</a>
+        <span style="color:#666; margin: 0 10px;">Page {{ page }}</span>
+        <a href="/tag/{{ tag_name }}?page={{ page + 1 }}&amp;sort={{ sort_by }}" class="pagination-link">Next →</a>
     </div>
 </div>
 
 <!-- Grid -->
-<div class="grid" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+<div class="grid" style="max-width: 1200px; margin: 0 auto;">
     {% for artist in artists %}
     <a href="/redirect-artist?name={{ artist.artistName }}" class="card" style="text-align: center;" onclick="void(0)">
         <div class="artist-img-wrapper" data-artist-name="{{ artist.artistName }}">
             <!-- Цветной квадрат с первой буквой имени -->
-            <div class="artist-placeholder lazy-grad"
-                style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size: 48px; font-weight: bold; color: rgba(255,255,255,0.2);">
+            <div class="artist-placeholder lazy-grad artist-placeholder-default">
                 {{ artist.artistName[0]|upper }}
             </div>
         </div>

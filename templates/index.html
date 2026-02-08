@@ -12,92 +12,6 @@
         rel="stylesheet">
     <!-- Цвет браузерной строки для мобильных (под темную тему) -->
     <meta name="theme-color" content="#121212">
-    <style>
-        /* Стили для кнопки "Наверх" */
-        #scroll-top {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 90;
-            transition: transform 0.2s ease, opacity 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            opacity: 0;
-            pointer-events: none;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        #scroll-top:hover {
-            transform: translateY(-5px);
-        }
-
-        #scroll-top.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        /* Адаптив для ноутбуков и ПК: делаем иконки (карточки) компактнее */
-        @media (min-width: 1024px) {
-            .grid {
-                /* Уменьшаем ширину карточки (было ~200px), теперь влезает больше в ряд */
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
-                gap: 20px !important;
-            }
-
-            .card .title {
-                font-size: 0.9rem !important;
-                /* Чуть уменьшаем шрифт заголовка */
-            }
-        }
-
-        /* Footer Styles */
-        .site-footer {
-            background-color: #0a0a0a;
-            padding: 60px 20px 40px;
-            margin-top: 80px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 0.9rem;
-            color: #666;
-            text-align: center;
-        }
-
-        .footer-content {
-            max-width: 1000px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .footer-logo {
-            font-family: 'Pirata One', cursive;
-            font-size: 2rem;
-            color: #fff;
-            margin-bottom: 10px;
-            opacity: 0.8;
-        }
-
-        .footer-links a,
-        .footer-credits a {
-            color: #888;
-            text-decoration: none;
-            margin: 0 10px;
-            transition: color 0.2s;
-        }
-
-        .footer-links a:hover,
-        .footer-credits a:hover {
-            color: #fff;
-        }
-    </style>
 </head>
 
 <body>
@@ -158,7 +72,7 @@
                     href="https://www.deezer.com" target="_blank">Deezer</a> • <a href="https://www.last.fm"
                     target="_blank">Last.fm</a>
             </div>
-            <div style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;">&copy; 2025 Q-Explorer</div>
+            <div class="footer-copyright">&copy; 2025 Q-Explorer</div>
         </div>
     </footer>
     <div id="scroll-top" class="btn-glass" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</div>

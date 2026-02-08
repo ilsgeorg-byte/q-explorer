@@ -3,13 +3,12 @@
         Back</a>
     <span class="btn-see-all" onclick="sharePage()" style="margin-left: 20px; cursor: pointer;">🔗 Share</span>
 </div>
-<div class="artist-hero" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
-    {% if artist_image %}<img src="{{ artist_image }}"
-        style="width: 180px; height: 180px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">{%
+<div class="artist-hero hero-center">
+    {% if artist_image %}<img src="{{ artist_image }}" class="hero-center-img round">{%
     endif %}
 
-    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
-        <h1 style="font-size: 3rem; margin: 0;">{{ artist.artistName }}</h1>
+    <div class="hero-title-row">
+        <h1 class="hero-title-text">{{ artist.artistName }}</h1>
         <div class="btn-like hero-like"
             onclick="toggleLike(this, 'artist', '{{ artist.artistId }}', '{{ artist.artistName|replace('\'', '\\\'') }}', '{{ artist_image or '' }}', '{{ artist.primaryGenreName }}', '')">
             ♥
@@ -17,7 +16,7 @@
     </div>
 
     <!-- Тэги -->
-    <div class="hero-meta" style="margin-bottom: 15px;">
+    <div class="hero-meta hero-meta-center">
         <span class="tag" style="color:var(--primary); border-color:var(--primary);">{{ artist.primaryGenreName
             }}</span>
         {% if artist.tags %}
@@ -34,7 +33,7 @@
 
     <!-- БИОГРАФИЯ -->
     {% if artist.bio %}
-    <div style="max-width: 700px; margin: 0 auto; font-size: 0.9rem; color: #bbb; line-height: 1.4;">
+    <div class="hero-bio">
         {{ artist.bio }}
     </div>
     {% endif %}
@@ -66,19 +65,15 @@
 {% if similar %}
 <div class="similar-artists">
     <h3>Fans also like</h3>
-    <div class="scroll-row" style="display: flex; overflow-x: auto; gap: 20px; padding: 10px 0;">
+    <div class="scroll-row">
         {% for sim in similar %}
         <!-- Ссылка ведет на умный редирект -->
-        <a href="/redirect-artist?name={{ sim.name }}" class="similar-card"
-            style="text-align: center; min-width: 100px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center;"
-            onclick="void(0)">
+        <a href="/redirect-artist?name={{ sim.name }}" class="similar-card" onclick="void(0)">
 
             <!-- Обертка для ленивой загрузки фото -->
-            <div class="artist-img-wrapper" data-artist-name="{{ sim.name }}"
-                style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; margin-bottom: 10px; background: #222; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+            <div class="artist-img-wrapper">
                 <!-- Плейсхолдер, пока грузится -->
-                <div class="artist-placeholder"
-                    style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #333; color: #666; font-size: 24px;">
+                <div class="artist-placeholder artist-placeholder-default">
                     {{ sim.name[:1] }}
                 </div>
             </div>

@@ -4,30 +4,26 @@
     <span class="btn-see-all" onclick="sharePage()" style="margin-left: 20px; cursor: pointer;">🔗 Share</span>
 </div>
 
-<div class="album-hero"
-    style="text-align: center; display: flex; flex-direction: column; align-items: center; padding-bottom: 20px;">
-    <img src="{{ album.artworkUrl100 }}"
-        style="width: 220px; height: 220px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px;">
+<div class="album-hero hero-center">
+    <img src="{{ album.artworkUrl100 }}" class="hero-center-img">
 
-    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
-        <h1 style="font-size: 2.5rem; margin: 0; line-height: 1.2;">{{ album.collectionName }}</h1>
+    <div class="hero-title-row">
+        <h1 class="hero-title-text" style="font-size: 2.5rem;">{{ album.collectionName }}</h1>
         <div class="btn-like hero-like"
             onclick="toggleLike(this, 'album', '{{ album.collectionId }}', '{{ album.collectionName|replace('\'', '\\\'') }}', '{{ album.artworkUrl100 }}', '{{ album.artistName|replace('\'', '\\\'') }}', '')">
             ♥
         </div>
     </div>
 
-    <div class="hero-meta"
-        style="justify-content: center; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+    <div class="hero-meta hero-meta-center">
         <span class="tag" style="margin: 0;">{{ album.artistName }}</span>
         <span class="tag" style="margin: 0;">{{ album.releaseDate[:4] }}</span>
         {% if album_stats %}<div class="stats-badge" style="margin: 0;">{{ album_stats }}</div>{% endif %}
     </div>
 
-    <div class="hero-actions" style="justify-content: center; display: flex; gap: 15px;">
+    <div class="hero-actions" style="justify-content: center;">
         <a href="{{ spotify_link }}" target="_blank" class="btn btn-primary">Spotify</a>
-        <a href="{{ youtube_link }}" target="_blank" class="btn"
-            style="background-color: #FF0000; color: white; border: none;">YouTube Music</a>
+        <a href="{{ youtube_link }}" target="_blank" class="btn btn-youtube">YouTube Music</a>
         <a href="https://music.apple.com/album/{{ album.collectionId }}" target="_blank" class="btn btn-glass">Apple
             Music</a>
     </div>
@@ -36,7 +32,6 @@
 <div class="song-list">
     {% for song in songs %}
     <div class="track-row"
-        style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"
         onclick="openMusicModal('{{ song.spotify_link }}', '{{ album.collectionId }}', '{{ song.trackId }}', '{{ song.youtube_link }}')">
         <div class="track-num">{{ song.trackNumber }}</div>
         <div class="track-info">

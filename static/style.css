@@ -1598,6 +1598,221 @@ button:hover {
     }
 }
 
+/* --- REFACTORED INLINE STYLES --- */
+
+/* Scroll Top Button */
+#scroll-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 90;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 20px;
+}
+
+#scroll-top:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+#scroll-top.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Footer */
+.site-footer {
+    background-color: #0a0a0a;
+    padding: 60px 20px 40px;
+    margin-top: 80px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+}
+
+.footer-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.footer-logo {
+    font-family: 'Pirata One', cursive;
+    font-size: 2rem;
+    color: #fff;
+    margin-bottom: 10px;
+    opacity: 0.8;
+}
+
+.footer-links a,
+.footer-credits a {
+    color: #888;
+    text-decoration: none;
+    margin: 0 10px;
+    transition: color 0.2s;
+}
+
+.footer-links a:hover,
+.footer-credits a:hover {
+    color: #fff;
+}
+
+.footer-copyright {
+    margin-top: 20px;
+    font-size: 0.8rem;
+    opacity: 0.5;
+}
+
+/* Artist/Album Detail Adjustments */
+.hero-center {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 20px;
+}
+
+.hero-center-img {
+    width: 220px;
+    height: 220px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    margin-bottom: 20px;
+    object-fit: cover;
+}
+
+.hero-center-img.round {
+    border-radius: 50%;
+    /* For artists */
+}
+
+.hero-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    gap: 15px;
+}
+
+.hero-title-text {
+    font-size: 3rem;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.hero-meta-center {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.hero-bio {
+    max-width: 700px;
+    margin: 0 auto;
+    font-size: 0.9rem;
+    color: #bbb;
+    line-height: 1.4;
+}
+
+/* Buttons */
+.btn-youtube {
+    background-color: #FF0000;
+    color: white;
+    border: none;
+}
+
+.btn-youtube:hover {
+    background-color: #cc0000;
+    color: white;
+}
+
+/* Genre/Tag Cards */
+.genre-card-inner {
+    text-align: center;
+    justify-content: center;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+}
+
+.genre-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.genre-title {
+    font-size: 1.2rem;
+}
+
+/* Pagination */
+.pagination-link {
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    background: #333;
+    color: #fff;
+    margin: 0 10px;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.pagination-link:hover {
+    background: #444;
+}
+
+.sort-active {
+    color: #fff !important;
+}
+
+.sort-inactive {
+    color: #888 !important;
+}
+
+.artist-placeholder-default {
+    background-color: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: #666;
+    font-size: 24px;
+}
+
+/* Responsive Grid adjustment (moved from index.html) */
+@media (min-width: 1024px) {
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+        gap: 20px !important;
+    }
+
+    .card .title {
+        font-size: 0.9rem !important;
+    }
+}
+
 /* GENRE SEARCH BOX */
 .genre-search {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
