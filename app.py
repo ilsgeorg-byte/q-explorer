@@ -324,21 +324,27 @@ def api_get_artist_image_by_name():
     name = request.args.get('name')
     if not name: return jsonify({'image': None})
     
-    # 1. Ищем артиста в iTunes по имени
     # 1. Сначала пробуем Deezer (быстрее и красивее)
     try:
         dz = search_deezer_artists(name, 1)
         if dz: return jsonify({'image': dz[0]['image']})
     except: pass
     
-    # 2. Если нет, ищем в iTunes
+    # 2. Если нет, ищем в iTunes (через Artist ID -> Album)
     try:
         results = search_itunes(name, 'musicArtist', 1)
         if results:
             artist_id = results[0].get('artistId')
-            # 2. Получаем его качественное фото
             img = get_true_artist_image(artist_id)
-            return jsonify({'image': img})
+            if img: return jsonify({'image': img})
+    except:
+        pass
+
+    # 3. Fallback: Если фото артиста нет, берем обложку первого попавшегося альбома
+    try:
+        albums = search_itunes(name, 'album', 1)
+        if albums and albums[0].get('artworkUrl100'):
+             return jsonify({'image': albums[0]['artworkUrl100'].replace('100x100bb', '400x400bb')})
     except:
         pass
         
