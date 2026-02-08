@@ -8,9 +8,37 @@ function openMusicModal(spotifyLink, appleCollectionId, appleTrackId, youtubeLin
     if (appleTrackId) appleLink += `?i=${appleTrackId}`;
     document.getElementById('modal-apple').href = appleLink;
 
-    const ytBtn = document.getElementById('modal-youtube');
-    if (ytBtn && youtubeLink) {
-        ytBtn.href = youtubeLink;
+    // --- DYNAMIC YOUTUBE BUTTON ---
+    let ytBtn = document.getElementById('modal-youtube');
+
+    // Если кнопки нет в HTML (пользователь не обновил modal.html), создаем её через JS
+    if (!ytBtn) {
+        const modalContainer = document.querySelector('.modal-card') || document.querySelector('.modal-content');
+        if (modalContainer) {
+            ytBtn = document.createElement('a');
+            ytBtn.id = 'modal-youtube';
+            ytBtn.target = '_blank';
+            // Определяем класс кнопки в зависимости от структуры модалки
+            ytBtn.className = modalContainer.classList.contains('modal-card') ? 'platform-btn' : 'modal-btn';
+            ytBtn.style.backgroundColor = '#FF0000';
+            ytBtn.style.color = 'white';
+            ytBtn.style.border = 'none';
+            ytBtn.textContent = 'YouTube Music';
+
+            // Вставляем перед кнопкой отмены
+            const cancelBtn = modalContainer.querySelector('.p-cancel') || modalContainer.querySelector('.m-cancel');
+            if (cancelBtn) modalContainer.insertBefore(ytBtn, cancelBtn);
+            else modalContainer.appendChild(ytBtn);
+        }
+    }
+
+    if (ytBtn) {
+        if (youtubeLink && youtubeLink !== '#' && youtubeLink !== 'None') {
+            ytBtn.href = youtubeLink;
+            ytBtn.style.display = ''; // Показываем (flex/block)
+        } else {
+            ytBtn.style.display = 'none';
+        }
     }
 
     document.getElementById('music-modal').style.display = 'flex';
