@@ -4,6 +4,7 @@
     --primary: #ff2e5b;
     --primary-dim: rgba(255, 46, 91, 0.1);
     --secondary: #00f2ff;
+    --primary-grad: linear-gradient(135deg, #ff2e5b 0%, #ff0055 100%);
     --text-main: #ffffff;
     --text-sub: #9494a8;
     --card-bg: rgba(255, 255, 255, 0.03);
@@ -1647,7 +1648,7 @@ button:hover {
 }
 
 .genre-input-wrapper button {
-    background: var(--primary);
+    background: var(--primary-grad);
     color: #fff;
     border: none;
     padding: 12px 30px;

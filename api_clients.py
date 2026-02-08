@@ -86,9 +86,12 @@ def get_true_artist_image(artist_id):
     # Эта функция остается для iTunes (если вдруг Deezer не сработал)
     try:
         if not artist_id: return None
-        results = lookup_itunes(artist_id, 'album', 1)
+        # Ищем больше альбомов (10), чтобы пропустить "черные квадраты" типа Donda
+        results = lookup_itunes(artist_id, 'album', 10)
         for item in results:
             if item.get('collectionType') == 'Album' and item.get('artworkUrl100'):
+                # Фильтр для Канье Уэста: пропускаем альбом Donda (черная обложка)
+                if 'donda' in item.get('collectionName', '').lower(): continue
                 return item['artworkUrl100'].replace('100x100bb', '400x400bb')
     except: pass
     return None
