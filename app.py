@@ -4,7 +4,7 @@ from api_clients import (
     get_lastfm_artist_data, get_lastfm_album_stats, get_similar_artists,
     get_tag_info, get_tag_artists, search_deezer_artists
 )
-from utils import generate_spotify_link, sort_albums
+from utils import generate_spotify_link, generate_youtube_link, sort_albums
 from urllib.parse import unquote 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -81,6 +81,7 @@ def index():
         if ql in (song.get('trackName', '') or '').lower():
             q = f"{song.get('artistName', '')} {song.get('trackName', '')}"
             song['spotify_link'] = generate_spotify_link(q)
+            song['youtube_link'] = generate_youtube_link(q)
             results['songs'].append(song)
     results['songs'] = results['songs'][:10]
         
@@ -196,6 +197,7 @@ def artist_page(artist_id):
         if clean_title in seen_titles: return
         
         s['spotify_link'] = generate_spotify_link(f"{s.get('artistName')} {s.get('trackName')}")
+        s['youtube_link'] = generate_youtube_link(f"{s.get('artistName')} {s.get('trackName')}")
         if 'artworkUrl100' in s:
             s['artworkUrl100'] = s['artworkUrl100'].replace('100x100bb', '300x300bb')
             
@@ -259,17 +261,19 @@ def album_page(collection_id):
     
     album_stats = get_lastfm_album_stats(album_info.get('artistName'), album_info.get('collectionName'))
     spotify_link = generate_spotify_link(f"{album_info.get('artistName')} {album_info.get('collectionName')}")
+    youtube_link = generate_youtube_link(f"{album_info.get('artistName')} {album_info.get('collectionName')}")
     
     songs = []
     for item in data[1:]:
         if item.get('kind') == 'song':
             item['spotify_link'] = generate_spotify_link(f"{item.get('artistName')} {item.get('trackName')}")
+            item['youtube_link'] = generate_youtube_link(f"{item.get('artistName')} {item.get('trackName')}")
             songs.append(item)
             
     # Сортируем по номеру диска и трека (важно для бокс-сетов)
     songs.sort(key=lambda x: (x.get('discNumber', 1), x.get('trackNumber', 1)))
             
-    return render_template('index.html', view='album_detail', album=album_info, songs=songs, spotify_link=spotify_link, album_stats=album_stats)
+    return render_template('index.html', view='album_detail', album=album_info, songs=songs, spotify_link=spotify_link, youtube_link=youtube_link, album_stats=album_stats)
 
 # API для JS (Lazy Loading картинок)
 @app.route('/api/get-artist-image/<artist_id>')

@@ -2,11 +2,17 @@
 /* (Toast functions removed) */
 
 /* --- МОДАЛЬНОЕ ОКНО --- */
-function openMusicModal(spotifyLink, appleCollectionId, appleTrackId) {
+function openMusicModal(spotifyLink, appleCollectionId, appleTrackId, youtubeLink) {
     document.getElementById('modal-spotify').href = spotifyLink;
     let appleLink = `https://music.apple.com/album/${appleCollectionId}`;
     if (appleTrackId) appleLink += `?i=${appleTrackId}`;
     document.getElementById('modal-apple').href = appleLink;
+
+    const ytBtn = document.getElementById('modal-youtube');
+    if (ytBtn && youtubeLink) {
+        ytBtn.href = youtubeLink;
+    }
+
     document.getElementById('music-modal').style.display = 'flex';
 }
 function closeMusicModal() { document.getElementById('music-modal').style.display = 'none'; }

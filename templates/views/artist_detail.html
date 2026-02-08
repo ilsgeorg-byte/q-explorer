@@ -41,7 +41,7 @@
 <div class="song-list" style="margin-bottom: 30px;">
     {% for song in top_songs %}
     <div class="song-row" style="display: flex; align-items: center;"
-        onclick="openMusicModal('{{ song.spotify_link }}', '{{ song.collectionId }}', '{{ song.trackId }}')">
+        onclick="openMusicModal('{{ song.spotify_link }}', '{{ song.collectionId }}', '{{ song.trackId }}', '{{ song.youtube_link }}')">
         <img src="{{ song.artworkUrl100 }}" class="song-img">
         <div class="song-info">
             <div class="song-title">{{ song.trackName }}</div>

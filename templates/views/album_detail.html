@@ -19,6 +19,8 @@
 
     <div class="hero-actions" style="justify-content: center; display: flex; gap: 15px;">
         <a href="{{ spotify_link }}" target="_blank" class="btn btn-primary">Spotify</a>
+        <a href="{{ youtube_link }}" target="_blank" class="btn"
+            style="background-color: #FF0000; color: white; border: none;">YouTube Music</a>
         <a href="https://music.apple.com/album/{{ album.collectionId }}" target="_blank" class="btn btn-glass">Apple
             Music</a>
     </div>
@@ -28,7 +30,7 @@
     {% for song in songs %}
     <div class="track-row"
         style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"
-        onclick="openMusicModal('{{ song.spotify_link }}', '{{ album.collectionId }}', '{{ song.trackId }}')">
+        onclick="openMusicModal('{{ song.spotify_link }}', '{{ album.collectionId }}', '{{ song.trackId }}', '{{ song.youtube_link }}')">
         <div class="track-num">{{ song.trackNumber }}</div>
         <div class="track-info">
             <div class="track-title">{{ song.trackName }}</div>

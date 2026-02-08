@@ -34,6 +34,10 @@ def generate_spotify_link(query):
     if not query: return "#"
     return f"https://open.spotify.com/search/{urllib.parse.quote(query)}"
 
+def generate_youtube_link(query):
+    if not query: return "#"
+    return f"https://music.youtube.com/search?q={urllib.parse.quote(query)}"
+
 def sort_albums(albums):
     categories = {
         'albums': [],
