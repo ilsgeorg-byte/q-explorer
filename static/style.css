@@ -1659,6 +1659,9 @@ button:hover {
     font-size: 18px;
     box-shadow: none;
     transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .genre-input-wrapper button:hover {
