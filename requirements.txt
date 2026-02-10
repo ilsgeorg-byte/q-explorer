@@ -5,3 +5,5 @@ gunicorn
 beautifulsoup4
 requests-cache
 python-dotenv
+flask-sqlalchemy
+flask-login

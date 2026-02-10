@@ -12,8 +12,10 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.urandom(24)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+# Vercel: Use environment variables for production
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24))
+# Vercel: Use DATABASE_URL if provided, else fall back to local sqlite
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///users.db').replace('postgres://', 'postgresql://')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -26,8 +28,13 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # Создаем таблицы при запуске (если их нет)
-with app.app_context():
-    db.create_all()
+# На Vercel с SQLite это может вызвать ошибку, так как ФС только для чтения.
+# Если используется внешняя БД, это сработает.
+try:
+    with app.app_context():
+        db.create_all()
+except Exception as e:
+    print(f"Database initialization error: {e}")
 
 @app.route('/')
 def index():
