@@ -12,11 +12,36 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 
 app = Flask(__name__)
-# Vercel: Use environment variables for production
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24))
-# Vercel: Use DATABASE_URL if provided, else fall back to local sqlite
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///users.db').replace('postgres://', 'postgresql://')
+
+# --- CONFIGURATION ---
+# Vercel: Use environment variables for production. 
+# SECRET_KEY must be stable across restarts to avoid session loss.
+secret_key = os.environ.get('SECRET_KEY')
+if not secret_key:
+    print("WARNING: SECRET_KEY environment variable is not set! Using a temporary key.")
+    # Use a fallback that is stable for the duration of the process
+    secret_key = 'dev-key-please-set-in-vercel'
+app.config['SECRET_KEY'] = secret_key
+
+# Vercel: Use DATABASE_URL if provided, else fall back to a writable path in /tmp for SQLite
+database_url = os.environ.get('DATABASE_URL')
+if not database_url:
+    print("WARNING: DATABASE_URL is not set. Falling back to temporary SQLite.")
+    # /tmp is the only writable directory on Vercel
+    database_url = 'sqlite:///' + os.path.join('/tmp', 'users.db')
+else:
+    # Fix for SQLAlchemy 1.4+ (Postgres URI must start with postgresql://)
+    database_url = database_url.replace('postgres://', 'postgresql://')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Session Security (Crucial for HTTPS on Vercel)
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+)
 
 db.init_app(app)
 login_manager = LoginManager()
