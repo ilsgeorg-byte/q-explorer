@@ -63,25 +63,25 @@
 {% endif %}
 
 {% if similar %}
-<div class="similar-artists">
-    <h3>Fans also like</h3>
-    <div class="scroll-row">
-        {% for sim in similar %}
-        <!-- Ссылка ведет на умный редирект -->
-        <a href="/redirect-artist?name={{ sim.name }}" class="similar-card" onclick="void(0)">
+<div class="section-header">
+    <h2 class="section-title">Fans also like</h2>
+</div>
+<div class="grid">
+    {% for sim in similar %}
+    <!-- Ссылка ведет на умный редирект -->
+    <a href="/redirect-artist?name={{ sim.name }}" class="similar-card" onclick="void(0)">
 
-            <!-- Обертка для ленивой загрузки фото -->
-            <div class="artist-img-wrapper">
-                <!-- Плейсхолдер, пока грузится -->
-                <div class="artist-placeholder artist-placeholder-default">
-                    {{ sim.name[:1] }}
-                </div>
+        <!-- Обертка для ленивой загрузки фото -->
+        <div class="artist-img-wrapper" data-artist-name="{{ sim.name }}">
+            <!-- Плейсхолдер, пока грузится -->
+            <div class="artist-placeholder artist-placeholder-default">
+                {{ sim.name[:1] }}
             </div>
+        </div>
 
-            <span style="font-size: 0.9rem; font-weight: 500; max-width: 110px; line-height: 1.2;">{{ sim.name }}</span>
-        </a>
-        {% endfor %}
-    </div>
+        <span style="font-size: 0.9rem; font-weight: 500; max-width: 110px; line-height: 1.2;">{{ sim.name }}</span>
+    </a>
+    {% endfor %}
 </div>
 {% endif %}
 {% for cat, items in discography.items() %}

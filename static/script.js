@@ -77,75 +77,59 @@ document.addEventListener('click', (e) => {
     }
 });
 
-/* --- ИЗБРАННОЕ --- */
-function getFavs() { return JSON.parse(localStorage.getItem('q_favs') || '[]'); }
-function saveFavs(favs) { localStorage.setItem('q_favs', JSON.stringify(favs)); renderFavorites(); }
-function clearFavs() { if (confirm('Clear all?')) { localStorage.removeItem('q_favs'); renderFavorites(); checkLikedStatus(); } }
-
+/* --- ИЗБРАННОЕ (API) --- */
 function toggleLike(btn, type, id, title, img, sub, link) {
     event.stopPropagation(); event.preventDefault();
-    let favs = getFavs();
-    const index = favs.findIndex(f => f.id === id);
-    if (index > -1) { favs.splice(index, 1); btn.classList.remove('liked'); }
-    else { favs.unshift({ type, id, title, img, sub: sub || '', link }); btn.classList.add('liked'); }
-    saveFavs(favs);
+
+    // Анимация сразу для отзывчивости
+    const isLiked = btn.classList.contains('liked');
+    if (isLiked) btn.classList.remove('liked');
+    else btn.classList.add('liked');
+
+    fetch('/api/favorite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, id, title, img, sub, link })
+    })
+        .then(res => {
+            if (res.status === 401) {
+                // Если не авторизован -> на страницу входа
+                window.location.href = '/login';
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data.status === 'added') btn.classList.add('liked');
+            else if (data.status === 'removed') btn.classList.remove('liked');
+        })
+        .catch(err => {
+            console.error(err);
+            // Откат анимации при ошибке
+            if (isLiked) btn.classList.add('liked');
+            else btn.classList.remove('liked');
+        });
 }
+
 function checkLikedStatus() {
-    let favs = getFavs();
-    document.querySelectorAll('.btn-like').forEach(btn => {
-        const idMatch = btn.getAttribute('onclick').match(/'(\d+)'/);
-        if (idMatch && favs.find(f => f.id === idMatch[1])) btn.classList.add('liked');
-    });
-}
-
-// ПЕРЕКЛЮЧЕНИЕ ВИДА ИЗБРАННОГО
-let isFavExpanded = false;
-function toggleFavsView() {
-    isFavExpanded = !isFavExpanded;
-    const container = document.getElementById('favorites-container');
-    const btn = document.getElementById('fav-toggle-btn');
-    if (!container || !btn) return;
-
-    if (isFavExpanded) {
-        container.classList.remove('scroll-row');
-        container.classList.add('grid');
-        btn.textContent = 'Collapse';
-    } else {
-        container.classList.remove('grid');
-        container.classList.add('scroll-row');
-        btn.textContent = 'See All';
-    }
-}
-
-function renderFavorites() {
-    const favs = getFavs();
-    const section = document.getElementById('favorites-section');
-    const container = document.getElementById('favorites-container');
-    if (!section || !container) return;
-
-    if (favs.length === 0) { section.style.display = 'none'; return; }
-    section.style.display = 'block';
-
-    container.innerHTML = favs.map(f => {
-        let href = f.type === 'artist' ? `/artist/${f.id}` : (f.type === 'album' ? `/album/${f.id}` : '#');
-        let clickAction = f.type === 'song' ? `onclick="openMusicModal('${f.link}', '${f.sub}', '')"` : '';
-        let isArtist = f.type === 'artist';
-
-        return `
-        <a href="${href}" ${clickAction} class="card fav-card ${isArtist ? 'artist-card' : ''}">
-             <div class="btn-like liked" onclick="toggleLike(this, '${f.type}', '${f.id}', '${f.title.replace(/'/g, "\\'")}', '${f.img}', '${(f.sub || '').replace(/'/g, "\\'")}', '${f.link}')">♥</div>
-            <div class="card-img-wrapper"><img src="${f.img}" loading="lazy"></div>
-            <div class="card-info">
-                <div class="title">${f.title}</div>
-                <div class="sub">${f.sub || ''}</div>
-            </div>
-        </a>
-        `;
-    }).join('');
+    // Получаем список ID избранного с сервера
+    fetch('/api/check_favorites')
+        .then(res => res.json())
+        .then(ids => {
+            // ids = ['123', '456', ...]
+            const likedSet = new Set(ids);
+            document.querySelectorAll('.btn-like').forEach(btn => {
+                // Извлекаем ID из onclick атрибута: toggleLike(this, '...', '123', ...)
+                const match = btn.getAttribute('onclick').match(/toggleLike\(this, '[^']+', '([^']+)'/);
+                if (match && likedSet.has(match[1])) {
+                    btn.classList.add('liked');
+                }
+            });
+        })
+        .catch(err => console.log('Guest or error checking favorites'));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    renderFavorites();
+    // renderFavorites(); // Теперь рендерится на сервере в profile.html
     checkLikedStatus();
 
     // Плейсхолдер с подсказками

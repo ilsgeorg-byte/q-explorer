@@ -15,5 +15,24 @@
             </button>
             <div id="history-dropdown"></div>
         </form>
+        <div class="auth-nav" style="display: flex; align-items: center; gap: 15px; margin-left: 20px;">
+            {% if current_user.is_authenticated %}
+            <a href="/favorites" class="btn-link" style="color: var(--primary);" title="My Favorites">
+                ❤️
+            </a>
+            <a href="/profile" class="btn-link" style="display: flex; align-items: center; gap: 8px;">
+                <div
+                    style="width: 32px; height: 32px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">
+                    {{ current_user.username[0].upper() }}
+                </div>
+                <span style="display: none; @media (min-width: 768px) { display: inline; }">{{ current_user.username
+                    }}</span>
+            </a>
+            {% else %}
+            <a href="/login" class="btn-link">Log In</a>
+            <a href="/register" class="btn btn-primary" style="height: 36px; padding: 0 20px; font-size: 12px;">Sign
+                Up</a>
+            {% endif %}
+        </div>
     </div>
 </div>

@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from models import db, User, Favorite
 from api_clients import (
     search_itunes, lookup_itunes, get_true_artist_image, 
     get_lastfm_artist_data, get_lastfm_album_stats, get_similar_artists,
@@ -7,8 +9,25 @@ from api_clients import (
 from utils import generate_spotify_link, generate_youtube_link, sort_albums
 from urllib.parse import unquote 
 from concurrent.futures import ThreadPoolExecutor
+import os
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.urandom(24)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.init_app(app)
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Создаем таблицы при запуске (если их нет)
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def index():
@@ -368,6 +387,125 @@ def redirect_artist():
 
     # Если не нашли — отправляем в обычный поиск
     return redirect(url_for('index', q=name))
+
+# --- AUTH ROUTES ---
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        if User.query.filter_by(username=username).first():
+            flash('Username already exists')
+            return redirect(url_for('register'))
+        
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered')
+            return redirect(url_for('register'))
+            
+        new_user = User(username=username, email=email)
+        new_user.set_password(password)
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        login_user(new_user)
+        return redirect(url_for('index'))
+        
+    return render_template('auth/register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+        
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        user = User.query.filter_by(email=email).first()
+        
+        if user and user.check_password(password):
+            login_user(user, remember=True)
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid email or password')
+            
+    return render_template('auth/login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/profile')
+@login_required
+def profile():
+    # Загружаем избранное
+    fav_artists = Favorite.query.filter_by(user_id=current_user.id, type='artist').all()
+    fav_albums = Favorite.query.filter_by(user_id=current_user.id, type='album').all()
+    fav_tracks = Favorite.query.filter_by(user_id=current_user.id, type='song').all()
+    
+    return render_template('index.html', view='profile', user=current_user, 
+                           fav_artists=fav_artists, 
+                           fav_albums=fav_albums, 
+                           fav_tracks=fav_tracks)
+
+@app.route('/favorites')
+@login_required
+def favorites():
+    # Загружаем избранное
+    fav_artists = Favorite.query.filter_by(user_id=current_user.id, type='artist').all()
+    fav_albums = Favorite.query.filter_by(user_id=current_user.id, type='album').all()
+    fav_tracks = Favorite.query.filter_by(user_id=current_user.id, type='song').all()
+    
+    return render_template('index.html', view='favorites',
+                           fav_artists=fav_artists, 
+                           fav_albums=fav_albums, 
+                           fav_tracks=fav_tracks)
+
+@app.route('/api/favorite', methods=['POST'])
+@login_required
+def toggle_favorite():
+    data = request.json
+    item_type = data.get('type')
+    item_id = data.get('id')
+    
+    if not item_type or not item_id:
+        return jsonify({'error': 'Missing data'}), 400
+        
+    # Проверяем, есть ли уже в избранном
+    existing = Favorite.query.filter_by(user_id=current_user.id, type=item_type, item_id=item_id).first()
+    
+    if existing:
+        db.session.delete(existing)
+        db.session.commit()
+        return jsonify({'status': 'removed'})
+    else:
+        new_fav = Favorite(
+            user_id=current_user.id,
+            type=item_type,
+            item_id=item_id,
+            name=data.get('title'),
+            image_url=data.get('img'),
+            sub_title=data.get('sub'),
+            link=data.get('link')
+        )
+        db.session.add(new_fav)
+        db.session.commit()
+        return jsonify({'status': 'added'})
+
+@app.route('/api/check_favorites')
+def check_favorites():
+    if not current_user.is_authenticated:
+        return jsonify([])
+    
+    favs = Favorite.query.filter_by(user_id=current_user.id).all()
+    return jsonify([f.item_id for f in favs])
 
 if __name__ == '__main__':
     app.run(debug=True)

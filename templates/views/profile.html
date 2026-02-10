@@ -1,0 +1,113 @@
+<!-- PROFILE HEADER -->
+<div class="hero-banner artist-hero hero-center">
+    <div class="hero-bg"
+        style="background-image: url('https://images.unsplash.com/photo-1493225255756-d9584f8606e9?auto=format&fit=crop&q=80');">
+    </div>
+    <div class="hero-content">
+        <!-- Avatar Placeholder -->
+        <div class="hero-img"
+            style="display: flex; align-items: center; justify-content: center; background: var(--primary); font-size: 80px; font-weight: bold; color: #fff;">
+            {{ user.username[0].upper() }}
+        </div>
+
+        <div class="hero-text">
+            <h1 class="hero-title">{{ user.username }}</h1>
+
+            <div class="hero-meta hero-meta-center">
+                <span class="tag">PRO Subscription</span>
+                <span style="color: var(--text-sub);">Member since 2026</span>
+            </div>
+
+            <div class="hero-actions hero-actions-center">
+                <div class="stats-badge">
+                    {{ fav_artists|length + fav_albums|length + fav_tracks|length }} Favorites
+                </div>
+                <a href="/logout" class="btn btn-glass" style="border-color: #ff4444; color: #ff4444;">
+                    Logout
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTIONS WRAPPER -->
+<div class="profile-content">
+    <!-- FAVORITE ARTISTS -->
+    {% if fav_artists %}
+    <div class="section-header">
+        <h2 class="section-title">Favorite Artists</h2>
+    </div>
+    <div class="scroll-row">
+        {% for f in fav_artists %}
+        <a href="/artist/{{ f.item_id }}" class="card artist-card">
+            <div class="card-img-wrapper">
+                <img src="{{ f.image_url }}" loading="lazy">
+            </div>
+            <div class="card-info">
+                <div class="title">{{ f.name }}</div>
+                <div class="sub">{{ f.sub_title }}</div>
+            </div>
+            <div class="btn-like liked"
+                onclick="event.preventDefault(); toggleLike(this, 'artist', '{{ f.item_id }}', '{{ f.name|replace('\'', '\\\'') }}', '{{ f.image_url }}', '{{ f.sub_title|replace('\'', '\\\'') }}', '{{ f.link|default('', true) }}')">
+                ♥
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- FAVORITE ALBUMS -->
+    {% if fav_albums %}
+    <div class="section-header">
+        <h2 class="section-title">Favorite Albums</h2>
+    </div>
+    <div class="grid">
+        {% for f in fav_albums %}
+        <a href="/album/{{ f.item_id }}" class="card">
+            <div class="card-img-wrapper">
+                <img src="{{ f.image_url }}" loading="lazy">
+            </div>
+            <div class="card-info">
+                <div class="title">{{ f.name }}</div>
+                <div class="sub">{{ f.sub_title }}</div>
+            </div>
+            <div class="btn-like liked"
+                onclick="event.preventDefault(); toggleLike(this, 'album', '{{ f.item_id }}', '{{ f.name|replace('\'', '\\\'') }}', '{{ f.image_url }}', '{{ f.sub_title|replace('\'', '\\\'') }}', '{{ f.link|default('', true) }}')">
+                ♥
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- FAVORITE TRACKS -->
+    {% if fav_tracks %}
+    <div class="section-header">
+        <h2 class="section-title">Favorite Tracks</h2>
+    </div>
+    <div class="song-list">
+        {% for f in fav_tracks %}
+        <div class="track-row" onclick="openMusicModal('{{ f.link }}')">
+            <img src="{{ f.image_url }}" class="track-img">
+            <div class="track-info">
+                <div class="track-title">{{ f.name }}</div>
+                <div class="track-artist">{{ f.sub_title }}</div>
+            </div>
+            <div class="btn-like liked" style="position: static; opacity: 1; transform: scale(1);"
+                onclick="event.stopPropagation(); toggleLike(this, 'song', '{{ f.item_id }}', '{{ f.name|replace('\'', '\\\'') }}', '{{ f.image_url }}', '{{ f.sub_title|replace('\'', '\\\'') }}', '{{ f.link|default('', true) }}')">
+                ♥</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- EMPTY STATE -->
+    {% if not fav_artists and not fav_albums and not fav_tracks %}
+    <div style="text-align: center; padding: 100px 0; color: var(--text-sub);">
+        <div style="font-size: 60px; margin-bottom: 20px;">🎵</div>
+        <h3>Your library is empty</h3>
+        <p style="margin-bottom: 30px;">Start searching for music and add it to your favorites.</p>
+        <a href="/" class="btn btn-primary">Find Music</a>
+    </div>
+    {% endif %}
+</div>

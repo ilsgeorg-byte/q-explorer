@@ -1,0 +1,14 @@
+{% extends "auth/layout.html" %}
+
+{% block content %}
+<h2 style="margin-bottom: 20px;">Create Account</h2>
+<form method="POST">
+    <input type="text" name="username" class="auth-input" placeholder="Username" required>
+    <input type="email" name="email" class="auth-input" placeholder="Email" required>
+    <input type="password" name="password" class="auth-input" placeholder="Password" required>
+    <button type="submit" class="auth-btn">Sign Up</button>
+</form>
+<div class="auth-link">
+    Already have an account? <a href="/login">Log In</a>
+</div>
+{% endblock %}

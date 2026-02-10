@@ -1,0 +1,84 @@
+<!-- FAVORITES PAGE HEADER -->
+<div class="section-header" style="margin-top: 0;">
+    <h2 class="section-title">❤️ My Favorites</h2>
+</div>
+
+<!-- FAVORITE ARTISTS -->
+{% if fav_artists %}
+<div class="section-header">
+    <h2 class="section-title">Favorite Artists</h2>
+    <span class="btn-link">{{ fav_artists|length }} artists</span>
+</div>
+<div class="grid">
+    {% for f in fav_artists %}
+    <a href="/artist/{{ f.item_id }}" class="card artist-card">
+        <div class="card-img-wrapper">
+            <img src="{{ f.image_url }}" loading="lazy" style="object-fit: cover; object-position: center;">
+        </div>
+        <div class="card-info" style="text-align: center;">
+            <div class="title">{{ f.name }}</div>
+            <div class="sub">{{ f.sub_title }}</div>
+        </div>
+        <div class="btn-like liked"
+            onclick="event.preventDefault(); toggleLike(this, 'artist', '{{ f.item_id }}', '{{ f.name|replace('\'', '\\\'') }}', '{{ f.image_url }}', '{{ f.sub_title|replace('\'', '\\\'') }}', '{{ f.link|default('', true) }}')">
+            ♥</div>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- FAVORITE ALBUMS -->
+{% if fav_albums %}
+<div class="section-header">
+    <h2 class="section-title">Favorite Albums</h2>
+    <span class="btn-link">{{ fav_albums|length }} albums</span>
+</div>
+<div class="grid">
+    {% for f in fav_albums %}
+    <a href="/album/{{ f.item_id }}" class="card">
+        <div class="card-img-wrapper">
+            <img src="{{ f.image_url }}" loading="lazy">
+        </div>
+        <div class="card-info">
+            <div class="title">{{ f.name }}</div>
+            <div class="sub">{{ f.sub_title }}</div>
+        </div>
+        <div class="btn-like liked"
+            onclick="event.preventDefault(); toggleLike(this, 'album', '{{ f.item_id }}', '{{ f.name|replace('\'', '\\\'') }}', '{{ f.image_url }}', '{{ f.sub_title|replace('\'', '\\\'') }}', '{{ f.link|default('', true) }}')">
+            ♥</div>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- FAVORITE TRACKS -->
+{% if fav_tracks %}
+<div class="section-header">
+    <h2 class="section-title">Loved Tracks</h2>
+    <span class="btn-link">{{ fav_tracks|length }} tracks</span>
+</div>
+<div class="song-list">
+    {% for f in fav_tracks %}
+    <div class="track-row" onclick="openMusicModal('{{ f.link }}')">
+        <img src="{{ f.image_url }}" class="track-img">
+        <div class="track-info">
+            <div class="track-title">{{ f.name }}</div>
+            <div class="track-artist">{{ f.sub_title }}</div>
+        </div>
+        <div class="btn-like liked" style="position: static; opacity: 1; transform: scale(1);"
+            onclick="event.stopPropagation(); toggleLike(this, 'song', '{{ f.item_id }}', '{{ f.name|replace('\'', '\\\'') }}', '{{ f.image_url }}', '{{ f.sub_title|replace('\'', '\\\'') }}', '{{ f.link|default('', true) }}')">
+            ♥</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- EMPTY STATE -->
+{% if not fav_artists and not fav_albums and not fav_tracks %}
+<div style="text-align: center; padding: 100px 0; color: var(--text-sub);">
+    <div style="font-size: 60px; margin-bottom: 20px;">🎵</div>
+    <h3>Your library is empty</h3>
+    <p style="margin-bottom: 30px;">Start exploring music and save your favorites here.</p>
+    <a href="/" class="btn btn-primary">Explore Now</a>
+</div>
+{% endif %}
