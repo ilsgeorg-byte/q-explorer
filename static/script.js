@@ -17,31 +17,13 @@ function openMusicModal(spotifyLink, appleCollectionId, appleTrackId, youtubeLin
         img: imgUrl
     };
 
-    // --- DYNAMIC YOUTUBE BUTTON ---
+    // --- YOUTUBE BUTTON ---
     let ytBtn = document.getElementById('modal-youtube');
-
-    // If button is not in HTML, create it via JS
-    if (!ytBtn) {
-        const modalContainer = document.querySelector('.modal-card') || document.querySelector('.modal-content');
-        if (modalContainer) {
-            ytBtn = document.createElement('a');
-            ytBtn.id = 'modal-youtube';
-            ytBtn.target = '_blank';
-            // Define button class depending on modal structure
-            ytBtn.className = modalContainer.classList.contains('modal-card') ? 'platform-btn p-youtube' : 'modal-btn m-youtube';
-            ytBtn.textContent = 'YouTube Music';
-
-            // Insert before cancel button
-            const cancelBtn = modalContainer.querySelector('.p-cancel') || modalContainer.querySelector('.m-cancel');
-            if (cancelBtn) modalContainer.insertBefore(ytBtn, cancelBtn);
-            else modalContainer.appendChild(ytBtn);
-        }
-    }
 
     if (ytBtn) {
         if (youtubeLink && youtubeLink !== '#' && youtubeLink !== 'None') {
             ytBtn.href = youtubeLink;
-            ytBtn.style.display = ''; // Show (flex/block)
+            ytBtn.style.display = 'block'; // Ensure it's visible if link exists
         } else {
             ytBtn.style.display = 'none';
         }
