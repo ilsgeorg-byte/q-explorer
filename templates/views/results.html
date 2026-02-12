@@ -65,7 +65,7 @@
 <div class="song-list">
     {% for item in data.songs %}
     <div class="song-row" style="display: flex; align-items: center;"
-        onclick="openMusicModal('{{ item.spotify_link }}', '{{ item.collectionId }}', '{{ item.trackId }}', '{{ item.youtube_link }}')">
+        onclick="openMusicModal('{{ item.spotify_link }}', '{{ item.collectionId }}', '{{ item.trackId }}', '{{ item.youtube_link }}', '{{ item.trackName|replace('\'', '\\\'') }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}')">
         <img src="{{ item.artworkUrl100 }}" class="song-img">
         <div class="song-info">
             <div class="song-title">{{ item.trackName }}</div>

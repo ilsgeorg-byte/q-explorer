@@ -59,7 +59,8 @@
 </div>
 <div class="song-list">
     {% for f in fav_tracks %}
-    <div class="track-row" onclick="openMusicModal('{{ f.link }}')">
+    <div class="track-row"
+        onclick="openMusicModal('{{ f.link }}', '', '{{ f.item_id }}', '', '{{ f.name|replace('\'', '\\\'') }}', '{{ f.sub_title|replace('\'', '\\\'') }}', '{{ f.image_url }}')">
         <img src="{{ f.image_url }}" class="track-img">
         <div class="track-info">
             <div class="track-title">{{ f.name }}</div>

@@ -1,12 +1,21 @@
 /* --- SHARE & UI LOGIC --- */
-/* (Toast functions removed) */
+let currentModalTrack = null; // Store metadata for "Add to Playlist" from modal
+
 
 /* --- MODAL WINDOW --- */
-function openMusicModal(spotifyLink, appleCollectionId, appleTrackId, youtubeLink) {
+function openMusicModal(spotifyLink, appleCollectionId, appleTrackId, youtubeLink, trackTitle, artistName, imgUrl) {
     document.getElementById('modal-spotify').href = spotifyLink;
     let appleLink = `https://music.apple.com/album/${appleCollectionId}`;
     if (appleTrackId) appleLink += `?i=${appleTrackId}`;
     document.getElementById('modal-apple').href = appleLink;
+
+    // Store metadata for playlist picker
+    currentModalTrack = {
+        id: appleTrackId || appleCollectionId,
+        title: trackTitle,
+        artist: artistName,
+        img: imgUrl
+    };
 
     // --- DYNAMIC YOUTUBE BUTTON ---
     let ytBtn = document.getElementById('modal-youtube');
@@ -299,6 +308,82 @@ function removeFromPlaylist(playlistId, trackId) {
                 window.location.reload();
             } else {
                 alert('Error removing track');
+            }
+        })
+        .catch(err => console.error(err));
+}
+
+/* --- PLAYLIST PICKER --- */
+function triggerPlaylistPickerFromModal() {
+    if (!currentModalTrack) return;
+    closeMusicModal();
+    showPlaylistPicker(null, currentModalTrack.id, currentModalTrack.title, currentModalTrack.artist, currentModalTrack.img);
+}
+
+function showPlaylistPicker(btn, trackId, title, artist, img) {
+    if (btn) event.stopPropagation(); // Stop navigation if clicked from a row
+
+    // Store metadata globally for addToPlaylist
+    window.pendingTrack = { id: trackId, title, artist, img };
+
+    const modal = document.getElementById('playlist-picker-modal');
+    const list = document.getElementById('playlist-picker-list');
+    if (modal) modal.style.display = 'flex';
+    if (list) list.innerHTML = '<div class="loader-inner">Loading playlists...</div>';
+
+    fetch('/api/playlists/list')
+        .then(res => {
+            if (res.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (!data || data.length === 0) {
+                list.innerHTML = `<div style="padding:20px; text-align:center;">
+                    You have no playlists.<br><br>
+                    <button class="btn btn-primary" onclick="showCreatePlaylistModal(); closePlaylistPicker();">Create First Playlist</button>
+                </div>`;
+                return;
+            }
+            list.innerHTML = data.map(p => `
+                <div class="playlist-picker-item" onclick="confirmAddToPlaylist(${p.id})">
+                    <span>📁 ${p.name}</span>
+                    <span class="count">${p.count} tracks</span>
+                </div>
+            `).join('');
+        })
+        .catch(err => {
+            list.innerHTML = '<div style="padding:20px; color:red;">Error loading playlists</div>';
+        });
+}
+
+function closePlaylistPicker() {
+    const modal = document.getElementById('playlist-picker-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function confirmAddToPlaylist(playlistId) {
+    if (!window.pendingTrack) return;
+
+    fetch('/api/playlists/add-track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            playlist_id: playlistId,
+            track: window.pendingTrack
+        })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'added') {
+                alert('Track added to playlist!');
+                closePlaylistPicker();
+            } else if (data.status === 'already_exists') {
+                alert('Track is already in this playlist');
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
             }
         })
         .catch(err => console.error(err));

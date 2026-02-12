@@ -1,0 +1,52 @@
+<div id="playlist-picker-modal" class="modal-overlay" onclick="closePlaylistPicker()">
+    <div class="modal-content glass-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Add to Playlist</h3>
+            <button class="btn-close" onclick="closePlaylistPicker()">&times;</button>
+        </div>
+        <div id="playlist-picker-list" class="modal-body">
+            <!-- Playlists will be injected here -->
+            <div class="loader-inner">Loading playlists...</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-glass" onclick="showCreatePlaylistModal(); closePlaylistPicker();">＋ Create New
+                Playlist</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(8px);
+        z-index: 2100;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .playlist-picker-item {
+        padding: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .playlist-picker-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .playlist-picker-item:last-child {
+        border-bottom: none;
+    }
+
+    .playlist-picker-item .count {
+        font-size: 12px;
+        color: var(--text-sub);
+    }
+</style>

@@ -32,7 +32,7 @@
 <div class="song-list">
     {% for song in songs %}
     <div class="track-row"
-        onclick="openMusicModal('{{ song.spotify_link }}', '{{ album.collectionId }}', '{{ song.trackId }}', '{{ song.youtube_link }}')">
+        onclick="openMusicModal('{{ song.spotify_link }}', '{{ album.collectionId }}', '{{ song.trackId }}', '{{ song.youtube_link }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ album.artistName|replace('\'', '\\\'') }}', '{{ album.artworkUrl100 }}')">
         <div class="track-num">{{ song.trackNumber }}</div>
         <div class="track-info">
             <div class="track-title">{{ song.trackName }}</div>
