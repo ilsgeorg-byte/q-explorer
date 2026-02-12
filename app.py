@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from models import db, User, Favorite
+from models import db, User, Favorite, Playlist, PlaylistItem
 from api_clients import (
     search_itunes, lookup_itunes, get_true_artist_image, 
     get_lastfm_artist_data, get_lastfm_album_stats, get_similar_artists,
@@ -481,28 +481,32 @@ def logout():
 @app.route('/profile')
 @login_required
 def profile():
-    # Загружаем избранное
+    # Загружаем избранное и плейлисты
     fav_artists = Favorite.query.filter_by(user_id=current_user.id, type='artist').all()
     fav_albums = Favorite.query.filter_by(user_id=current_user.id, type='album').all()
     fav_tracks = Favorite.query.filter_by(user_id=current_user.id, type='song').all()
+    playlists = Playlist.query.filter_by(user_id=current_user.id).all()
     
     return render_template('index.html', view='profile', user=current_user, 
                            fav_artists=fav_artists, 
                            fav_albums=fav_albums, 
-                           fav_tracks=fav_tracks)
+                           fav_tracks=fav_tracks,
+                           playlists=playlists)
 
 @app.route('/favorites')
 @login_required
 def favorites():
-    # Загружаем избранное
+    # Загружаем избранное и плейлисты
     fav_artists = Favorite.query.filter_by(user_id=current_user.id, type='artist').all()
     fav_albums = Favorite.query.filter_by(user_id=current_user.id, type='album').all()
     fav_tracks = Favorite.query.filter_by(user_id=current_user.id, type='song').all()
+    playlists = Playlist.query.filter_by(user_id=current_user.id).all()
     
     return render_template('index.html', view='favorites',
                            fav_artists=fav_artists, 
                            fav_albums=fav_albums, 
-                           fav_tracks=fav_tracks)
+                           fav_tracks=fav_tracks,
+                           playlists=playlists)
 
 @app.route('/api/favorite', methods=['POST'])
 @login_required
@@ -542,6 +546,117 @@ def check_favorites():
     
     favs = Favorite.query.filter_by(user_id=current_user.id).all()
     return jsonify([f.item_id for f in favs])
+
+# --- PLAYLIST ROUTES ---
+
+@app.route('/playlists')
+@login_required
+def playlists():
+    user_playlists = Playlist.query.filter_by(user_id=current_user.id).order_by(Playlist.created_at.desc()).all()
+    return render_template('index.html', view='playlists', playlists=user_playlists)
+
+@app.route('/playlist/<int:playlist_id>')
+@login_required
+def playlist_detail(playlist_id):
+    playlist = Playlist.query.get_or_404(playlist_id)
+    if playlist.user_id != current_user.id:
+        return "Access denied", 403
+    
+    return render_template('index.html', view='playlist_detail', playlist=playlist)
+
+@app.route('/api/playlists/create', methods=['POST'])
+@login_required
+def create_playlist():
+    data = request.json
+    name = data.get('name')
+    description = data.get('description', '')
+    
+    if not name:
+        return jsonify({'error': 'Name is required'}), 400
+        
+    new_playlist = Playlist(user_id=current_user.id, name=name, description=description)
+    db.session.add(new_playlist)
+    db.session.commit()
+    
+    return jsonify({
+        'status': 'success',
+        'playlist': {
+            'id': new_playlist.id,
+            'name': new_playlist.name
+        }
+    })
+
+@app.route('/api/playlists/add-track', methods=['POST'])
+@login_required
+def add_to_playlist():
+    data = request.json
+    playlist_id = data.get('playlist_id')
+    track_data = data.get('track') # {id, title, artist, img}
+    
+    if not playlist_id or not track_data:
+        return jsonify({'error': 'Missing data'}), 400
+        
+    playlist = Playlist.query.get_or_404(playlist_id)
+    if playlist.user_id != current_user.id:
+        return jsonify({'error': 'Access denied'}), 403
+        
+    # Проверяем, нет ли уже этого трека в плейлисте
+    existing = PlaylistItem.query.filter_by(playlist_id=playlist_id, track_id=str(track_data['id'])).first()
+    if existing:
+        return jsonify({'status': 'already_exists'})
+        
+    new_item = PlaylistItem(
+        playlist_id=playlist_id,
+        track_id=str(track_data['id']),
+        title=track_data['title'],
+        artist_name=track_data.get('artist'),
+        image_url=track_data.get('img')
+    )
+    db.session.add(new_item)
+    db.session.commit()
+    
+    return jsonify({'status': 'added'})
+
+@app.route('/api/playlists/remove-track', methods=['POST'])
+@login_required
+def remove_from_playlist():
+    data = request.json
+    playlist_id = data.get('playlist_id')
+    track_id = str(data.get('track_id'))
+    
+    item = PlaylistItem.query.filter_by(playlist_id=playlist_id, track_id=track_id).first()
+    if not item:
+        return jsonify({'error': 'Item not found'}), 404
+        
+    if item.playlist.user_id != current_user.id:
+        return jsonify({'error': 'Access denied'}), 403
+        
+    db.session.delete(item)
+    db.session.commit()
+    
+    return jsonify({'status': 'removed'})
+
+@app.route('/api/playlists/delete/<int:playlist_id>', methods=['POST'])
+@login_required
+def delete_playlist(playlist_id):
+    playlist = Playlist.query.get_or_404(playlist_id)
+    if playlist.user_id != current_user.id:
+        return jsonify({'error': 'Access denied'}), 403
+        
+    db.session.delete(playlist)
+    db.session.commit()
+    
+    return jsonify({'status': 'deleted'})
+
+@app.route('/api/playlists/list')
+@login_required
+def list_playlists_api():
+    user_playlists = Playlist.query.filter_by(user_id=current_user.id).all()
+    return jsonify([{
+        'id': p.id,
+        'name': p.name,
+        'count': len(p.items)
+    } for p in user_playlists])
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,64 @@
+<section class="playlist-detail animate-in">
+    <div class="playlist-header glass-card">
+        <div class="playlist-cover">
+            {% if playlist.items %}
+            <img src="{{ playlist.items[0].image_url|replace('100x100bb', '600x600bb') }}" alt="{{ playlist.name }}">
+            {% else %}
+            <div class="empty-art-large">🎵</div>
+            {% endif %}
+        </div>
+        <div class="playlist-meta">
+            <span class="label">Плейлист</span>
+            <h1>{{ playlist.name }}</h1>
+            {% if playlist.description %}
+            <p class="description">{{ playlist.description }}</p>
+            {% endif %}
+            <div class="stats">
+                <span>{{ playlist.owner.username }}</span>
+                <span class="dot">•</span>
+                <span>{{ playlist.items|length }} треков</span>
+                <span class="dot">•</span>
+                <span>Создан {{ playlist.created_at.strftime('%d.%m.%Y') }}</span>
+            </div>
+            <div class="actions">
+                <button class="btn-primary" onclick="playPlaylist({{ playlist.id }})">Слушать всё</button>
+                <button class="btn-glass" onclick="deletePlaylist({{ playlist.id }}, true)">Удалить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="tracks-container">
+        <h2 class="tracks-title">Треки</h2>
+        {% if playlist.items %}
+        <div class="song-list card-grid">
+            {% for item in playlist.items %}
+            <div class="song-card glass-card animate-in-up" style="animation-delay: {{ loop.index * 0.05 }}s">
+                <div class="song-art">
+                    <img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy">
+                    <div class="song-overlay">
+                        <a href="https://music.youtube.com/search?q={{ item.artist_name|urlencode }}+{{ item.title|urlencode }}"
+                            target="_blank" class="play-btn">▶</a>
+                    </div>
+                </div>
+                <div class="song-info">
+                    <div class="song-main">
+                        <span class="song-title">{{ item.title }}</span>
+                        <span class="song-artist">{{ item.artist_name }}</span>
+                    </div>
+                    <div class="song-actions">
+                        <button class="btn-icon remove-track"
+                            onclick="removeFromPlaylist({{ playlist.id }}, '{{ item.track_id }}')"
+                            title="Удалить из плейлиста">✕</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-tracks glass-card">
+            <p>В этом плейлисте пока нет треков. Добавьте что-нибудь из поиска!</p>
+            <a href="/" class="btn-glass">Найти музыку</a>
+        </div>
+        {% endif %}
+    </div>
+</section>

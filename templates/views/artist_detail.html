@@ -54,9 +54,15 @@
             <div class="song-artist" style="opacity: 0.7;">{{ song.collectionName }}</div>
         </div>
         <!-- Лайк -->
-        <div class="btn-like song-like" style="margin-left: auto; position: static;"
-            onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">
-            ♥</div>
+        <div class="song-actions" style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
+            <div class="btn-playlist btn-icon" style="cursor: pointer; font-size: 20px;"
+                onclick="showPlaylistPicker(this, '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}')">
+                ＋
+            </div>
+            <div class="btn-like song-like" style="position: static; opacity: 1; transform: scale(1);"
+                onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">
+                ♥</div>
+        </div>
     </div>
     {% endfor %}
 </div>

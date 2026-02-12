@@ -16,7 +16,9 @@
             <div id="history-dropdown"></div>
         </form>
         <div class="auth-nav" style="display: flex; align-items: center; gap: 15px; margin-left: 20px;">
-            {% if current_user.is_authenticated %}
+            <a href="/playlists" class="btn-link" style="color: var(--secondary);" title="My Playlists">
+                💿
+            </a>
             <a href="/favorites" class="btn-link" style="color: var(--primary);" title="My Favorites">
                 ❤️
             </a>

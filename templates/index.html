@@ -67,6 +67,16 @@
         {% if view == 'favorites' %}
         {% include 'views/favorites.html' %}
         {% endif %}
+
+        <!-- PLAYLISTS -->
+        {% if view == 'playlists' %}
+        {% include 'views/playlists.html' %}
+        {% endif %}
+
+        <!-- PLAYLIST DETAIL -->
+        {% if view == 'playlist_detail' %}
+        {% include 'views/playlist_detail.html' %}
+        {% endif %}
     </div>
 
     <!-- FOOTER ELEMENTS -->

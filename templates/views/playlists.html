@@ -1,0 +1,67 @@
+<section class="playlists-section animate-in">
+    <div class="section-header">
+        <h2 class="section-title">Мои Плейлисты</h2>
+        <button class="btn-primary" onclick="showCreatePlaylistModal()">
+            <span class="icon">＋</span> Создать Плейлист
+        </button>
+    </div>
+
+    {% if playlists %}
+    <div class="playlists-grid">
+        {% for playlist in playlists %}
+        <div class="playlist-card glass-card" onclick="window.location.href='/playlist/{{ playlist.id }}'">
+            <div class="playlist-art">
+                {% if playlist.items %}
+                <img src="{{ playlist.items[0].image_url }}" alt="{{ playlist.name }}" loading="lazy">
+                {% else %}
+                <div class="empty-art">🎵</div>
+                {% endif %}
+                <div class="art-overlay">
+                    <span class="play-icon">▶</span>
+                </div>
+            </div>
+            <div class="playlist-info">
+                <h3>{{ playlist.name }}</h3>
+                <p>{{ playlist.items|length }} треков</p>
+                <div class="playlist-actions">
+                    <button class="btn-icon delete-playlist"
+                        onclick="event.stopPropagation(); deletePlaylist({{ playlist.id }})"
+                        title="Удалить">🗑️</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state glass-card">
+        <div class="empty-icon">💿</div>
+        <h3>У вас пока нет плейлистов</h3>
+        <p>Создайте свой первый плейлист, чтобы собирать любимую музыку в одном месте.</p>
+        <button class="btn-primary" onclick="showCreatePlaylistModal()">Создать прямо сейчас</button>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Модальное окно создания плейлиста -->
+<div id="create-playlist-modal" class="modal-overlay">
+    <div class="modal-content glass-card">
+        <div class="modal-header">
+            <h3>Новый Плейлист</h3>
+            <button class="btn-close" onclick="closeCreatePlaylistModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="playlist-name">Название</label>
+                <input type="text" id="playlist-name" placeholder="Например: Рок на вечер">
+            </div>
+            <div class="form-group">
+                <label for="playlist-desc">Описание (необязательно)</label>
+                <textarea id="playlist-desc" rows="3" placeholder="О чем этот плейлист?"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-glass" onclick="closeCreatePlaylistModal()">Отмена</button>
+            <button class="btn-primary" onclick="confirmCreatePlaylist()">Создать</button>
+        </div>
+    </div>
+</div>
