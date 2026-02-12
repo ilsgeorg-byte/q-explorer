@@ -28,6 +28,16 @@
             <a id="ps-apple" class="modal-btn m-apple" target="_blank" style="display: none;">
                 Listen on Apple Music
             </a>
+
+            <div style="margin: 20px 0; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                <button class="modal-btn" onclick="copyTrackList()"
+                    style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; width: 100%;">
+                    📋 Copy Track List (Text)
+                </button>
+                <div id="ps-copy-status"
+                    style="font-size: 11px; color: var(--primary); margin-top: 5px; font-weight: 700; opacity: 0; transition: 0.3s; height: 14px;">
+                    Copied!</div>
+            </div>
         </div>
 
         <button class="modal-btn m-cancel" onclick="closePlaylistStreamingModal()">Close</button>

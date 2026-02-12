@@ -400,6 +400,7 @@ function playPlaylist(playlistId) {
 function openPlaylistStreamingModal(playlistName, songs) {
     const modal = document.getElementById('playlist-streaming-modal');
     document.getElementById('ps-title').innerText = playlistName;
+    currentPlaylistSongs = songs || [];
 
     // 1. YouTube Music Search (by playlist name)
     const ytSearchBtn = document.getElementById('ps-yt-search');
@@ -432,4 +433,29 @@ function openPlaylistStreamingModal(playlistName, songs) {
 
 function closePlaylistStreamingModal() {
     document.getElementById('playlist-streaming-modal').style.display = 'none';
+}
+
+/* --- TRACK LIST COPYING --- */
+let currentPlaylistSongs = [];
+
+function copyTrackList() {
+    if (!currentPlaylistSongs || currentPlaylistSongs.length === 0) {
+        alert("No tracks to copy");
+        return;
+    }
+
+    const text = currentPlaylistSongs.map(s => `${s.artist_name} - ${s.title}`).join('\n');
+
+    navigator.clipboard.writeText(text).then(() => {
+        const status = document.getElementById('ps-copy-status');
+        if (status) {
+            status.style.opacity = '1';
+            setTimeout(() => {
+                status.style.opacity = '0';
+            }, 2000);
+        }
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        alert('Could not copy to clipboard');
+    });
 }
