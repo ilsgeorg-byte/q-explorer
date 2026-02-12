@@ -49,20 +49,24 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # Error Handlers
-@app.errorhandler(Exception)
-def handle_exception(e):
+@app.errorhandler(500)
+def internal_error(error):
     import traceback
-    from werkzeug.exceptions import HTTPException
-    if isinstance(e, HTTPException):
-        return e
-    err_tb = traceback.format_exc()
-    print("\n--- GLOBAL ERROR CAUGHT ---")
-    print(err_tb)
-    return f"<h1>Global Error Detail</h1><pre>{err_tb}</pre>", 500
+    print("\n--- INTERNAL SERVER ERROR ---")
+    traceback.print_exc()
+    return "Internal Server Error (Check logs or terminal for details)", 500
 
 try:
     with app.app_context():
         db.create_all()
+        # Migration: Add 'position' column if it doesn't exist
+        from sqlalchemy import text
+        try:
+            db.session.execute(text('ALTER TABLE playlist_item ADD COLUMN position INTEGER DEFAULT 0'))
+            db.session.commit()
+            print("Migration: Added 'position' column to playlist_item")
+        except Exception:
+            db.session.rollback()
 except Exception as e:
     print(f"Database initialization error: {e}")
 
