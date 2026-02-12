@@ -6,25 +6,25 @@ import os
 import tempfile
 from dotenv import load_dotenv
 
-# Загружаем переменные из .env
+# Load variables from .env
 load_dotenv()
 
-# Устанавливаем кэш
-# Vercel имеет Read-Only файловую систему, кроме /tmp
-# Поэтому мы пытаемся писать в /tmp, если не получается — используем память.
+# Setup cache
+# Vercel has Read-Only file system, except /tmp
+# So we try to write to /tmp, if fail — use memory.
 
 cache_path = 'q_cache_v3'
 backend = 'sqlite'
 
-# Проверяем, можем ли мы писать в текущую директорию
+# Check if we can write to current directory
 if not os.access('.', os.W_OK):
-    # Если нет (как на Vercel), используем временную папку
+    # If not (e.g. on Vercel), use temp folder
     cache_path = os.path.join(tempfile.gettempdir(), 'q_cache')
 
 try:
     requests_cache.install_cache(cache_name=cache_path, backend=backend, expire_after=86400)
 except Exception:
-    # Если совсем все плохо (например, нет доступа к диску) — используем память
+    # If everything is bad (e.g. no disk access) — use memory
     requests_cache.install_cache(backend='memory', expire_after=86400)
 
 LASTFM_API_KEY = os.getenv("LASTFM_API_KEY")
@@ -40,17 +40,17 @@ def search_itunes(query, entity, limit):
         print(f"Error searching iTunes: {e}")
         return []
 
-# НОВАЯ ФУНКЦИЯ: Поиск через Deezer (дает картинки!)
+# NEW FUNCTION: Search via Deezer (gives images!)
 def search_deezer_artists(query, limit):
     try:
         url = f"https://api.deezer.com/search/artist?q={urllib.parse.quote(query)}&limit={limit}"
         response = requests.get(url, timeout=5)
         data = response.json().get('data', [])
         
-        # Превращаем формат Deezer в наш формат (похожий на iTunes)
+        # Transform Deezer format to our format (similar to iTunes)
         results = []
         for item in data:
-            # Форматируем количество фанатов
+            # Format fan count
             fans = item.get('nb_fan', 0)
             stats = ""
             if fans > 1000000:
@@ -61,11 +61,11 @@ def search_deezer_artists(query, limit):
                 stats = f"👥 {fans} Deezer fans"
 
             results.append({
-                'artistId': item['id'], # Это ID Deezer, но нам для картинки пойдет
+                'artistId': item['id'], # This is Deezer ID, but works for image lookup
                 'artistName': item['name'],
                 'image': item.get('picture_xl') or item.get('picture_big') or item.get('picture_medium'),
                 'primaryGenreName': 'Music',
-                'source': 'deezer', # Метка, что это Deezer
+                'source': 'deezer', # Label that this is Deezer
                 'stats': stats
             })
         return results
@@ -83,14 +83,14 @@ def lookup_itunes(id, entity=None, limit=None):
     except: return []
 
 def get_true_artist_image(artist_id):
-    # Эта функция остается для iTunes (если вдруг Deezer не сработал)
+    # This function remains for iTunes (if Deezer fails)
     try:
         if not artist_id: return None
-        # Ищем больше альбомов (60), чтобы точно пропустить все версии "черных квадратов" (Donda, Vultures)
+        # Search more albums (60) to skip "black square" covers (Donda, Vultures)
         results = lookup_itunes(artist_id, 'album', 60)
         for item in results:
             if item.get('collectionType') == 'Album' and item.get('artworkUrl100'):
-                # Фильтр для Канье Уэста: пропускаем альбом Donda (черная обложка)
+                # Filter for Kanye West: skip Donda album (black cover)
                 cname = item.get('collectionName', '').lower()
                 if 'donda' in cname or 'vultures' in cname: continue
                 return item['artworkUrl100'].replace('100x100bb', '400x400bb')
@@ -99,11 +99,11 @@ def get_true_artist_image(artist_id):
 
 def get_lastfm_artist_data(artist_name):
     """
-    Возвращает словарь с данными Last.fm:
+    Returns dict with Last.fm data:
     {
-        'stats': строка "X Last.fm listeners",
-        'bio': краткая биография,
-        'tags': список тегов
+        'stats': string "X Last.fm listeners",
+        'bio': short bio,
+        'tags': list of tags
     }
     """
     try:
@@ -117,7 +117,7 @@ def get_lastfm_artist_data(artist_name):
         if 'artist' in data:
             art = data['artist']
             
-            # 1. Stats (ДОБАВЛЯЕМ "Last.fm")
+            # 1. Stats (ADD "Last.fm")
             if 'stats' in art:
                 listeners = int(art['stats'].get('listeners', 0))
                 if listeners > 1000000: 
@@ -173,7 +173,7 @@ def get_similar_artists(artist_name, limit=5):
     return []
 
 def get_tag_info(tag):
-    """Получает описание жанра"""
+    """Gets genre description"""
     try:
         url = f"{LASTFM_URL}?method=tag.getinfo&tag={urllib.parse.quote(tag)}&api_key={LASTFM_API_KEY}&format=json"
         data = requests.get(url, timeout=2).json()
@@ -183,22 +183,22 @@ def get_tag_info(tag):
     return ""
 
 def get_tag_artists(tag, page=1, limit=30):
-    """Получает топ артистов жанра"""
+    """Gets top artists of a genre"""
     try:
         url = f"{LASTFM_URL}?method=tag.gettopartists&tag={urllib.parse.quote(tag)}&api_key={LASTFM_API_KEY}&format=json&page={page}&limit={limit}"
         response = requests.get(url, timeout=3)
         data = response.json()
         
-        # ДЕБАГ: Если снова увидите 0, посмотрите в консоль (терминал), что там печатается
+        # DEBUG: If you see 0 again, check console (terminal) for printed data
         # print(f"DEBUG TAG DATA: {data}") 
         
         artists = []
         if 'topartists' in data and 'artist' in data['topartists']:
             for art in data['topartists']['artist']:
-                # Пробуем достать listeners разными способами
+                # Try to get listeners in different ways
                 raw_listeners = art.get('listeners', 0)
                 
-                # Иногда это словарь {'#text': '123'}, иногда строка, иногда число
+                # Sometimes it is a dict {'#text': '123'}, sometimes string, sometimes number
                 if isinstance(raw_listeners, dict):
                     raw_listeners = raw_listeners.get('#text', 0)
                 

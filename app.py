@@ -63,9 +63,9 @@ login_manager.init_app(app)
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Создаем таблицы при запуске (если их нет)
-# На Vercel с SQLite это может вызвать ошибку, так как ФС только для чтения.
-# Если используется внешняя БД, это сработает.
+# Create tables on startup (if they don't exist)
+# On Vercel with SQLite this might cause an error as FS is read-only.
+# If an external DB is used, this will work.
 try:
     with app.app_context():
         db.create_all()
@@ -81,23 +81,23 @@ def index():
     results = {'artists': [], 'albums': [], 'songs': []}
     ql = query.lower()
 
-    # 1. Artists (Главная: берем 8 лучших, фильтруем дубликаты)
+    # 1. Artists (Main: take top 8, filter duplicates)
     seen_ids = set()
     seen_names = set()
     
-    # Сначала собираем кандидатов (быстро)
+    # First collect candidates (fast)
     candidates = []
-    # Запрашиваем с запасом (25)
+    # Request with margin (25)
     for art in search_itunes(query, 'musicArtist', 25):
         aid = art.get('artistId')
         name = art.get('artistName', '')
         
-        # Пропускаем без ID или уже виденных
+        # Skip if ID missing or already seen
         if not aid or aid in seen_ids: continue
-        # Пропускаем, если имя совсем не похоже (мусор в поиске)
+        # Skip if name is completely different (search noise)
         if ql not in (name or "").lower(): continue
         
-        # Фильтруем дубликаты по имени (iTunes иногда возвращает несколько "Queen" с разными ID)
+        # Filter duplicates by name (iTunes sometimes returns several "Queen" with different IDs)
         if name.lower() in seen_names: continue
         seen_names.add(name.lower())
         
@@ -106,12 +106,12 @@ def index():
         
         if len(candidates) >= 8: break
     
-    # Теперь обогащаем данные ПАРАЛЛЕЛЬНО (Deezer + Last.fm)
+    # Now enrich data PARALLELY (Deezer + Last.fm)
     def enrich_artist(art):
         name = art.get('artistName', '')
         aid = art.get('artistId')
         
-        # 1. Картинка и Статистика (Deezer)
+        # 1. Image and Stats (Deezer)
         dz = search_deezer_artists(name, 1)
         deezer_stats = None
         if dz:
@@ -122,7 +122,7 @@ def index():
             
         # 2. Статистика (Last.fm)
         lf = get_lastfm_artist_data(name)
-        # Если Last.fm вернул пустоту, берем Deezer
+            # If Last.fm returned nothing, take Deezer stats
         art['stats'] = lf.get('stats') if lf and lf.get('stats') else deezer_stats
         return art
 
@@ -160,7 +160,7 @@ def see_all(type):
     entity_map = {'artists': 'musicArtist', 'albums': 'album', 'songs': 'song'}
     entity = entity_map.get(type, 'album')
     
-    # Большой лимит для списка "Все"
+    # Large limit for "See All" list
     data = search_itunes(query, entity, 60)
     
     seen_ids = set()
@@ -177,10 +177,10 @@ def see_all(type):
             if name.lower() in seen_names: continue
             seen_names.add(name.lower())
 
-            # ВАЖНО: Тут image = None. Картинки подгрузятся через JS (Lazy Loading)
+            # IMPORTANT: image = None here. Images will load via JS (Lazy Loading)
             item['image'] = None 
             
-            # Статистику для списка "Все" не грузим (долго), только имя
+            # Stats for "See All" are not loaded (takes too long), only names
             item['stats'] = None
             
             results.append(item)
@@ -202,15 +202,15 @@ def see_all(type):
 
 @app.route('/artist/<artist_id>')
 def artist_page(artist_id):
-    # Сначала получаем базовую инфу (это быстро, 1 запрос)
+    # First get basic info (fast, 1 request)
     data = lookup_itunes(artist_id)
     if not data: return "Artist not found"
     
     artist = data[0]
     artist_name = artist.get('artistName', '')
     
-    # ПАРАЛЛЕЛЬНАЯ ЗАГРУЗКА (ThreadPoolExecutor)
-    # Запускаем 4 тяжелых запроса одновременно
+    # PARALLEL LOADING (ThreadPoolExecutor)
+    # Start 4 heavy requests simultaneously
     from concurrent.futures import ThreadPoolExecutor
     
     with ThreadPoolExecutor() as executor:
@@ -222,19 +222,19 @@ def artist_page(artist_id):
         future_songs = executor.submit(search_itunes, artist_name, 'song', 50)
         # 4. Albums (Raw)
         future_albums = executor.submit(lookup_itunes, artist_id, 'album', 200)
-        # 5. Deezer Image (Красивое фото артиста)
+        # 5. Deezer Image (Beautiful artist photo)
         future_deezer = executor.submit(search_deezer_artists, artist_name, 1)
         
-        # Собираем результаты
+        # Collect results
         lf_data = future_lf.result()
         similar = future_sim.result()
         top_songs_raw = future_songs.result()
         raw_albums_data = future_albums.result()
         deezer_data = future_deezer.result()
 
-    # --- ОБРАБОТКА ПОЛУЧЕННЫХ ДАННЫХ ---
+    # --- DATA PROCESSING ---
     
-    # 1. Применяем Last.fm
+    # 1. Apply Last.fm data
     if lf_data:
         artist['stats'] = lf_data.get('stats')
         artist['bio'] = lf_data.get('bio')
@@ -244,11 +244,11 @@ def artist_page(artist_id):
         artist['bio'] = None
         artist['tags'] = []
         
-    # Если Last.fm не дал статистику, пробуем взять из Deezer
+    # If Last.fm didn't provide stats, try Deezer
     if not artist['stats'] and deezer_data:
         artist['stats'] = deezer_data[0].get('stats')
     
-    # 2. Обрабатываем Топ Песни
+    # 2. Process Top Songs
     top_songs = []
     seen_titles = set()
     target_id = int(artist_id)
@@ -266,13 +266,13 @@ def artist_page(artist_id):
         top_songs.append(s)
         seen_titles.add(clean_title)
 
-    # Проход 1: СТРОГИЙ
+    # Pass 1: STRICT
     for s in top_songs_raw:
         if s.get('artistId') == target_id:
             add_song(s)
             if len(top_songs) >= 5: break
             
-    # Проход 2: МЯГКИЙ
+    # Pass 2: SOFT
     if len(top_songs) < 5:
         for s in top_songs_raw:
             if len(top_songs) >= 5: break
@@ -282,9 +282,9 @@ def artist_page(artist_id):
             if target_name_lower in song_artist:
                 add_song(s)
 
-    # 3. Обрабатываем Альбомы
-    # Фильтруем только альбомы (wrapperType='collection', collectionType='Album')
-    # Убираем проверку artistId, так как lookup по ID уже вернул релевантные альбомы
+    # 3. Process Albums
+    # Filter only albums (wrapperType='collection', collectionType='Album')
+    # Remove artistId check as ID lookup already returned relevant albums
     if raw_albums_data:
         raw_albums = [x for x in raw_albums_data if x.get('collectionType') == 'Album']
     else:
@@ -292,7 +292,7 @@ def artist_page(artist_id):
 
     discography = sort_albums(raw_albums)
     
-    # Выбираем лучшее изображение для шапки
+    # Select best image for header
     artist_image = None
     if discography['albums']:
         artist_image = discography['albums'][0].get('artworkUrl100')
@@ -332,15 +332,15 @@ def album_page(collection_id):
             item['youtube_link'] = generate_youtube_link(f"{item.get('artistName')} {item.get('trackName')}")
             songs.append(item)
             
-    # Сортируем по номеру диска и трека (важно для бокс-сетов)
+    # Sort by disc and track number (important for box sets)
     songs.sort(key=lambda x: (x.get('discNumber', 1), x.get('trackNumber', 1)))
             
     return render_template('index.html', view='album_detail', album=album_info, songs=songs, spotify_link=spotify_link, youtube_link=youtube_link, album_stats=album_stats)
 
-# API для JS (Lazy Loading картинок)
+# API for JS (Lazy Loading images)
 @app.route('/api/get-artist-image/<artist_id>')
 def api_get_artist_image(artist_id):
-    # 1. Сначала пробуем Deezer (нужно имя артиста)
+    # 1. First try Deezer (artist name required)
     try:
         data = lookup_itunes(artist_id)
         if data:
@@ -350,13 +350,13 @@ def api_get_artist_image(artist_id):
                 if dz: return jsonify({'image': dz[0]['image']})
     except: pass
 
-    # 2. Если не вышло — берем обложку из iTunes
+    # 2. If it fails — take from iTunes artwork
     image_url = get_true_artist_image(artist_id)
     return jsonify({'image': image_url})
 
 @app.route('/tag/<tag_name>')
 def tag_page(tag_name):
-    # Декодируем: "Glam%20rock" -> "Glam rock"
+    # Decode: "Glam%20rock" -> "Glam rock"
     decoded_tag = unquote(tag_name)
     
     page = request.args.get('page', 1, type=int)
@@ -415,19 +415,19 @@ def api_get_artist_image_by_name():
         
     return jsonify({'image': None})
 
-# НОВЫЙ МАРШРУТ: Умный редирект по имени артиста
+# NEW ROUTE: Smart redirect by artist name
 @app.route('/redirect-artist')
 def redirect_artist():
     name = request.args.get('name')
     if not name: return redirect(url_for('index'))
 
-    # Ищем артиста в iTunes (берем первого попавшегося)
+    # Search for artist in iTunes (take first one)
     results = search_itunes(name, 'musicArtist', 1)
     if results:
-        # Если нашли — сразу идем на его страницу
+        # If found — go directly to their page
         return redirect(url_for('artist_page', artist_id=results[0]['artistId']))
 
-    # Если не нашли — отправляем в обычный поиск
+    # If not found — send to regular search
     return redirect(url_for('index', q=name))
 
 # --- AUTH ROUTES ---
@@ -487,7 +487,7 @@ def logout():
 @app.route('/profile')
 @login_required
 def profile():
-    # Загружаем избранное и плейлисты
+    # Load favorites and playlists
     fav_artists = Favorite.query.filter_by(user_id=current_user.id, type='artist').all()
     fav_albums = Favorite.query.filter_by(user_id=current_user.id, type='album').all()
     fav_tracks = Favorite.query.filter_by(user_id=current_user.id, type='song').all()
@@ -524,7 +524,7 @@ def toggle_favorite():
     if not item_type or not item_id:
         return jsonify({'error': 'Missing data'}), 400
         
-    # Проверяем, есть ли уже в избранном
+    # Check if already in favorites
     existing = Favorite.query.filter_by(user_id=current_user.id, type=item_type, item_id=item_id).first()
     
     if existing:

@@ -1,7 +1,7 @@
 /* --- SHARE & UI LOGIC --- */
 /* (Toast functions removed) */
 
-/* --- МОДАЛЬНОЕ ОКНО --- */
+/* --- MODAL WINDOW --- */
 function openMusicModal(spotifyLink, appleCollectionId, appleTrackId, youtubeLink) {
     document.getElementById('modal-spotify').href = spotifyLink;
     let appleLink = `https://music.apple.com/album/${appleCollectionId}`;
@@ -11,18 +11,18 @@ function openMusicModal(spotifyLink, appleCollectionId, appleTrackId, youtubeLin
     // --- DYNAMIC YOUTUBE BUTTON ---
     let ytBtn = document.getElementById('modal-youtube');
 
-    // Если кнопки нет в HTML (пользователь не обновил modal.html), создаем её через JS
+    // If button is not in HTML, create it via JS
     if (!ytBtn) {
         const modalContainer = document.querySelector('.modal-card') || document.querySelector('.modal-content');
         if (modalContainer) {
             ytBtn = document.createElement('a');
             ytBtn.id = 'modal-youtube';
             ytBtn.target = '_blank';
-            // Определяем класс кнопки в зависимости от структуры модалки
+            // Define button class depending on modal structure
             ytBtn.className = modalContainer.classList.contains('modal-card') ? 'platform-btn p-youtube' : 'modal-btn m-youtube';
             ytBtn.textContent = 'YouTube Music';
 
-            // Вставляем перед кнопкой отмены
+            // Insert before cancel button
             const cancelBtn = modalContainer.querySelector('.p-cancel') || modalContainer.querySelector('.m-cancel');
             if (cancelBtn) modalContainer.insertBefore(ytBtn, cancelBtn);
             else modalContainer.appendChild(ytBtn);
@@ -32,7 +32,7 @@ function openMusicModal(spotifyLink, appleCollectionId, appleTrackId, youtubeLin
     if (ytBtn) {
         if (youtubeLink && youtubeLink !== '#' && youtubeLink !== 'None') {
             ytBtn.href = youtubeLink;
-            ytBtn.style.display = ''; // Показываем (flex/block)
+            ytBtn.style.display = ''; // Show (flex/block)
         } else {
             ytBtn.style.display = 'none';
         }
@@ -42,7 +42,7 @@ function openMusicModal(spotifyLink, appleCollectionId, appleTrackId, youtubeLin
 }
 function closeMusicModal() { document.getElementById('music-modal').style.display = 'none'; }
 
-/* --- ИСТОРИЯ --- */
+/* --- HISTORY --- */
 function getHistory() { return JSON.parse(localStorage.getItem('q_history') || '[]'); }
 function saveHistory(query) {
     if (!query) return;
@@ -77,11 +77,11 @@ document.addEventListener('click', (e) => {
     }
 });
 
-/* --- ИЗБРАННОЕ (API) --- */
+/* --- FAVORITES (API) --- */
 function toggleLike(btn, type, id, title, img, sub, link) {
     event.stopPropagation(); event.preventDefault();
 
-    // Анимация сразу для отзывчивости
+    // Animation for responsiveness
     const isLiked = btn.classList.contains('liked');
     if (isLiked) btn.classList.remove('liked');
     else btn.classList.add('liked');
@@ -93,7 +93,7 @@ function toggleLike(btn, type, id, title, img, sub, link) {
     })
         .then(res => {
             if (res.status === 401) {
-                // Если не авторизован -> на страницу входа
+                // If not authorized -> redirect to login page
                 window.location.href = '/login';
             }
             return res.json();
@@ -104,21 +104,21 @@ function toggleLike(btn, type, id, title, img, sub, link) {
         })
         .catch(err => {
             console.error(err);
-            // Откат анимации при ошибке
+            // Rollback animation on error
             if (isLiked) btn.classList.add('liked');
             else btn.classList.remove('liked');
         });
 }
 
 function checkLikedStatus() {
-    // Получаем список ID избранного с сервера
+    // Get favorites IDs from server
     fetch('/api/check_favorites')
         .then(res => res.json())
         .then(ids => {
             // ids = ['123', '456', ...]
             const likedSet = new Set(ids);
             document.querySelectorAll('.btn-like').forEach(btn => {
-                // Извлекаем ID из onclick атрибута: toggleLike(this, '...', '123', ...)
+                // Extract ID from onclick attribute: toggleLike(this, '...', '123', ...)
                 const match = btn.getAttribute('onclick').match(/toggleLike\(this, '[^']+', '([^']+)'/);
                 if (match && likedSet.has(match[1])) {
                     btn.classList.add('liked');
@@ -129,15 +129,15 @@ function checkLikedStatus() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // renderFavorites(); // Теперь рендерится на сервере в profile.html
+    // renderFavorites(); // Now rendered on server in profile.html
     checkLikedStatus();
 
-    // Плейсхолдер с подсказками
+    // Placeholder with hints
     const hints = ["Pink Floyd", "Metallica", "Taylor Swift", "Queen", "Hans Zimmer", "The Beatles", "Eminem"];
     const input = document.querySelector('input[name="q"]');
     if (input) input.placeholder = "Try: " + hints[Math.floor(Math.random() * hints.length)];
 
-    // Кнопка наверх
+    // To top button
     const scrollTopBtn = document.getElementById('scroll-top');
     if (scrollTopBtn) {
         let ticking = false;
@@ -170,18 +170,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.image) {
                     const img = document.createElement('img');
                     img.src = data.image;
-                    img.style.opacity = '0'; // Скрыта
-                    img.style.transition = 'opacity 0.5s'; // Плавное появление
+                    img.style.opacity = '0'; // Hidden
+                    img.style.transition = 'opacity 0.5s'; // Smooth fade-in
                     img.onload = () => { img.style.opacity = '1'; };
 
-                    wrapper.innerHTML = ''; // Убираем плейсхолдер
+                    wrapper.innerHTML = ''; // Remove placeholder
                     wrapper.appendChild(img);
                 }
             })
             .catch(err => console.log('No image for', artistId || artistName));
     };
 
-    // Используем Observer вместо setTimeout для реальной ленивой загрузки
+    // Use Observer instead of setTimeout for real lazy loading
     const observer = new IntersectionObserver((entries, obs) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -196,12 +196,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// ЛОАДЕР
+// LOADER
 const loader = document.getElementById('global-loader');
 const form = document.querySelector('form');
 if (form) form.addEventListener('submit', () => { if (loader) loader.style.display = 'flex'; });
 
-// Делегирование событий для ссылок
+// Event delegation for links
 document.body.addEventListener('click', (e) => {
     const link = e.target.closest('a');
     if (link) {
@@ -219,13 +219,87 @@ function goToGenre() {
     if (!input) return;
     const val = input.value.trim();
     if (val) {
-        // Кодируем, чтобы пробелы превратились в %20 (Thrash Metal -> Thrash%20Metal)
+        // Encode spaces to %20 (Thrash Metal -> Thrash%20Metal)
         window.location.href = '/tag/' + encodeURIComponent(val);
     }
 }
-// Обработка нажатия Enter в поле жанра
+// Handle Enter key in genre field
 document.addEventListener('keypress', (e) => {
     if (e.target.id === 'genre-input' && e.key === 'Enter') {
         goToGenre();
     }
 });
+
+/* --- PLAYLISTS --- */
+function showCreatePlaylistModal() {
+    const modal = document.getElementById('create-playlist-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeCreatePlaylistModal() {
+    const modal = document.getElementById('create-playlist-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function confirmCreatePlaylist() {
+    const nameInput = document.getElementById('playlist-name');
+    const descInput = document.getElementById('playlist-desc');
+    const name = nameInput ? nameInput.value.trim() : "";
+    const description = descInput ? descInput.value.trim() : "";
+
+    if (!name) {
+        alert('Please enter a playlist name');
+        return;
+    }
+
+    fetch('/api/playlists/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.reload();
+            } else {
+                alert('Error creating playlist: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => console.error(err));
+}
+
+function deletePlaylist(playlistId, confirmFirst = false) {
+    if (confirmFirst && !confirm('Are you sure you want to delete this playlist?')) return;
+
+    fetch(`/api/playlists/delete/${playlistId}`, {
+        method: 'POST'
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'deleted') {
+                window.location.href = '/playlists';
+            } else {
+                alert('Error deleting playlist');
+            }
+        })
+        .catch(err => console.error(err));
+}
+
+function removeFromPlaylist(playlistId, trackId) {
+    if (!confirm('Remove track from playlist?')) return;
+
+    fetch('/api/playlists/remove-track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playlist_id: playlistId, track_id: trackId })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'removed') {
+                window.location.reload();
+            } else {
+                alert('Error removing track');
+            }
+        })
+        .catch(err => console.error(err));
+}

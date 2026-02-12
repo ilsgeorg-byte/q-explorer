@@ -39,7 +39,7 @@
             onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">
             ♥</div>
 
-        <!-- WRAPPER ДЛЯ ЛЕНИВОЙ ЗАГРУЗКИ -->
+        <!-- WRAPPER FOR LAZY LOADING -->
         <div class="artist-img-wrapper" data-artist-id="{{ item.artistId }}">
             {% if item.image %}
             <img src="{{ item.image }}">

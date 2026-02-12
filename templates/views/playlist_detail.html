@@ -8,7 +8,7 @@
             {% endif %}
         </div>
         <div class="playlist-meta">
-            <span class="label">Плейлист</span>
+            <span class="label">Playlist</span>
             <h1>{{ playlist.name }}</h1>
             {% if playlist.description %}
             <p class="description">{{ playlist.description }}</p>
@@ -16,19 +16,19 @@
             <div class="stats">
                 <span>{{ playlist.owner.username }}</span>
                 <span class="dot">•</span>
-                <span>{{ playlist.items|length }} треков</span>
+                <span>{{ playlist.items|length }} tracks</span>
                 <span class="dot">•</span>
-                <span>Создан {{ playlist.created_at.strftime('%d.%m.%Y') }}</span>
+                <span>Created {{ playlist.created_at.strftime('%d.%m.%Y') }}</span>
             </div>
             <div class="actions">
-                <button class="btn-primary" onclick="playPlaylist({{ playlist.id }})">Слушать всё</button>
-                <button class="btn-glass" onclick="deletePlaylist({{ playlist.id }}, true)">Удалить</button>
+                <button class="btn-primary" onclick="playPlaylist({{ playlist.id }})">Listen All</button>
+                <button class="btn-glass" onclick="deletePlaylist({{ playlist.id }}, true)">Delete</button>
             </div>
         </div>
     </div>
 
     <div class="tracks-container">
-        <h2 class="tracks-title">Треки</h2>
+        <h2 class="tracks-title">Tracks</h2>
         {% if playlist.items %}
         <div class="song-list card-grid">
             {% for item in playlist.items %}
@@ -48,7 +48,7 @@
                     <div class="song-actions">
                         <button class="btn-icon remove-track"
                             onclick="removeFromPlaylist({{ playlist.id }}, '{{ item.track_id }}')"
-                            title="Удалить из плейлиста">✕</button>
+                            title="Remove from playlist">✕</button>
                     </div>
                 </div>
             </div>
@@ -56,8 +56,8 @@
         </div>
         {% else %}
         <div class="empty-tracks glass-card">
-            <p>В этом плейлисте пока нет треков. Добавьте что-нибудь из поиска!</p>
-            <a href="/" class="btn-glass">Найти музыку</a>
+            <p>This playlist has no tracks yet. Add something from the search!</p>
+            <a href="/" class="btn-glass">Find Music</a>
         </div>
         {% endif %}
     </div>

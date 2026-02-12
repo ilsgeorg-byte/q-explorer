@@ -15,13 +15,13 @@
         </div>
     </div>
 
-    <!-- Тэги -->
+    <!-- Tags -->
     <div class="hero-meta hero-meta-center">
         <span class="tag" style="color:var(--primary); border-color:var(--primary);">{{ artist.primaryGenreName
             }}</span>
         {% if artist.tags %}
         {% for tag in artist.tags %}
-        <!-- ТЕПЕРЬ ЭТО ССЫЛКА -->
+        <!-- NOW THIS IS A LINK -->
         <a href="/tag/{{ tag }}" class="tag">
             {{ tag|capitalize }}
         </a>
@@ -31,7 +31,7 @@
         {% if artist.stats %}<div class="stats-badge">{{ artist.stats }}</div>{% endif %}
     </div>
 
-    <!-- БИОГРАФИЯ -->
+    <!-- BIOGRAPHY -->
     {% if artist.bio %}
     <div class="hero-bio">
         {{ artist.bio }}
@@ -39,7 +39,7 @@
     {% endif %}
 </div>
 
-<!-- ТОП ПЕСНИ (Сразу после Hero) -->
+<!-- TOP SONGS (Immediately after Hero) -->
 {% if top_songs %}
 <div class="section-header">
     <h2 class="section-title">Top Songs</h2>
@@ -53,7 +53,7 @@
             <div class="song-title">{{ song.trackName }}</div>
             <div class="song-artist" style="opacity: 0.7;">{{ song.collectionName }}</div>
         </div>
-        <!-- Лайк -->
+        <!-- Like -->
         <div class="song-actions" style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
             <div class="btn-playlist btn-icon" style="cursor: pointer; font-size: 20px;"
                 onclick="showPlaylistPicker(this, '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}')">
@@ -74,12 +74,11 @@
 </div>
 <div class="grid">
     {% for sim in similar %}
-    <!-- Ссылка ведет на умный редирект -->
+    <!-- Link points to smart redirect -->
     <a href="/redirect-artist?name={{ sim.name }}" class="similar-card" onclick="void(0)">
 
-        <!-- Обертка для ленивой загрузки фото -->
         <div class="artist-img-wrapper" data-artist-name="{{ sim.name }}">
-            <!-- Плейсхолдер, пока грузится -->
+            <!-- Placeholder while loading -->
             <div class="artist-placeholder artist-placeholder-default">
                 {{ sim.name[:1] }}
             </div>
