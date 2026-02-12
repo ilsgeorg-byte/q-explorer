@@ -8,7 +8,7 @@
                 %} {% endif %} {% endfor %} <div class="art-collage">
                 {% for img in ns.found %}
                 <img src="{{ img|replace('100x100bb', '600x600bb') }}" loading="lazy"
-                    onload="if({{ loop.first }}) applyDynamicColors(this.src)">
+                    onload="if({{ 'true' if loop.first else 'false' }}) applyDynamicColors(this.src)">
                 {% endfor %}
         </div>
         {% else %}
@@ -48,7 +48,6 @@
         </div>
     </div>
     </div>
-    </div>
 
     <div class="tracks-container">
         {% if playlist.items %}
@@ -57,7 +56,7 @@
             {% set parts = item.track_id.split('|') %}
             {% set album_id = parts[0] %}
             <div class="track-row-compact" data-item-id="{{ item.id }}"
-                onclick="openMusicModal('', '', '{{ item.track_id }}', '', '{{ item.title|replace('\'', '\\\'') }}', '{{ item.artist_name|replace('\'', '\\\'') }}', '{{ item.image_url }}')">
+                onclick="openMusicModal('', '', '{{ item.track_id }}', '', '{{ item.title|replace('\'', '&#39;') }}', '{{ item.artist_name|replace('\'', '&#39;') }}', '{{ item.image_url }}')">
 
                 <div class="track-index">{{ loop.index }}</div>
 

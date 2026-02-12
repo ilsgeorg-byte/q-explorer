@@ -10,46 +10,31 @@ from utils import generate_spotify_link, generate_youtube_link, sort_albums
 from urllib.parse import unquote 
 from concurrent.futures import ThreadPoolExecutor
 import os
+import requests
 
 app = Flask(__name__)
 
 # --- CONFIGURATION ---
-# Vercel: Use environment variables for production. 
-# SECRET_KEY must be stable across restarts to avoid session loss.
-secret_key = os.environ.get('SECRET_KEY')
-if not secret_key:
-    print("WARNING: SECRET_KEY environment variable is not set! Using a temporary key.")
-    # Use a fallback that is stable for the duration of the process
-    secret_key = 'dev-key-please-set-in-vercel'
+secret_key = os.environ.get('SECRET_KEY') or 'dev-key-very-safe'
 app.config['SECRET_KEY'] = secret_key
 
-# Vercel: Use DATABASE_URL or POSTGRES_URL if provided
 database_url = os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL')
 
 if not database_url:
-    print("WARNING: Database environment variable (POSTGRES_URL or DATABASE_URL) is not set. Falling back to temporary SQLite.")
-    # Detect environment
     if os.name == 'nt': # Windows local
         if not os.path.exists(app.instance_path):
             os.makedirs(app.instance_path)
         database_url = 'sqlite:///' + os.path.join(app.instance_path, 'users.db')
-    else: # Vercel or Linux
-        # /tmp is the only writable directory on Vercel
+    else:
         database_url = 'sqlite:///' + os.path.join('/tmp', 'users.db')
 else:
-    # Fix for SQLAlchemy 1.4+ (Postgres URI must start with postgresql://)
     database_url = database_url.replace('postgres://', 'postgresql://')
-    # Remove query params that might break SQLAlchemy if they are not supported
-    if '?' in database_url and 'postgresql' in database_url:
-        # Vercel Postgres sometimes adds params that are fine, but let's be safe
-        pass
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Session Security (Crucial for HTTPS on Vercel)
 app.config.update(
-    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_SECURE=False if os.name == 'nt' else True,
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
 )
@@ -63,9 +48,14 @@ login_manager.init_app(app)
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Create tables on startup (if they don't exist)
-# On Vercel with SQLite this might cause an error as FS is read-only.
-# If an external DB is used, this will work.
+# Error Handlers
+@app.errorhandler(500)
+def internal_error(error):
+    import traceback
+    print("\n--- INTERNAL SERVER ERROR ---")
+    traceback.print_exc()
+    return "Internal Server Error (Check logs or terminal for details)", 500
+
 try:
     with app.app_context():
         db.create_all()
@@ -430,6 +420,7 @@ def redirect_artist():
     # If not found — send to regular search
     return redirect(url_for('index', q=name))
 
+
 # --- AUTH ROUTES ---
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -744,4 +735,8 @@ def list_playlists_api():
     } for p in user_playlists])
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    print("\n" + "="*50)
+    print("RUNNING ON PORT 5001 TO AVOID WINDOWS PORT COLLISION")
+    print("OPEN THIS LINK: http://127.0.0.1:5001")
+    print("="*50 + "\n")
+    app.run(debug=True, port=5001)
