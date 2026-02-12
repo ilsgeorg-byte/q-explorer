@@ -49,12 +49,16 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # Error Handlers
-@app.errorhandler(500)
-def internal_error(error):
+@app.errorhandler(Exception)
+def handle_exception(e):
     import traceback
-    print("\n--- INTERNAL SERVER ERROR ---")
-    traceback.print_exc()
-    return "Internal Server Error (Check logs or terminal for details)", 500
+    from werkzeug.exceptions import HTTPException
+    if isinstance(e, HTTPException):
+        return e
+    err_tb = traceback.format_exc()
+    print("\n--- GLOBAL ERROR CAUGHT ---")
+    print(err_tb)
+    return f"<h1>Global Error Detail</h1><pre>{err_tb}</pre>", 500
 
 try:
     with app.app_context():
