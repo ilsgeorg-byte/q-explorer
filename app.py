@@ -379,7 +379,6 @@ def tag_page(tag_name):
                            page=page, 
                            sort_by=sort_by)
 
-# ... (предыдущий код)
 
 @app.route('/api/get-artist-image-by-name')
 def api_get_artist_image_by_name():
