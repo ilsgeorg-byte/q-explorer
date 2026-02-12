@@ -371,3 +371,65 @@ function confirmAddToPlaylist(playlistId) {
         })
         .catch(err => console.error(err));
 }
+/* --- PLAYLIST STREAMING --- */
+function playPlaylist(playlistId) {
+    if (loader) loader.style.display = 'flex';
+
+    fetch(`/api/playlists/list`)
+        .then(res => res.json())
+        .then(playlists => {
+            const playlist = playlists.find(p => p.id === playlistId);
+            if (!playlist) throw new Error('Playlist not found');
+
+            // Get playlist details (tracks)
+            return fetch(`/playlist/${playlistId}?json=1`)
+                .then(res => res.json())
+                .then(data => {
+                    openPlaylistStreamingModal(playlist.name, data.tracks);
+                });
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error loading playlist data');
+        })
+        .finally(() => {
+            if (loader) loader.style.display = 'none';
+        });
+}
+
+function openPlaylistStreamingModal(playlistName, songs) {
+    const modal = document.getElementById('playlist-streaming-modal');
+    document.getElementById('ps-title').innerText = playlistName;
+
+    // 1. YouTube Music Search (by playlist name)
+    const ytSearchBtn = document.getElementById('ps-yt-search');
+    ytSearchBtn.href = `https://music.youtube.com/search?q=${encodeURIComponent(playlistName)}`;
+
+    // 2. First Track options (Spotify, Apple Music)
+    const spotifyBtn = document.getElementById('ps-spotify');
+    const appleBtn = document.getElementById('ps-apple');
+
+    if (songs && songs.length > 0) {
+        const first = songs[0];
+
+        // Spotify first track (search fallback if no link)
+        spotifyBtn.style.display = 'block';
+        spotifyBtn.href = `https://open.spotify.com/search/${encodeURIComponent(first.title + ' ' + first.artist_name)}`;
+
+        // Apple Music first track
+        appleBtn.style.display = 'block';
+        const parts = first.track_id.split('|');
+        const albumId = parts[0];
+        const trackId = parts.length > 1 ? parts[1] : parts[0];
+        appleBtn.href = `https://music.apple.com/album/${albumId}?i=${trackId}`;
+    } else {
+        spotifyBtn.style.display = 'none';
+        appleBtn.style.display = 'none';
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closePlaylistStreamingModal() {
+    document.getElementById('playlist-streaming-modal').style.display = 'none';
+}

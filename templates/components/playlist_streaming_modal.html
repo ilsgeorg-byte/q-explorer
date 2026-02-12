@@ -1,0 +1,35 @@
+<!-- PLAYLIST STREAMING MODAL -->
+<div id="playlist-streaming-modal" class="modal-overlay" onclick="closePlaylistStreamingModal()">
+    <div class="modal-content glass-card" onclick="event.stopPropagation()">
+        <h2 class="modal-title" id="ps-title">Listen Playlist</h2>
+        <p style="color: var(--text-sub); margin-bottom: 25px; font-size: 14px;">Choose how you want to listen to this
+            playlist</p>
+
+        <div id="ps-options">
+            <!-- YouTube Music Search -->
+            <a id="ps-yt-search" class="modal-btn m-youtube" target="_blank">
+                <span style="font-size: 16px; margin-right: 10px;">🔍</span> Search on YouTube Music
+            </a>
+
+            <div style="margin: 20px 0; display: flex; align-items: center; gap: 10px;">
+                <hr style="flex: 1; opacity: 0.1;">
+                <span
+                    style="font-size: 10px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px;">Or
+                    Start with First Track</span>
+                <hr style="flex: 1; opacity: 0.1;">
+            </div>
+
+            <!-- Spotify (First Track) -->
+            <a id="ps-spotify" class="modal-btn m-spotify" target="_blank" style="display: none;">
+                Listen on Spotify
+            </a>
+
+            <!-- Apple Music (First Track) -->
+            <a id="ps-apple" class="modal-btn m-apple" target="_blank" style="display: none;">
+                Listen on Apple Music
+            </a>
+        </div>
+
+        <button class="modal-btn m-cancel" onclick="closePlaylistStreamingModal()">Close</button>
+    </div>
+</div>

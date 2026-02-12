@@ -568,6 +568,19 @@ def playlist_detail(playlist_id):
     if playlist.user_id != current_user.id:
         return "Access denied", 403
     
+    if request.args.get('json'):
+        return jsonify({
+            'id': playlist.id,
+            'name': playlist.name,
+            'tracks': [{
+                'id': item.id,
+                'track_id': item.track_id,
+                'title': item.title,
+                'artist_name': item.artist_name,
+                'image_url': item.image_url
+            } for item in playlist.items]
+        })
+    
     return render_template('index.html', view='playlist_detail', playlist=playlist)
 
 @app.route('/api/playlists/create', methods=['POST'])
