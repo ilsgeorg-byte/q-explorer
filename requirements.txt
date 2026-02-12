@@ -7,3 +7,4 @@ requests-cache
 python-dotenv
 flask-sqlalchemy
 flask-login
+psycopg2-binary

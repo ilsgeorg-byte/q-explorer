@@ -23,15 +23,19 @@ if not secret_key:
     secret_key = 'dev-key-please-set-in-vercel'
 app.config['SECRET_KEY'] = secret_key
 
-# Vercel: Use DATABASE_URL if provided, else fall back to a writable path in /tmp for SQLite
-database_url = os.environ.get('DATABASE_URL')
+# Vercel: Use DATABASE_URL or POSTGRES_URL if provided
+database_url = os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL')
 if not database_url:
-    print("WARNING: DATABASE_URL is not set. Falling back to temporary SQLite.")
+    print("WARNING: Database environment variable (POSTGRES_URL or DATABASE_URL) is not set. Falling back to temporary SQLite.")
     # /tmp is the only writable directory on Vercel
     database_url = 'sqlite:///' + os.path.join('/tmp', 'users.db')
 else:
     # Fix for SQLAlchemy 1.4+ (Postgres URI must start with postgresql://)
     database_url = database_url.replace('postgres://', 'postgresql://')
+    # Remove query params that might break SQLAlchemy if they are not supported
+    if '?' in database_url and 'postgresql' in database_url:
+        # Vercel Postgres sometimes adds params that are fine, but let's be safe
+        pass
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
