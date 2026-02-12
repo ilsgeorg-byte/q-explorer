@@ -12,6 +12,7 @@ function openMusicModal(spotifyLink, appleCollectionId, appleTrackId, youtubeLin
     // Store metadata for playlist picker
     currentModalTrack = {
         id: appleTrackId || appleCollectionId,
+        albumId: appleCollectionId,
         title: trackTitle,
         artist: artistName,
         img: imgUrl

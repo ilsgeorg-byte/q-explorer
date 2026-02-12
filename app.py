@@ -606,14 +606,17 @@ def add_to_playlist():
     if playlist.user_id != current_user.id:
         return jsonify({'error': 'Access denied'}), 403
         
-    # Проверяем, нет ли уже этого трека в плейлисте
-    existing = PlaylistItem.query.filter_by(playlist_id=playlist_id, track_id=str(track_data['id'])).first()
+    # Combined ID to store album reference: "albumId|trackId"
+    stored_id = f"{track_data.get('albumId', '')}|{track_data['id']}" if track_data.get('albumId') else str(track_data['id'])
+
+    # Check for existing item
+    existing = PlaylistItem.query.filter_by(playlist_id=playlist_id, track_id=stored_id).first()
     if existing:
         return jsonify({'status': 'already_exists'})
         
     new_item = PlaylistItem(
         playlist_id=playlist_id,
-        track_id=str(track_data['id']),
+        track_id=stored_id,
         title=track_data['title'],
         artist_name=track_data.get('artist'),
         image_url=track_data.get('img')

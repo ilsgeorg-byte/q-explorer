@@ -1,8 +1,8 @@
 <section class="playlists-section animate-in">
     <div class="section-header">
         <h2 class="section-title">My Playlists</h2>
-        <button class="btn-primary" onclick="showCreatePlaylistModal()">
-            <span class="icon">＋</span> Create Playlist
+        <button class="btn-premium btn-premium-primary" onclick="showCreatePlaylistModal()">
+            <span class="icon" style="margin-right: 8px;">＋</span> Create Playlist
         </button>
     </div>
 
@@ -12,25 +12,32 @@
         <div class="playlist-card glass-card" onclick="window.location.href='/playlist/{{ playlist.id }}'">
             <div class="playlist-art">
                 {% if playlist.items %}
-                <img src="{{ playlist.items[0].image_url }}" alt="{{ playlist.name }}" loading="lazy">
-                {% else %}
-                <div class="empty-art">🎵</div>
-                {% endif %}
-                <div class="art-overlay">
-                    <span class="play-icon">▶</span>
-                </div>
+                {% set ns = namespace(found=[]) %}
+                {% for item in playlist.items %}
+                {% if item.image_url not in ns.found and ns.found|length < 4 %} {% set ns.found=ns.found +
+                    [item.image_url] %} {% endif %} {% endfor %} <div class="art-collage">
+                    {% for img in ns.found %}
+                    <img src="{{ img }}" loading="lazy">
+                    {% endfor %}
             </div>
-            <div class="playlist-info">
-                <h3>{{ playlist.name }}</h3>
-                <p>{{ playlist.items|length }} tracks</p>
-                <div class="playlist-actions">
-                    <button class="btn-icon delete-playlist"
-                        onclick="event.stopPropagation(); deletePlaylist('{{ playlist.id }}')"
-                        title="Delete">🗑️</button>
-                </div>
+            {% else %}
+            <div class="empty-art">🎵</div>
+            {% endif %}
+            <div class="art-overlay">
+                <span class="play-icon">▶</span>
             </div>
         </div>
-        {% endfor %}
+        <div class="playlist-info">
+            <h3>{{ playlist.name }}</h3>
+            <p>{{ playlist.items|length }} tracks</p>
+            <div class="playlist-actions">
+                <button class="btn-delete-mini"
+                    onclick="event.stopPropagation(); deletePlaylist('{{ playlist.id }}', true)"
+                    title="Delete">Delete</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
     </div>
     {% else %}
     <div class="empty-state glass-card">

@@ -2,62 +2,74 @@
     <div class="playlist-header glass-card">
         <div class="playlist-cover">
             {% if playlist.items %}
-            <img src="{{ playlist.items[0].image_url|replace('100x100bb', '600x600bb') }}" alt="{{ playlist.name }}">
-            {% else %}
-            <div class="empty-art-large">🎵</div>
-            {% endif %}
+            {% set ns = namespace(found=[]) %}
+            {% for item in playlist.items %}
+            {% if item.image_url not in ns.found and ns.found|length < 4 %} {% set ns.found=ns.found + [item.image_url]
+                %} {% endif %} {% endfor %} <div class="art-collage">
+                {% for img in ns.found %}
+                <img src="{{ img|replace('100x100bb', '600x600bb') }}" loading="lazy">
+                {% endfor %}
         </div>
-        <div class="playlist-meta">
-            <span class="label">Playlist</span>
-            <h1>{{ playlist.name }}</h1>
-            {% if playlist.description %}
-            <p class="description">{{ playlist.description }}</p>
-            {% endif %}
-            <div class="stats">
-                <span>{{ playlist.owner.username }}</span>
-                <span class="dot">•</span>
-                <span>{{ playlist.items|length }} tracks</span>
-                <span class="dot">•</span>
-                <span>Created {{ playlist.created_at.strftime('%d.%m.%Y') }}</span>
-            </div>
-            <div class="actions">
-                <button class="btn-primary" onclick="playPlaylist({{ playlist.id }})">Listen All</button>
-                <button class="btn-glass" onclick="deletePlaylist({{ playlist.id }}, true)">Delete</button>
-            </div>
+        {% else %}
+        <div class="empty-art-large">🎵</div>
+        {% endif %}
+    </div>
+    <div class="playlist-meta">
+        <span class="label">Playlist</span>
+        <h1>{{ playlist.name }}</h1>
+        {% if playlist.description %}
+        <p class="description">{{ playlist.description }}</p>
+        {% endif %}
+        <div class="stats">
+            <span>Created by <strong>{{ playlist.owner.username }}</strong></span>
+            <span class="dot">•</span>
+            <span>{{ playlist.items|length }} tracks</span>
+            <span class="dot">•</span>
+            <span style="opacity: 0.6;">{{ playlist.created_at.strftime('%d.%m.%Y') }}</span>
         </div>
+        <div class="actions">
+            <button class="btn-premium btn-premium-primary" onclick="playPlaylist({{ playlist.id }})">
+                <span style="font-size: 10px; margin-right: 8px;">▶</span> Listen All
+            </button>
+            <button class="btn-premium btn-premium-danger" onclick="deletePlaylist({{ playlist.id }}, true)">
+                Delete
+            </button>
+        </div>
+    </div>
     </div>
 
     <div class="tracks-container">
-        <h2 class="tracks-title">Tracks</h2>
         {% if playlist.items %}
-        <div class="song-list card-grid">
+        <div class="song-list-compact">
             {% for item in playlist.items %}
-            <div class="song-card glass-card animate-in-up" style="animation-delay: {{ loop.index * 0.05 }}s">
-                <div class="song-art">
+            <div class="track-row-compact animate-in-up" style="animation-delay: {{ loop.index * 0.03 }}s"
+                onclick="openMusicModal('', '', '{{ item.track_id }}', '', '{{ item.title|replace('\'', '\\\'') }}', '{{ item.artist_name|replace('\'', '\\\'') }}', '{{ item.image_url }}')">
+
+                <div class="track-num-compact">{{ loop.index }}</div>
+
+                <div class="track-info-compact">
+                    <div class="track-title-compact">{{ item.title }}</div>
+                    <div class="track-artist-compact">{{ item.artist_name }}</div>
+                </div>
+
+                <!-- RIGHT SIDE: CLICKABLE ALBUM ARTWORK -->
+                {% set album_id = item.track_id.split('|')[0] if '|' in item.track_id else '' %}
+                <div class="track-art-compact"
+                    onclick="event.stopPropagation(); if('{{ album_id }}') window.location.href='/album/{{ album_id }}'"
+                    title="Go to Album">
                     <img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy">
-                    <div class="song-overlay">
-                        <a href="https://music.youtube.com/search?q={{ item.artist_name|urlencode }}+{{ item.title|urlencode }}"
-                            target="_blank" class="play-btn">▶</a>
-                    </div>
                 </div>
-                <div class="song-info">
-                    <div class="song-main">
-                        <span class="song-title">{{ item.title }}</span>
-                        <span class="song-artist">{{ item.artist_name }}</span>
-                    </div>
-                    <div class="song-actions">
-                        <button class="btn-icon remove-track"
-                            onclick="removeFromPlaylist({{ playlist.id }}, '{{ item.track_id }}')"
-                            title="Remove from playlist">✕</button>
-                    </div>
-                </div>
+
+                <button class="btn-remove-track"
+                    onclick="event.stopPropagation(); removeFromPlaylist({{ playlist.id }}, '{{ item.track_id }}')"
+                    title="Remove from playlist">✕</button>
             </div>
             {% endfor %}
         </div>
         {% else %}
         <div class="empty-tracks glass-card">
             <p>This playlist has no tracks yet. Add something from the search!</p>
-            <a href="/" class="btn-glass">Find Music</a>
+            <a href="/" class="btn-premium btn-premium-glass">Find Music</a>
         </div>
         {% endif %}
     </div>
