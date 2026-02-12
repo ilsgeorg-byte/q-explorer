@@ -605,6 +605,45 @@ def create_playlist():
         }
     })
 
+@app.route('/api/playlists/recommendations/<int:playlist_id>')
+@login_required
+def get_playlist_recommendations(playlist_id):
+    playlist = Playlist.query.get_or_404(playlist_id)
+    if playlist.user_id != current_user.id:
+        return jsonify({'error': 'Access denied'}), 403
+        
+    if not playlist.items:
+        return jsonify([])
+        
+    # Get unique artists from playlist
+    artists = list(set([item.artist_name for item in playlist.items]))
+    if not artists: return jsonify([])
+    base_artist = artists[0]
+    
+    # Search similar tracks via iTunes
+    from urllib.parse import quote
+    url = f"https://itunes.apple.com/search?term={quote(base_artist)}&entity=song&limit=10"
+    try:
+        res = requests.get(url, timeout=5).json()
+        tracks = []
+        existing_ids = set([i.track_id.split('|')[-1] for i in playlist.items])
+        
+        for r in res.get('results', []):
+            tid = str(r.get('trackId'))
+            if tid not in existing_ids:
+                tracks.append({
+                    'id': tid,
+                    'title': r.get('trackName'),
+                    'artist': r.get('artistName'),
+                    'album': r.get('collectionName'),
+                    'img': r.get('artworkUrl100'),
+                    'albumId': r.get('collectionId')
+                })
+        return jsonify(tracks[:5])
+    except Exception as e:
+        print(f"Rec error: {e}")
+        return jsonify([])
+
 @app.route('/api/playlists/add-track', methods=['POST'])
 @login_required
 def add_to_playlist():
@@ -669,6 +708,30 @@ def delete_playlist(playlist_id):
     db.session.commit()
     
     return jsonify({'status': 'deleted'})
+
+@app.route('/api/playlists/reorder', methods=['POST'])
+@login_required
+def reorder_playlist():
+    data = request.json
+    playlist_id = data.get('playlist_id')
+    new_order = data.get('order') # List of PlaylistItem.id
+    
+    if not playlist_id or not new_order:
+        return jsonify({'error': 'Missing data'}), 400
+        
+    playlist = Playlist.query.get_or_404(playlist_id)
+    if playlist.user_id != current_user.id:
+        return jsonify({'error': 'Access denied'}), 403
+        
+    # Update positions based on the order list
+    # new_order is a list of PlaylistItem IDs in the new order
+    for index, item_id in enumerate(new_order):
+        item = PlaylistItem.query.get(item_id)
+        if item and item.playlist_id == playlist.id:
+            item.position = index
+            
+    db.session.commit()
+    return jsonify({'status': 'success'})
 
 @app.route('/api/playlists/list')
 @login_required

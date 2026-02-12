@@ -28,6 +28,7 @@
         {% include 'components/create_playlist_modal.html' %}
         {% include 'components/playlist_picker_modal.html' %}
         {% include 'components/playlist_streaming_modal.html' %}
+        {% include 'components/share_modal.html' %}
 
         <!-- VIEWS -->
 
@@ -100,6 +101,7 @@
     </footer>
     <div id="scroll-top" class="btn-glass" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 

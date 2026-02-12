@@ -7,13 +7,15 @@
             {% if item.image_url not in ns.found and ns.found|length < 4 %} {% set ns.found=ns.found + [item.image_url]
                 %} {% endif %} {% endfor %} <div class="art-collage">
                 {% for img in ns.found %}
-                <img src="{{ img|replace('100x100bb', '600x600bb') }}" loading="lazy">
+                <img src="{{ img|replace('100x100bb', '600x600bb') }}" loading="lazy"
+                    onload="if({{ loop.first }}) applyDynamicColors(this.src)">
                 {% endfor %}
         </div>
         {% else %}
-        <div class="empty-art-large">🎵</div>
+        <p class="empty-msg">No tracks in this playlist yet.</p>
         {% endif %}
     </div>
+
     <div class="playlist-meta">
         <span class="label">Playlist</span>
         <h1>{{ playlist.name }}</h1>
@@ -31,21 +33,33 @@
             <button class="btn-premium btn-premium-primary" onclick="playPlaylist({{ playlist.id }})">
                 <span style="font-size: 10px; margin-right: 8px;">▶</span> Listen All
             </button>
-            <button class="btn-premium btn-premium-danger" onclick="deletePlaylist({{ playlist.id }}, true)">
-                Delete
+            <button class="btn-premium"
+                onclick="window.confirmDelete = true; deletePlaylist({{ playlist.id }}, true)">Delete Playlist</button>
+        </div>
+
+        <div class="playlist-advanced-actions" style="margin-top: 15px; display: flex; gap: 10px;">
+            <button class="btn-glass" onclick="extendPlaylist({{ playlist.id }})"
+                style="font-size: 13px; padding: 8px 15px;">
+                ✨ Extend Playlist (Magic)
+            </button>
+            <button class="btn-glass" onclick="openShareCard()" style="font-size: 13px; padding: 8px 15px;">
+                📤 Share Card
             </button>
         </div>
+    </div>
     </div>
     </div>
 
     <div class="tracks-container">
         {% if playlist.items %}
         <div class="song-list-compact">
-            {% for item in playlist.items %}
-            <div class="track-row-compact animate-in-up" style="animation-delay: {{ loop.index * 0.03 }}s"
+            {% for item in playlist.items|sort(attribute='position') %}
+            {% set parts = item.track_id.split('|') %}
+            {% set album_id = parts[0] %}
+            <div class="track-row-compact" data-item-id="{{ item.id }}"
                 onclick="openMusicModal('', '', '{{ item.track_id }}', '', '{{ item.title|replace('\'', '\\\'') }}', '{{ item.artist_name|replace('\'', '\\\'') }}', '{{ item.image_url }}')">
 
-                <div class="track-num-compact">{{ loop.index }}</div>
+                <div class="track-index">{{ loop.index }}</div>
 
                 <div class="track-info-compact">
                     <div class="track-title-compact">{{ item.title }}</div>
@@ -73,4 +87,10 @@
         </div>
         {% endif %}
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initPlaylistSortable({{ playlist.id }});
+        });
+    </script>
 </section>

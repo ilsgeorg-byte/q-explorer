@@ -49,4 +49,5 @@ class PlaylistItem(db.Model):
     title = db.Column(db.String(255), nullable=False)
     artist_name = db.Column(db.String(255))
     image_url = db.Column(db.String(500))
+    position = db.Column(db.Integer, default=0)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -1,17 +1,17 @@
 :root {
-    --bg-dark: #050510;
+    --bg-dark: #0a0a0c;
     --bg-panel: #0f0f1a;
     --primary: #ff2e5b;
-    --primary-dim: rgba(255, 46, 91, 0.1);
+    --primary-dim: rgba(255, 46, 91, 0.15);
     --secondary: #00f2ff;
     --primary-grad: linear-gradient(135deg, #ff2e5b 0%, #ff0055 100%);
     --text-main: #ffffff;
-    --text-sub: #9494a8;
-    --card-bg: rgba(255, 255, 255, 0.03);
-    --card-hover: rgba(255, 255, 255, 0.08);
+    --text-sub: #a0a0ab;
+    --card-bg: #16161e;
+    --card-hover: #1c1c26;
     --glass: blur(12px) saturate(180%);
     --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.3);
-    --shadow-glow: 0 0 20px rgba(255, 46, 91, 0.2);
+    --shadow-glow: 0 0 20px rgba(255, 46, 91, 0.3);
     --font-main: 'Outfit', sans-serif;
     --font-display: 'Pirata One', cursive;
 }

@@ -435,6 +435,142 @@ function closePlaylistStreamingModal() {
     document.getElementById('playlist-streaming-modal').style.display = 'none';
 }
 
+/* --- DYNAMIC ACCENT COLORS --- */
+function applyDynamicColors(imgUrl) {
+    if (!imgUrl) return;
+
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = imgUrl;
+
+    img.onload = function () {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1;
+        canvas.height = 1;
+
+        ctx.drawImage(img, 0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+
+        // Convert to HSL for better control
+        const hsl = rgbToHsl(r, g, b);
+
+        // Define colors based on dominant color
+        const accentColor = `hsl(${hsl.h}, ${Math.max(hsl.s, 40)}%, ${Math.min(hsl.l, 30)}%)`;
+        const gradientColor = `hsl(${hsl.h}, ${Math.max(hsl.s, 40)}%, ${Math.min(hsl.l, 10)}%)`;
+
+        const detailView = document.querySelector('.playlist-detail');
+        if (detailView) {
+            detailView.style.setProperty('--accent-color', accentColor);
+            detailView.style.setProperty('--accent-gradient', gradientColor);
+        }
+    };
+}
+
+function rgbToHsl(r, g, b) {
+    r /= 255, g /= 255, b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+        h = s = 0;
+    } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+/* --- PLAYLIST REORDERING (Drag-and-Drop) --- */
+function initPlaylistSortable(playlistId) {
+    const list = document.querySelector('.song-list-compact');
+    if (!list || typeof Sortable === 'undefined') return;
+
+    new Sortable(list, {
+        animation: 150,
+        handle: '.track-index', // Can drag by the number
+        ghostClass: 'sortable-ghost',
+        onEnd: function () {
+            const order = Array.from(list.children).map(row => row.getAttribute('data-item-id'));
+            savePlaylistOrder(playlistId, order);
+
+            // Re-index the numbers
+            list.querySelectorAll('.track-index').forEach((el, i) => {
+                el.innerText = i + 1;
+            });
+        }
+    });
+}
+
+function savePlaylistOrder(playlistId, order) {
+    fetch('/api/playlists/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playlist_id: playlistId, order: order })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status !== 'success') console.error('Error saving order', data.error);
+        })
+        .catch(err => console.error(err));
+}
+
+/* --- MAGIC EXTEND (Recommendations) --- */
+function extendPlaylist(playlistId) {
+    if (loader) loader.style.display = 'flex';
+
+    fetch(`/api/playlists/recommendations/${playlistId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data || data.length === 0) {
+                alert("No new recommendations found for this playlist.");
+                return;
+            }
+
+            // Show recommendations in a simple way or just add them?
+            // For now, let's show a confirmation to add the first recommended track
+            const rec = data[0];
+            if (confirm(`✨ Magic Recommendation: Add "${rec.title}" by ${rec.artist} to your playlist?`)) {
+                window.pendingTrack = {
+                    id: rec.id,
+                    title: rec.title,
+                    artist: rec.artist,
+                    img: rec.img,
+                    albumId: rec.albumId
+                };
+                confirmAddToPlaylist(playlistId);
+                setTimeout(() => window.location.reload(), 1000); // Reload to show new track
+            }
+        })
+        .catch(err => console.error(err))
+        .finally(() => {
+            if (loader) loader.style.display = 'none';
+        });
+}
+
+/* --- SHARE CARD --- */
+function openShareCard() {
+    const modal = document.getElementById('share-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Generate QR code if needed (can use a simple API for now)
+        const qrImg = document.getElementById('share-qr');
+        if (qrImg) {
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href)}`;
+        }
+    }
+}
+
+function closeShareModal() {
+    document.getElementById('share-modal').style.display = 'none';
+}
+
 /* --- TRACK LIST COPYING --- */
 let currentPlaylistSongs = [];
 
