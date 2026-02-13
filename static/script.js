@@ -22,9 +22,17 @@ function openMusicModal(spotifyLink, appleCollectionId, appleTrackId, youtubeLin
     let ytBtn = document.getElementById('modal-youtube');
 
     if (ytBtn) {
-        if (youtubeLink && youtubeLink !== '#' && youtubeLink !== 'None') {
-            ytBtn.href = youtubeLink;
-            ytBtn.style.display = 'block'; // Ensure it's visible if link exists
+        let finalYtLink = youtubeLink;
+        // Fallback to search if explicit link is missing
+        if (!finalYtLink || finalYtLink === '#' || finalYtLink === 'None' || finalYtLink === '') {
+            if (trackTitle && artistName) {
+                finalYtLink = `https://music.youtube.com/search?q=${encodeURIComponent(artistName + ' ' + trackTitle)}`;
+            }
+        }
+
+        if (finalYtLink && finalYtLink !== '#' && finalYtLink !== 'None' && finalYtLink !== '') {
+            ytBtn.href = finalYtLink;
+            ytBtn.style.display = 'block';
         } else {
             ytBtn.style.display = 'none';
         }
