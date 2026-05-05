@@ -201,7 +201,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // LAZY LOADING IMAGES (IntersectionObserver)
-    const loadImage = (wrapper) => {
+    const loadImage = (img) => {
+        const src = img.getAttribute('data-src');
+        if (!src) return;
+        
+        img.src = src;
+        img.classList.remove('lazy');
+    };
+
+    // Artist image loading (special case)
+    const loadArtistImage = (wrapper) => {
         const artistId = wrapper.getAttribute('data-artist-id');
         const artistName = wrapper.getAttribute('data-artist-name');
 
@@ -228,18 +237,22 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => console.log('No image for', artistId || artistName));
     };
 
-    // Use Observer instead of setTimeout for real lazy loading
+    // Use Observer for all lazy images
     const observer = new IntersectionObserver((entries, obs) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                loadImage(entry.target);
+                if (entry.target.classList.contains('artist-img-wrapper')) {
+                    loadArtistImage(entry.target);
+                } else if (entry.target.classList.contains('lazy')) {
+                    loadImage(entry.target);
+                }
                 obs.unobserve(entry.target);
             }
         });
     }, { rootMargin: '100px' });
 
-    document.querySelectorAll('.artist-img-wrapper').forEach(wrapper => {
-        observer.observe(wrapper);
+    document.querySelectorAll('.artist-img-wrapper, .lazy').forEach(element => {
+        observer.observe(element);
     });
 });
 

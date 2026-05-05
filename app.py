@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_caching import Cache
 from models import db, User, Favorite, Playlist, PlaylistItem
 from api_clients import (
     search_itunes, lookup_itunes, get_true_artist_image, 
@@ -11,6 +12,35 @@ from urllib.parse import unquote
 from concurrent.futures import ThreadPoolExecutor
 import os
 import requests
+import hashlib
+
+# Image caching function
+def get_cached_image(url, cache_dir='static/cache'):
+    if not url:
+        return url
+    
+    # Create cache filename from URL hash
+    url_hash = hashlib.md5(url.encode()).hexdigest()
+    ext = url.split('.')[-1].split('?')[0]  # Get extension
+    if ext not in ['jpg', 'jpeg', 'png', 'gif']:
+        ext = 'jpg'
+    cache_path = f"{cache_dir}/{url_hash}.{ext}"
+    
+    # Check if cached
+    if os.path.exists(cache_path):
+        return f"/{cache_path}"
+    
+    # Download and cache
+    try:
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            with open(cache_path, 'wb') as f:
+                f.write(response.content)
+            return f"/{cache_path}"
+    except:
+        pass
+    
+    return url  # Fallback to original URL
 
 app = Flask(__name__)
 
@@ -39,7 +69,12 @@ app.config.update(
     SESSION_COOKIE_SAMESITE='Lax',
 )
 
+# Cache configuration
+app.config['CACHE_TYPE'] = 'simple'  # In-memory cache
+app.config['CACHE_DEFAULT_TIMEOUT'] = 3600  # 1 hour
+
 db.init_app(app)
+cache = Cache(app)
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
@@ -75,6 +110,12 @@ def index():
     query = request.args.get('q')
     if not query:
         return render_template('index.html', view='home')
+    
+    # Cache the search results
+    cache_key = f"search_{query}_{current_user.id if current_user.is_authenticated else 'anon'}"
+    cached_result = cache.get(cache_key)
+    if cached_result:
+        return cached_result
     
     results = {'artists': [], 'albums': [], 'songs': []}
     ql = query.lower()
@@ -145,7 +186,9 @@ def index():
             results['songs'].append(song)
     results['songs'] = results['songs'][:6]
         
-    return render_template('index.html', view='results', data=results, query=query)
+    rendered = render_template('index.html', view='results', data=results, query=query)
+    cache.set(cache_key, rendered, timeout=1800)  # Cache for 30 minutes
+    return rendered
 
 @app.route('/see-all/<type>') 
 def see_all(type):
@@ -226,6 +269,12 @@ def see_all(type):
 
 @app.route('/artist/<artist_id>')
 def artist_page(artist_id):
+    # Cache artist page
+    cache_key = f"artist_{artist_id}"
+    cached_result = cache.get(cache_key)
+    if cached_result:
+        return cached_result
+    
     # First get basic info (fast, 1 request)
     data = lookup_itunes(artist_id)
     if not data: return "Artist not found"
@@ -332,6 +381,10 @@ def artist_page(artist_id):
              artist_image = discography['singles'][0].get('artworkUrl100')
     
     return render_template('index.html', view='artist_detail', artist=artist, discography=discography, artist_image=artist_image, similar=similar, top_songs=top_songs)
+    
+    rendered = render_template('index.html', view='artist_detail', artist=artist, discography=discography, artist_image=artist_image, similar=similar, top_songs=top_songs)
+    cache.set(cache_key, rendered, timeout=3600)  # Cache for 1 hour
+    return rendered
 
 @app.route('/artist/<artist_id>/discography/<category>')
 def artist_discography(artist_id, category):

@@ -13,9 +13,9 @@
 - ✅ Add sorting/filtering options for albums and singles (e.g. release date, year, popularity).
 
 ## 2. Performance
-- Cache API results from iTunes, Deezer, and Last.fm to reduce repeated requests.
-- Cache artist and album images if possible to speed up repeated views.
-- Use lazy loading for all cards and images, not only artists.
+- ✅ Cache API results from iTunes, Deezer, and Last.fm to reduce repeated requests.
+- ✅ Cache artist and album images if possible to speed up repeated views.
+- ✅ Use lazy loading for all cards and images, not only artists.
 
 ## 3. Code Architecture
 - Refactor `app.py` into separate modules or Flask blueprints: search, artist, album, api, auth.

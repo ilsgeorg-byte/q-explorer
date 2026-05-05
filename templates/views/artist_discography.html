@@ -21,7 +21,7 @@
         <div class="btn-like"
             onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'','\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'','\\\'') }}', '')">
             ♥</div>
-        <img src="{{ item.artworkUrl100 }}">
+        <img data-src="{{ item.artworkUrl100 }}" class="lazy">
         <div class="info" style="text-align: center;">
             <div class="title">{{ item.collectionName }}</div>
             <div class="sub">
