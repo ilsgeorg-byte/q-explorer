@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, request
-from api_clients import lookup_itunes, get_lastfm_artist_data, get_similar_artists, search_deezer_artists, get_true_artist_image
+from flask import Blueprint, render_template, request, redirect, url_for
+from api_clients import lookup_itunes, get_lastfm_artist_data, get_similar_artists, search_deezer_artists, get_true_artist_image, search_itunes
 from utils import sort_albums
 from concurrent.futures import ThreadPoolExecutor
 
@@ -123,3 +123,20 @@ def artist_discography(artist_id, category):
     
     return render_template('index.html', view='artist_discography', results=paginated_results, type=category, query=artist.get('artistName', ''), artist=artist,
                           page=page, per_page=per_page, has_next=has_next, has_prev=has_prev, total=total_results, sort_by=sort_by)
+
+@artist_bp.route('/redirect-artist')
+def redirect_artist():
+    name = request.args.get('name')
+    if not name:
+        return "Artist name required", 400
+
+    # Search for the artist by name
+    results = search_itunes(name, 'musicArtist', 1)
+    if not results:
+        return f"Artist '{name}' not found", 404
+
+    artist_id = results[0].get('artistId')
+    if not artist_id:
+        return f"Artist '{name}' not found", 404
+
+    return redirect(url_for('artist.artist_page', artist_id=artist_id))

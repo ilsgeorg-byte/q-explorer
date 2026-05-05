@@ -13,6 +13,10 @@ import os
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# Ensure the Flask instance folder exists before database setup
+if not os.path.exists(app.instance_path):
+    os.makedirs(app.instance_path, exist_ok=True)
+
 # Initialize extensions
 db.init_app(app)
 cache = Cache(app)

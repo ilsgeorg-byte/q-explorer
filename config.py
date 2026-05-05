@@ -1,5 +1,10 @@
 import os
 
+basedir = os.path.abspath(os.path.dirname(__file__))
+instance_dir = os.path.join(basedir, 'instance')
+if not os.path.exists(instance_dir):
+    os.makedirs(instance_dir, exist_ok=True)
+
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-very-safe'
     
@@ -7,7 +12,7 @@ class Config:
     database_url = os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL')
     if not database_url:
         if os.name == 'nt':  # Windows local
-            database_url = 'sqlite:///instance/users.db'
+            database_url = f'sqlite:///{os.path.join(instance_dir, "users.db").replace("\\", "/")}'
         else:
             database_url = 'sqlite:///tmp/users.db'
     else:
