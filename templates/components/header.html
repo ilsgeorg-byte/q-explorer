@@ -4,7 +4,7 @@
 
         <form action="/" method="get" class="search-wrapper" onsubmit="saveHistory(this.q.value)">
             <input type="text" name="q" placeholder="Start typing..." value="{{ query if query else '' }}"
-                autocomplete="off" onfocus="showHistory()">
+                autocomplete="off" onfocus="showHistory()" oninput="showSuggestions(this.value)" id="search-input">
             <button type="submit" class="btn-search">
                 <!-- Simple search icon SVG -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -14,6 +14,7 @@
                 </svg>
             </button>
             <div id="history-dropdown"></div>
+            <div id="suggestions-dropdown"></div>
         </form>
         <div class="auth-nav" style="display: flex; align-items: center; gap: 15px; margin-left: 20px;">
             {% if current_user.is_authenticated %}

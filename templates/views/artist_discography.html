@@ -1,6 +1,15 @@
 <div class="page-header">
     <a href="/artist/{{ artist.artistId }}" class="btn-see-all" style="margin-bottom:10px; display:inline-block;">← Back to Artist</a>
     <h1 style="font-size: 24px; margin-bottom: 20px;">All {{ type|capitalize }} for {{ query }}</h1>
+    
+    <!-- Sorting Options -->
+    <div class="sort-options" style="margin-bottom: 20px;">
+        <label>Sort by:</label>
+        <select onchange="changeSort(this.value)" style="background: #151520; color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 5px;">
+            <option value="year" {% if sort_by == 'year' %}selected{% endif %}>Year</option>
+            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+        </select>
+    </div>
 </div>
 
 {% if not results %}
@@ -22,5 +31,18 @@
         </div>
     </a>
     {% endfor %}
+</div>
+{% endif %}
+
+<!-- Pagination -->
+{% if has_prev or has_next %}
+<div class="pagination" style="text-align: center; margin-top: 20px;">
+    {% if has_prev %}
+    <a href="?page={{ page - 1 }}&per_page={{ per_page }}" class="btn-see-all" style="margin-right: 10px;">Previous</a>
+    {% endif %}
+    <span>Page {{ page }} ({{ total }} total)</span>
+    {% if has_next %}
+    <a href="?page={{ page + 1 }}&per_page={{ per_page }}" class="btn-see-all" style="margin-left: 10px;">Next</a>
+    {% endif %}
 </div>
 {% endif %}

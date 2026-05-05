@@ -15,7 +15,7 @@
             {% if item.image %}
             <img src="{{ item.image }}">
             {% else %}
-            <div class="artist-placeholder"
+            <div class="artist-placeholder skeleton"
                 style="background-color: hsl({{ (item.artistName|length * 50) % 360 }}, 60%, 40%);">
                 {{ item.artistName[:1] }}
             </div>
@@ -43,7 +43,7 @@
         <div class="btn-like"
             onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">
             ♥</div>
-        <img src="{{ item.artworkUrl100 }}">
+        <img src="{{ item.artworkUrl100 }}" class="skeleton" onload="this.classList.remove('skeleton')">
         <div class="info" style="text-align: center;">
             <div class="title">{{ item.collectionName }}</div>
             <div class="sub">
@@ -66,7 +66,7 @@
     {% for item in data.songs %}
     <div class="song-row" style="display: flex; align-items: center;"
         onclick="openMusicModal('{{ item.spotify_link }}', '{{ item.collectionId }}', '{{ item.trackId }}', '{{ item.youtube_link }}', '{{ item.trackName|replace('\'', '\\\'') }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}')">
-        <img src="{{ item.artworkUrl100 }}" class="song-img">
+        <img src="{{ item.artworkUrl100 }}" class="song-img skeleton" onload="this.classList.remove('skeleton')">
         <div class="song-info">
             <div class="song-title">{{ item.trackName }}</div>
             <div class="song-artist">{{ item.artistName }}</div>

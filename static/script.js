@@ -74,8 +74,55 @@ document.addEventListener('click', (e) => {
     if (!e.target.closest('.search-container')) {
         const drop = document.getElementById('history-dropdown');
         if (drop) drop.style.display = 'none';
+        const sugg = document.getElementById('suggestions-dropdown');
+        if (sugg) sugg.style.display = 'none';
     }
 });
+
+function showSuggestions(query) {
+    const histDrop = document.getElementById('history-dropdown');
+    if (histDrop) histDrop.style.display = 'none';
+    
+    const suggDrop = document.getElementById('suggestions-dropdown');
+    if (!query || query.length < 2) {
+        suggDrop.style.display = 'none';
+        return;
+    }
+    
+    fetch(`/api/search-suggestions?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(suggestions => {
+            if (suggestions.length === 0) {
+                suggDrop.style.display = 'none';
+                return;
+            }
+            suggDrop.innerHTML = suggestions.map(item => `
+                <div class="suggestion-item" onclick="selectSuggestion('${item.text}')">
+                    <span>${item.type === 'artist' ? '👤' : '💿'} ${item.text}</span>
+                </div>`).join('');
+            suggDrop.style.display = 'block';
+        })
+        .catch(err => {
+            console.error('Suggestions error:', err);
+            suggDrop.style.display = 'none';
+        });
+}
+
+function selectSuggestion(text) {
+    const input = document.getElementById('search-input');
+    input.value = text;
+    const suggDrop = document.getElementById('suggestions-dropdown');
+    suggDrop.style.display = 'none';
+    // Optionally submit the form
+    // input.form.submit();
+}
+
+function changeSort(sortValue) {
+    const url = new URL(window.location);
+    url.searchParams.set('sort', sortValue);
+    url.searchParams.set('page', '1'); // Reset to first page
+    window.location.href = url.toString();
+}
 
 /* --- FAVORITES (API) --- */
 function toggleLike(btn, type, id, title, img, sub, link) {

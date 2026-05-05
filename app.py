@@ -118,7 +118,7 @@ def index():
         else:
             art['image'] = get_true_artist_image(aid)
             
-        # 2. Статистика (Last.fm)
+        # 2. Last.fm stats
         lf = get_lastfm_artist_data(name)
             # If Last.fm returned nothing, take Deezer stats
         art['stats'] = lf.get('stats') if lf and lf.get('stats') else deezer_stats
@@ -151,7 +151,11 @@ def index():
 def see_all(type):
     query = request.args.get('q')
     if not query: return "No query provided", 400
-        
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    sort_by = request.args.get('sort', 'relevance')
+    
     results = []
     ql = query.lower()
     
@@ -159,7 +163,7 @@ def see_all(type):
     entity = entity_map.get(type, 'album')
     
     # Large limit for "See All" list
-    data = search_itunes(query, entity, 60)
+    data = search_itunes(query, entity, 200)  # Increased limit to support pagination
     
     seen_ids = set()
     seen_names = set()
@@ -196,7 +200,29 @@ def see_all(type):
                 item['spotify_link'] = generate_spotify_link(f"{item.get('artistName')} {item.get('trackName')}")
                 results.append(item)
 
-    return render_template('index.html', view='see_all', results=results, type=type, query=query)
+    # Apply sorting
+    if sort_by == 'name':
+        if type == 'artists':
+            results.sort(key=lambda x: x.get('artistName', '').lower())
+        elif type == 'albums':
+            results.sort(key=lambda x: x.get('collectionName', '').lower())
+        elif type == 'songs':
+            results.sort(key=lambda x: x.get('trackName', '').lower())
+    elif sort_by == 'year' and type in ['albums', 'songs']:
+        results.sort(key=lambda x: x.get('releaseDate', '')[:4], reverse=True)
+    # Default 'relevance' - no sorting, keep original order
+
+    # Apply pagination
+    total_results = len(results)
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_results = results[start:end]
+    
+    has_next = end < total_results
+    has_prev = page > 1
+    
+    return render_template('index.html', view='see_all', results=paginated_results, type=type, query=query, 
+                          page=page, per_page=per_page, has_next=has_next, has_prev=has_prev, total=total_results, sort_by=sort_by)
 
 @app.route('/artist/<artist_id>')
 def artist_page(artist_id):
@@ -309,6 +335,10 @@ def artist_page(artist_id):
 
 @app.route('/artist/<artist_id>/discography/<category>')
 def artist_discography(artist_id, category):
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    sort_by = request.args.get('sort', 'year')
+    
     data = lookup_itunes(artist_id, 'album', 200)
     if not data:
         return "Artist not found", 404
@@ -321,11 +351,29 @@ def artist_discography(artist_id, category):
         return "Category not found", 404
 
     results = discography[category]
-    return render_template('index.html', view='artist_discography', results=results, type=category, query=artist.get('artistName', ''), artist=artist)
+    
+    # Apply sorting
+    if sort_by == 'name':
+        results.sort(key=lambda x: x.get('collectionName', '').lower())
+    elif sort_by == 'year':
+        results.sort(key=lambda x: x.get('releaseDate', '')[:4], reverse=True)
+    # Default 'year' for discography
+    
+    # Apply pagination
+    total_results = len(results)
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_results = results[start:end]
+    
+    has_next = end < total_results
+    has_prev = page > 1
+    
+    return render_template('index.html', view='artist_discography', results=paginated_results, type=category, query=artist.get('artistName', ''), artist=artist,
+                          page=page, per_page=per_page, has_next=has_next, has_prev=has_prev, total=total_results, sort_by=sort_by)
 
 @app.route('/album/<collection_id>')
 def album_page(collection_id):
-    # Увеличиваем лимит до 200, так как бокс-сеты могут содержать много треков
+    # Increase limit to 200 as box sets can have many tracks
     data = lookup_itunes(collection_id, 'song', 200)
     if not data: return "Album not found"
     
@@ -376,7 +424,7 @@ def tag_page(tag_name):
     page = request.args.get('page', 1, type=int)
     sort_by = request.args.get('sort', 'popularity')
     
-    # Используем decoded_tag для запросов
+    # Use decoded_tag for requests
     description = get_tag_info(decoded_tag)
     artists = get_tag_artists(decoded_tag, page, 30)
     
@@ -387,25 +435,53 @@ def tag_page(tag_name):
         
     return render_template('index.html', 
                            view='tag_detail', 
-                           tag_name=decoded_tag,  # <--- Передаем "чистое" имя
+                           tag_name=decoded_tag,  # Pass the clean name
                            description=description, 
                            artists=artists, 
                            page=page, 
                            sort_by=sort_by)
 
 
-@app.route('/api/get-artist-image-by-name')
-def api_get_artist_image_by_name():
+@app.route('/api/search-suggestions')
+def api_search_suggestions():
+    query = request.args.get('q', '').strip()
+    if not query or len(query) < 2:
+        return jsonify([])
+    
+    # Get suggestions from iTunes API
+    suggestions = []
+    try:
+        # Search for artists
+        artists = search_itunes(query, 'musicArtist', 5)
+        for artist in artists:
+            name = artist.get('artistName', '')
+            if name and query.lower() in name.lower():
+                suggestions.append({'text': name, 'type': 'artist', 'id': artist.get('artistId')})
+        
+        # Search for albums
+        albums = search_itunes(query, 'album', 5)
+        for album in albums:
+            name = album.get('collectionName', '')
+            if name and query.lower() in name.lower():
+                suggestions.append({'text': f"{name} - {album.get('artistName', '')}", 'type': 'album', 'id': album.get('collectionId')})
+        
+        # Limit to 8 suggestions
+        suggestions = suggestions[:8]
+        
+    except Exception as e:
+        print(f"Suggestions error: {e}")
+    
+    return jsonify(suggestions)
     name = request.args.get('name')
     if not name: return jsonify({'image': None})
     
-    # 1. Сначала пробуем Deezer (быстрее и красивее)
+    # 1. First try Deezer (faster and prettier)
     try:
         dz = search_deezer_artists(name, 1)
         if dz: return jsonify({'image': dz[0]['image']})
     except: pass
     
-    # 2. Если нет, ищем в iTunes (через Artist ID -> Album)
+    # 2. If not, search in iTunes (via Artist ID -> Album)
     try:
         results = search_itunes(name, 'musicArtist', 1)
         if results:
@@ -415,12 +491,12 @@ def api_get_artist_image_by_name():
     except:
         pass
 
-    # 3. Fallback: Если фото артиста нет, берем обложку первого попавшегося альбома
+    # 3. Fallback: If no artist photo, take the cover of the first available album
     try:
         albums = search_itunes(name, 'album', 60)
         for alb in albums:
             if alb.get('artworkUrl100'):
-                # Пропускаем Donda и Vultures (часто темные/пустые обложки)
+                # Skip Donda and Vultures (often dark/empty covers)
                 cname = alb.get('collectionName', '').lower()
                 if 'donda' in cname or 'vultures' in cname: continue
                 return jsonify({'image': alb['artworkUrl100'].replace('100x100bb', '400x400bb')})
@@ -517,7 +593,7 @@ def profile():
 @app.route('/favorites')
 @login_required
 def favorites():
-    # Загружаем избранное и плейлисты
+    # Load favorites and playlists
     fav_artists = Favorite.query.filter_by(user_id=current_user.id, type='artist').all()
     fav_albums = Favorite.query.filter_by(user_id=current_user.id, type='album').all()
     fav_tracks = Favorite.query.filter_by(user_id=current_user.id, type='song').all()
