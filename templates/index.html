@@ -52,6 +52,11 @@
         {% include 'views/artist_detail.html' %}
         {% endif %}
 
+        <!-- ARTIST DISCOGRAPHY -->
+        {% if view == 'artist_discography' %}
+        {% include 'views/artist_discography.html' %}
+        {% endif %}
+
         <!-- ALBUM DETAIL -->
         {% if view == 'album_detail' %}
         {% include 'views/album_detail.html' %}

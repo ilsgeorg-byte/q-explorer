@@ -125,7 +125,7 @@ def index():
         return art
 
     with ThreadPoolExecutor() as executor:
-        results['artists'] = list(executor.map(enrich_artist, candidates))
+        results['artists'] = list(executor.map(enrich_artist, candidates))[:6]
     
     # 2. Albums
     for alb in search_itunes(query, 'album', 15):
@@ -134,7 +134,7 @@ def index():
             date = alb.get('releaseDate', '')
             alb['year'] = date[:4] if date else ''
             results['albums'].append(alb)
-    results['albums'] = results['albums'][:8]
+    results['albums'] = results['albums'][:6]
     
     # 3. Songs
     for song in search_itunes(query, 'song', 15):
@@ -143,7 +143,7 @@ def index():
             song['spotify_link'] = generate_spotify_link(q)
             song['youtube_link'] = generate_youtube_link(q)
             results['songs'].append(song)
-    results['songs'] = results['songs'][:10]
+    results['songs'] = results['songs'][:6]
         
     return render_template('index.html', view='results', data=results, query=query)
 
@@ -268,12 +268,12 @@ def artist_page(artist_id):
     for s in top_songs_raw:
         if s.get('artistId') == target_id:
             add_song(s)
-            if len(top_songs) >= 5: break
+            if len(top_songs) >= 6: break
             
     # Pass 2: SOFT
-    if len(top_songs) < 5:
+    if len(top_songs) < 6:
         for s in top_songs_raw:
-            if len(top_songs) >= 5: break
+            if len(top_songs) >= 6: break
             if s.get('artistId') == target_id: continue
             
             song_artist = s.get('artistName', '').lower()
@@ -306,6 +306,22 @@ def artist_page(artist_id):
              artist_image = discography['singles'][0].get('artworkUrl100')
     
     return render_template('index.html', view='artist_detail', artist=artist, discography=discography, artist_image=artist_image, similar=similar, top_songs=top_songs)
+
+@app.route('/artist/<artist_id>/discography/<category>')
+def artist_discography(artist_id, category):
+    data = lookup_itunes(artist_id, 'album', 200)
+    if not data:
+        return "Artist not found", 404
+
+    artist = data[0]
+    raw_albums = [x for x in data if x.get('collectionType') == 'Album']
+    discography = sort_albums(raw_albums)
+
+    if category not in discography:
+        return "Category not found", 404
+
+    results = discography[category]
+    return render_template('index.html', view='artist_discography', results=results, type=category, query=artist.get('artistName', ''), artist=artist)
 
 @app.route('/album/<collection_id>')
 def album_page(collection_id):
