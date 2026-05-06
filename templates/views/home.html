@@ -5,13 +5,11 @@
     {% set trending = ['The Weeknd', 'Taylor Swift', 'Drake', 'Billie Eilish', 'Kendrick Lamar', 'Dua Lipa', 'Kanye
     West', 'Ariana Grande'] %}
     {% for name in trending %}
-    <a href="/redirect-artist?name={{ name }}" class="card artist-card">
+    <a href="/redirect-artist?name={{ name }}" class="similar-card" onclick="void(0)">
         <div class="artist-img-wrapper" data-artist-name="{{ name }}">
             <div class="artist-placeholder artist-placeholder-default">{{ name[:1] }}</div>
         </div>
-        <div class="info align-bottom" style="text-align: center;">
-            <div class="title">{{ name }}</div>
-        </div>
+        <span style="font-size: 0.9rem; font-weight: 500; max-width: 110px; line-height: 1.2;">{{ name }}</span>
     </a>
     {% endfor %}
 </div>
