@@ -1231,6 +1231,10 @@ button:hover {
     text-overflow: ellipsis;
 }
 
+.card-title {
+    margin-top: auto;
+}
+
 .card .sub,
 .card-subtitle {
     font-size: 13px;
