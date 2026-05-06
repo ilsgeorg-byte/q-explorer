@@ -113,15 +113,6 @@
         <div class="info" style="text-align: center;">
             <div class="title">{{ item.collectionName }}</div>
             <div class="sub">{{ item.releaseDate[:4] }}</div>
-            <!-- Spotify & YouTube Links -->
-            <div style="margin-top: 8px; display: flex; gap: 6px; justify-content: center;">
-                <a href="https://open.spotify.com/search/{{ item.collectionName|replace(' ', '%20') }}" target="_blank" class="btn-icon" style="font-size: 14px; padding: 4px 8px; background: #1DB954; color: white; border-radius: 4px; text-decoration: none;">
-                    Spotify
-                </a>
-                <a href="https://www.youtube.com/results?search_query={{ item.collectionName|replace(' ', '+') }}" target="_blank" class="btn-icon" style="font-size: 14px; padding: 4px 8px; background: #FF0000; color: white; border-radius: 4px; text-decoration: none;">
-                    YouTube
-                </a>
-            </div>
         </div>
     </a>
     {% endfor %}
