@@ -34,9 +34,10 @@
                 {{ artist.artistName[0]|upper }}
             </div>
         </div>
-        <div class="card-title">{{ artist.artistName }}</div>
-        <!-- Format number: 1,234,567 -> 1.2M -->
-        <div class="card-subtitle">
+        <div class="card-info">
+            <div class="title">{{ artist.artistName }}</div>
+            <!-- Format number: 1,234,567 -> 1.2M -->
+            <div class="sub">
             {% if artist.listeners > 0 %}
             {% if artist.listeners > 1000000 %}
             {{ (artist.listeners / 1000000)|round(1) }}M Listeners
