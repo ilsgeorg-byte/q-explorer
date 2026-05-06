@@ -29,8 +29,8 @@
 - ✅ Add preview/play support or direct sample links from album or track cards.
 
 ## 5. Testing and Stability
-- Add unit tests for `/see-all/...`, `/artist/<id>/discography/...`, `artist_page`, `album_page`.
-- Add template rendering tests to ensure `See All` buttons and section limits appear correctly.
+- ✅ Add unit tests for `/see-all/...`, `/artist/<id>/discography/...`, `artist_page`, `album_page`.
+- ✅ Add template rendering tests to ensure `See All` buttons and section limits appear correctly.
 
 ## 6. Accessibility
 - Add `alt` attributes to all images.
