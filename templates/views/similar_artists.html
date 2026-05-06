@@ -1,0 +1,35 @@
+<div class="page-header">
+    <a href="/artist/{{ artist_id }}" class="btn-see-all" style="margin-bottom:10px; display:inline-block;">← Back to Artist</a>
+    <h1 style="font-size: 24px; margin-bottom: 20px;">Similar Artists to {{ query }}</h1>
+</div>
+
+{% if not results %}
+<div style="text-align:center; padding: 40px; color:#666;">No similar artists found.</div>
+{% else %}
+<div class="grid">
+    {% for item in results %}
+    <a href="/redirect-artist?name={{ item.name }}" class="similar-card" onclick="void(0)">
+        <div class="artist-img-wrapper" data-artist-name="{{ item.name }}">
+            <!-- Placeholder while loading -->
+            <div class="artist-placeholder artist-placeholder-default">
+                {{ item.name[:1] }}
+            </div>
+        </div>
+        <span style="font-size: 0.9rem; font-weight: 500; max-width: 110px; line-height: 1.2;">{{ item.name }}</span>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Pagination -->
+{% if has_prev or has_next %}
+<div class="pagination" style="text-align: center; margin-top: 20px;">
+    {% if has_prev %}
+    <a href="?page={{ page - 1 }}&per_page={{ per_page }}" class="btn-see-all" style="margin-right: 10px;">Previous</a>
+    {% endif %}
+    <span>Page {{ page }} ({{ total }} total)</span>
+    {% if has_next %}
+    <a href="?page={{ page + 1 }}&per_page={{ per_page }}" class="btn-see-all" style="margin-left: 10px;">Next</a>
+    {% endif %}
+</div>
+{% endif %}

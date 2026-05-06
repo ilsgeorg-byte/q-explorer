@@ -1,0 +1,53 @@
+<div class="page-header">
+    <a href="/artist/{{ artist_id }}" class="btn-see-all" style="margin-bottom:10px; display:inline-block;">← Back to Artist</a>
+    <h1 style="font-size: 24px; margin-bottom: 20px;">Top Songs by {{ query }}</h1>
+    
+    <!-- Sorting Options -->
+    <div class="sort-options" style="margin-bottom: 20px;">
+        <label>Sort by:</label>
+        <select onchange="changeSort(this.value)" style="background: #151520; color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 5px;">
+            <option value="popularity" {% if sort_by == 'popularity' %}selected{% endif %}>Popularity</option>
+            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+        </select>
+    </div>
+</div>
+
+{% if not results %}
+<div style="text-align:center; padding: 40px; color:#666;">No songs found.</div>
+{% else %}
+<div class="song-list">
+    {% for song in results %}
+    <div class="song-row" style="display: flex; align-items: center;"
+        onclick="openMusicModal('{{ song.spotify_link }}', '{{ song.collectionId }}', '{{ song.trackId }}', '{{ song.youtube_link }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}')">
+        <img src="{{ song.artworkUrl100 }}" class="song-img">
+        <div class="song-info">
+            <div class="song-title">{{ song.trackName }}</div>
+            <div class="song-artist" style="opacity: 0.7;">{{ song.collectionName }}</div>
+        </div>
+        <!-- Like -->
+        <div class="song-actions" style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
+            <div class="btn-playlist btn-icon" style="cursor: pointer; font-size: 20px;"
+                onclick="showPlaylistPicker(this, '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}')">
+                ＋
+            </div>
+            <div class="btn-like song-like" style="position: static; opacity: 1; transform: scale(1);"
+                onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">
+                ♥</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Pagination -->
+{% if has_prev or has_next %}
+<div class="pagination" style="text-align: center; margin-top: 20px;">
+    {% if has_prev %}
+    <a href="?page={{ page - 1 }}&per_page={{ per_page }}" class="btn-see-all" style="margin-right: 10px;">Previous</a>
+    {% endif %}
+    <span>Page {{ page }} ({{ total }} total)</span>
+    {% if has_next %}
+    <a href="?page={{ page + 1 }}&per_page={{ per_page }}" class="btn-see-all" style="margin-left: 10px;">Next</a>
+    {% endif %}
+</div>
+{% endif %}

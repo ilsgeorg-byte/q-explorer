@@ -43,6 +43,9 @@
 {% if top_songs %}
 <div class="section-header">
     <h2 class="section-title">Top Songs</h2>
+    {% if top_songs|length > 6 %}
+    <a href="/artist/{{ artist.artistId }}/top-songs" class="btn-see-all">See All</a>
+    {% endif %}
 </div>
 <div class="song-list" style="margin-bottom: 30px;">
     {% for song in top_songs[:6] %}
@@ -71,6 +74,9 @@
 {% if similar %}
 <div class="section-header">
     <h2 class="section-title">Fans also like</h2>
+    {% if similar|length > 6 %}
+    <a href="/artist/{{ artist.artistId }}/similar" class="btn-see-all">See All</a>
+    {% endif %}
 </div>
 <div class="grid">
     {% for sim in similar %}
@@ -107,6 +113,15 @@
         <div class="info" style="text-align: center;">
             <div class="title">{{ item.collectionName }}</div>
             <div class="sub">{{ item.releaseDate[:4] }}</div>
+            <!-- Spotify & YouTube Links -->
+            <div style="margin-top: 8px; display: flex; gap: 6px; justify-content: center;">
+                <a href="https://open.spotify.com/search/{{ item.collectionName|replace(' ', '%20') }}" target="_blank" class="btn-icon" style="font-size: 14px; padding: 4px 8px; background: #1DB954; color: white; border-radius: 4px; text-decoration: none;">
+                    Spotify
+                </a>
+                <a href="https://www.youtube.com/results?search_query={{ item.collectionName|replace(' ', '+') }}" target="_blank" class="btn-icon" style="font-size: 14px; padding: 4px 8px; background: #FF0000; color: white; border-radius: 4px; text-decoration: none;">
+                    YouTube
+                </a>
+            </div>
         </div>
     </a>
     {% endfor %}

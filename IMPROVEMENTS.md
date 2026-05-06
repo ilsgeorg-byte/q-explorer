@@ -24,9 +24,9 @@
 - ✅ Make `sort_albums` more flexible and robust for EPs, live albums, compilations, and duplicates.
 
 ## 4. Functionality
-- Add separate pages for "All Albums" and "All Singles" per artist with filters.
-- Add "See all similar artists" and "See more top songs" on the artist page.
-- Add preview/play support or direct sample links from album or track cards.
+- ✅ Add separate pages for "All Albums" and "All Singles" per artist with filters.
+- ✅ Add "See all similar artists" and "See more top songs" on the artist page.
+- ✅ Add preview/play support or direct sample links from album or track cards.
 
 ## 5. Testing and Stability
 - Add unit tests for `/see-all/...`, `/artist/<id>/discography/...`, `artist_page`, `album_page`.

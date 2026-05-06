@@ -23,7 +23,7 @@ def artist_page(artist_id):
     artist_name = artist.get('artistName', '')
     
     # PARALLEL LOADING (ThreadPoolExecutor)
-    # Start 4 heavy requests simultaneously
+    # Start 5 heavy requests simultaneously
     with ThreadPoolExecutor() as executor:
         # 1. Last.fm Info
         future_lf = executor.submit(get_lastfm_artist_data, artist_name)
@@ -33,11 +33,14 @@ def artist_page(artist_id):
         future_dz = executor.submit(search_deezer_artists, artist_name, 1)
         # 4. Artist Image
         future_img = executor.submit(get_true_artist_image, artist_id)
+        # 5. Get all discography (separate request)
+        future_albums = executor.submit(lookup_itunes, artist_id, 'album', 200)
         
         lf = future_lf.result()
         similar = future_sim.result()
         dz = future_dz.result()
         artist_image = future_img.result()
+        albums_data = future_albums.result()
     
     # Process Last.fm data
     if lf:
@@ -56,7 +59,7 @@ def artist_page(artist_id):
             artist_image = deezer_data['image']
     
     # If Last.fm didn't provide stats, try Deezer
-    if not artist['stats'] and deezer_data:
+    if not artist.get('stats') and deezer_data:
         artist['stats'] = deezer_data.get('stats')
     
     # 2. Process Top Songs
@@ -78,8 +81,8 @@ def artist_page(artist_id):
                     top_songs.append(song)
                     if len(top_songs) >= 10: break
     
-    # 3. Process Discography
-    raw_albums = [x for x in data if x.get('collectionType') == 'Album']
+    # 3. Process Discography (from separate albums request)
+    raw_albums = [x for x in albums_data if x.get('collectionType') == 'Album'] if albums_data else []
     discography = sort_albums(raw_albums)
     
     rendered = render_template('index.html', view='artist_detail', artist=artist, discography=discography, artist_image=artist_image, similar=similar, top_songs=top_songs)
@@ -140,3 +143,86 @@ def redirect_artist():
         return f"Artist '{name}' not found", 404
 
     return redirect(url_for('artist.artist_page', artist_id=artist_id))
+
+@artist_bp.route('/artist/<artist_id>/similar')
+def similar_artists(artist_id):
+    """Show all similar artists for a given artist."""
+    from flask import current_app
+    
+    # Get artist name first
+    data = lookup_itunes(artist_id)
+    if not data:
+        return "Artist not found", 404
+    
+    artist_name = data[0].get('artistName', '')
+    
+    # Get similar artists
+    similar = get_similar_artists(artist_name)
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    
+    # Apply pagination
+    total_results = len(similar) if similar else 0
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_results = similar[start:end] if similar else []
+    
+    has_next = end < total_results
+    has_prev = page > 1
+    
+    return render_template('index.html', view='similar_artists', results=paginated_results, query=artist_name, artist_id=artist_id,
+                          page=page, per_page=per_page, has_next=has_next, has_prev=has_prev, total=total_results)
+
+@artist_bp.route('/artist/<artist_id>/top-songs')
+def artist_top_songs(artist_id):
+    """Show all top songs for a given artist."""
+    from flask import current_app
+    
+    # Get artist name
+    data = lookup_itunes(artist_id)
+    if not data:
+        return "Artist not found", 404
+    
+    artist_name = data[0].get('artistName', '')
+    
+    # Get all songs
+    top_songs = []
+    seen_titles = set()
+    target_id = int(artist_id)
+    target_name_lower = artist_name.lower()
+    
+    songs_data = lookup_itunes(artist_id, 'song', 200)
+    if songs_data:
+        for song in songs_data:
+            if song.get('artistId') == target_id or song.get('artistName', '').lower() == target_name_lower:
+                title = song.get('trackName', '')
+                if title and title not in seen_titles:
+                    seen_titles.add(title)
+                    song['spotify_link'] = f"https://open.spotify.com/search/{artist_name} {title}".replace(' ', '%20')
+                    song['youtube_link'] = f"https://www.youtube.com/results?search_query={artist_name} {title}".replace(' ', '+')
+                    top_songs.append(song)
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    sort_by = request.args.get('sort', 'popularity')
+    
+    # Apply sorting
+    if sort_by == 'name':
+        top_songs.sort(key=lambda x: x.get('trackName', '').lower())
+    elif sort_by == 'popularity':
+        # Keep original order (iTunes returns by popularity)
+        pass
+    # Default is popularity
+    
+    # Apply pagination
+    total_results = len(top_songs)
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_results = top_songs[start:end]
+    
+    has_next = end < total_results
+    has_prev = page > 1
+    
+    return render_template('index.html', view='top_songs', results=paginated_results, query=artist_name, artist_id=artist_id,
+                          page=page, per_page=per_page, has_next=has_next, has_prev=has_prev, total=total_results, sort_by=sort_by)

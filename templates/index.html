@@ -57,6 +57,16 @@
         {% include 'views/artist_discography.html' %}
         {% endif %}
 
+        <!-- SIMILAR ARTISTS -->
+        {% if view == 'similar_artists' %}
+        {% include 'views/similar_artists.html' %}
+        {% endif %}
+
+        <!-- TOP SONGS -->
+        {% if view == 'top_songs' %}
+        {% include 'views/top_songs.html' %}
+        {% endif %}
+
         <!-- ALBUM DETAIL -->
         {% if view == 'album_detail' %}
         {% include 'views/album_detail.html' %}
