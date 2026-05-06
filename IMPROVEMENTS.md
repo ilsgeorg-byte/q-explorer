@@ -19,9 +19,9 @@
 
 ## 3. Code Architecture
 - ✅ Refactor `app.py` into separate modules or Flask blueprints: search, artist, album, api, auth.
-- Move configuration out of `app.py` into `config.py` and use environment variables consistently.
-- Reduce duplicate search logic between `index()` and `see_all()` by extracting shared helper functions.
-- Make `sort_albums` more flexible and robust for EPs, live albums, compilations, and duplicates.
+- ✅ Move configuration out of `app.py` into `config.py` and use environment variables consistently.
+- ✅ Reduce duplicate search logic between `index()` and `see_all()` by extracting shared helper functions.
+- ✅ Make `sort_albums` more flexible and robust for EPs, live albums, compilations, and duplicates.
 
 ## 4. Functionality
 - Add separate pages for "All Albums" and "All Singles" per artist with filters.

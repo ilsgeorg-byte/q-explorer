@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request
 from flask_login import current_user
 from api_clients import search_itunes
-from utils import generate_spotify_link, generate_youtube_link
+from utils import generate_spotify_link, generate_youtube_link, filter_and_process_artists, filter_and_process_albums, filter_and_process_songs
 from concurrent.futures import ThreadPoolExecutor
 import re
 
@@ -25,29 +25,7 @@ def index():
     ql = query.lower()
 
     # 1. Artists (Main: take top 8, filter duplicates)
-    seen_ids = set()
-    seen_names = set()
-    
-    # First collect candidates (fast)
-    candidates = []
-    # Request with margin (25)
-    for art in search_itunes(query, 'musicArtist', 25):
-        aid = art.get('artistId')
-        name = art.get('artistName', '')
-        
-        # Skip if ID missing or already seen
-        if not aid or aid in seen_ids: continue
-        # Skip if name is completely different (search noise)
-        if ql not in (name or "").lower(): continue
-        
-        # Filter duplicates by name (iTunes sometimes returns several "Queen" with different IDs)
-        if name.lower() in seen_names: continue
-        seen_names.add(name.lower())
-        
-        candidates.append(art)
-        seen_ids.add(aid)
-        
-        if len(candidates) >= 8: break
+    candidates = filter_and_process_artists(search_itunes(query, 'musicArtist', 25), ql, limit=8)
     
     # Now enrich data PARALLELY (Deezer + Last.fm)
     def enrich_artist(art):
@@ -67,30 +45,17 @@ def index():
             
         # 2. Last.fm stats
         lf = get_lastfm_artist_data(name)
-            # If Last.fm returned nothing, take Deezer stats
         art['stats'] = lf.get('stats') if lf and lf.get('stats') else deezer_stats
         return art
 
     with ThreadPoolExecutor() as executor:
         results['artists'] = list(executor.map(enrich_artist, candidates))[:6]
     
-    # 2. Albums
-    for alb in search_itunes(query, 'album', 15):
-        if ql in (alb.get('collectionName', '') or '').lower():
-            alb['artworkUrl100'] = alb.get('artworkUrl100', '').replace('100x100bb', '300x300bb')
-            date = alb.get('releaseDate', '')
-            alb['year'] = date[:4] if date else ''
-            results['albums'].append(alb)
-    results['albums'] = results['albums'][:6]
+    # 2. Albums (use extracted function)
+    results['albums'] = filter_and_process_albums(search_itunes(query, 'album', 15), ql, limit=6)
     
-    # 3. Songs
-    for song in search_itunes(query, 'song', 15):
-        if ql in (song.get('trackName', '') or '').lower():
-            q = f"{song.get('artistName', '')} {song.get('trackName', '')}"
-            song['spotify_link'] = generate_spotify_link(q)
-            song['youtube_link'] = generate_youtube_link(q)
-            results['songs'].append(song)
-    results['songs'] = results['songs'][:6]
+    # 3. Songs (use extracted function)
+    results['songs'] = filter_and_process_songs(search_itunes(query, 'song', 15), ql, limit=6)
         
     rendered = render_template('index.html', view='results', data=results, query=query)
     cache.set(cache_key, rendered, timeout=1800)  # Cache for 30 minutes
@@ -105,45 +70,21 @@ def see_all(type):
     per_page = request.args.get('per_page', 20, type=int)
     sort_by = request.args.get('sort', 'relevance')
     
-    results = []
     ql = query.lower()
     
     entity_map = {'artists': 'musicArtist', 'albums': 'album', 'songs': 'song'}
     entity = entity_map.get(type, 'album')
     
     # Large limit for "See All" list
-    data = search_itunes(query, entity, 200)  # Increased limit to support pagination
+    data = search_itunes(query, entity, 200)
     
-    seen_ids = set()
-    seen_names = set()
-    
-    for item in data:
-        if type == 'artists':
-            aid = item.get('artistId')
-            name = item.get('artistName', '')
-            
-            if not aid or aid in seen_ids: continue
-            if ql not in (name or "").lower(): continue
-
-            if name.lower() in seen_names: continue
-            seen_names.add(name.lower())
-
-            # IMPORTANT: image = None here. Images will load via JS (Lazy Loading)
-            item['image'] = None
-            results.append(item)
-            seen_ids.add(aid)
-            
-        elif type == 'albums':
-            if item.get('collectionName') and ql in item.get('collectionName', '').lower():
-                item['artworkUrl100'] = item.get('artworkUrl100', '').replace('100x100bb', '300x300bb')
-                date = item.get('releaseDate', '')
-                item['year'] = date[:4] if date else ''
-                results.append(item)
-                
-        elif type == 'songs':
-            if item.get('trackName') and ql in item.get('trackName', '').lower():
-                item['spotify_link'] = generate_spotify_link(f"{item.get('artistName')} {item.get('trackName')}")
-                results.append(item)
+    # Use extracted filter functions
+    if type == 'artists':
+        results = filter_and_process_artists(data, ql)
+    elif type == 'albums':
+        results = filter_and_process_albums(data, ql)
+    else:  # songs
+        results = filter_and_process_songs(data, ql)
 
     # Apply sorting
     if sort_by == 'name':
@@ -168,6 +109,7 @@ def see_all(type):
     
     return render_template('index.html', view='see_all', results=paginated_results, type=type, query=query, 
                           page=page, per_page=per_page, has_next=has_next, has_prev=has_prev, total=total_results, sort_by=sort_by)
+
 
 @search_bp.route('/tag/<encoded_tag>')
 def tag_page(encoded_tag):
