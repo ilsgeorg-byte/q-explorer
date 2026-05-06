@@ -22,19 +22,19 @@
 {% if type == 'songs' %}
 <div class="song-list">
     {% for item in results %}
-    <div class="song-row" style="display: flex; align-items: center;"
+    <div class="song-row" role="button" tabindex="0" style="display: flex; align-items: center;"
         onclick="openMusicModal('{{ item.spotify_link }}', '{{ item.collectionId }}', '{{ item.trackId }}', '{{ item.youtube_link }}', '{{ item.trackName|replace('\'', '\\\'') }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}')">
-        <img data-src="{{ item.artworkUrl100 }}" class="song-img lazy">
+        <img data-src="{{ item.artworkUrl100 }}" alt="{{ item.trackName }} by {{ item.artistName }} song artwork" class="song-img lazy">
         <div class="song-info">
             <div class="song-title">{{ item.trackName }}</div>
             <div class="song-artist">{{ item.artistName }}</div>
         </div>
         <div class="song-actions" style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
-            <div class="btn-playlist btn-icon" style="cursor: pointer; font-size: 20px;"
+            <div class="btn-playlist btn-icon" role="button" tabindex="0" aria-label="Add to playlist" style="cursor: pointer; font-size: 20px;"
                 onclick="showPlaylistPicker(this, '{{ item.trackId }}', '{{ item.trackName|replace('\'', '\\\'') }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}')">
                 ＋
             </div>
-            <div class="song-like btn-like" style="position: static; opacity: 1; transform: scale(1);"
+            <div class="song-like btn-like" role="button" tabindex="0" aria-label="Add to favorites" style="position: static; opacity: 1; transform: scale(1);"
                 onclick="toggleLike(this, 'song', '{{ item.trackId }}', '{{ item.trackName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.spotify_link }}')">
                 ♥</div>
         </div>
@@ -46,14 +46,14 @@
     {% for item in results %}
     {% if type == 'artists' %}
     <a href="/artist/{{ item.artistId }}" class="card artist-card" onclick="void(0)">
-        <div class="btn-like"
+        <div class="btn-like" role="button" tabindex="0" aria-label="Add to favorites"
             onclick="toggleLike(this, 'artist', '{{ item.artistId }}', '{{ item.artistName|replace('\'', '\\\'') }}', '{{ item.image }}', '{{ item.primaryGenreName }}', '')">
             ♥</div>
 
         <!-- WRAPPER FOR LAZY LOADING -->
         <div class="artist-img-wrapper" data-artist-id="{{ item.artistId }}">
             {% if item.image %}
-            <img src="{{ item.image }}">
+            <img src="{{ item.image }}" alt="{{ item.artistName }} artist image">
             {% else %}
             <div class="artist-placeholder"
                 style="background-color: hsl({{ (item.artistName|length * 50) % 360 }}, 60%, 40%);">
@@ -68,10 +68,10 @@
     </a>
     {% elif type == 'albums' %}
     <a href="/album/{{ item.collectionId }}" class="card" onclick="void(0)">
-        <div class="btn-like"
+        <div class="btn-like" role="button" tabindex="0" aria-label="Add to favorites"
             onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">
             ♥</div>
-        <img data-src="{{ item.artworkUrl100 }}" class="lazy">
+        <img data-src="{{ item.artworkUrl100 }}" alt="{{ item.collectionName }} by {{ item.artistName }} album artwork" class="lazy">
         <div class="info" style="text-align: center;">
             <div class="title">{{ item.collectionName }}</div>
             <div class="sub">

@@ -4,12 +4,12 @@
     <span class="btn-see-all" onclick="sharePage()" style="margin-left: 20px; cursor: pointer;">🔗 Share</span>
 </div>
 <div class="artist-hero hero-center">
-    {% if artist_image %}<img src="{{ artist_image }}" class="hero-center-img round">{%
+    {% if artist_image %}<img src="{{ artist_image }}" alt="{{ artist.artistName }} artist image" class="hero-center-img round">{%
     endif %}
 
     <div class="hero-title-row">
         <h1 class="hero-title-text">{{ artist.artistName }}</h1>
-        <div class="btn-like hero-like"
+        <div class="btn-like hero-like" role="button" tabindex="0" aria-label="Add to favorites"
             onclick="toggleLike(this, 'artist', '{{ artist.artistId }}', '{{ artist.artistName|replace('\'', '\\\'') }}', '{{ artist_image or '' }}', '{{ artist.primaryGenreName }}', '')">
             ♥
         </div>
@@ -49,20 +49,20 @@
 </div>
 <div class="song-list" style="margin-bottom: 30px;">
     {% for song in top_songs[:6] %}
-    <div class="song-row" style="display: flex; align-items: center;"
+    <div class="song-row" role="button" tabindex="0" style="display: flex; align-items: center;"
         onclick="openMusicModal('{{ song.spotify_link }}', '{{ song.collectionId }}', '{{ song.trackId }}', '{{ song.youtube_link }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}')">
-        <img src="{{ song.artworkUrl100 }}" class="song-img">
+        <img src="{{ song.artworkUrl100 }}" alt="{{ song.trackName }} by {{ song.artistName }} artwork" class="song-img">
         <div class="song-info">
             <div class="song-title">{{ song.trackName }}</div>
             <div class="song-artist" style="opacity: 0.7;">{{ song.collectionName }}</div>
         </div>
         <!-- Like -->
         <div class="song-actions" style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
-            <div class="btn-playlist btn-icon" style="cursor: pointer; font-size: 20px;"
+            <div class="btn-playlist btn-icon" role="button" tabindex="0" aria-label="Add to playlist" style="cursor: pointer; font-size: 20px;"
                 onclick="showPlaylistPicker(this, '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}')">
                 ＋
             </div>
-            <div class="btn-like song-like" style="position: static; opacity: 1; transform: scale(1);"
+            <div class="btn-like song-like" role="button" tabindex="0" aria-label="Add to favorites" style="position: static; opacity: 1; transform: scale(1);"
                 onclick="toggleLike(this, 'song', '{{ song.trackId }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.spotify_link }}')">
                 ♥</div>
         </div>
@@ -106,10 +106,10 @@
 <div class="grid">
     {% for item in items[:6] %}
     <a href="/album/{{ item.collectionId }}" class="card" onclick="void(0)">
-        <div class="btn-like"
+        <div class="btn-like" role="button" tabindex="0" aria-label="Add to favorites"
             onclick="toggleLike(this, 'album', '{{ item.collectionId }}', '{{ item.collectionName|replace('\'', '\\\'') }}', '{{ item.artworkUrl100 }}', '{{ item.artistName|replace('\'', '\\\'') }}', '')">
             ♥</div>
-        <img src="{{ item.artworkUrl100 }}">
+        <img src="{{ item.artworkUrl100 }}" alt="{{ item.collectionName }} by {{ item.artistName }} album artwork">
         <div class="info" style="text-align: center;">
             <div class="title">{{ item.collectionName }}</div>
             <div class="sub">{{ item.releaseDate[:4] }}</div>

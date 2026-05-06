@@ -17,7 +17,7 @@
                 {% if item.image_url not in ns.found and ns.found|length < 4 %} {% set ns.found=ns.found +
                     [item.image_url] %} {% endif %} {% endfor %} <div class="art-collage">
                     {% for img in ns.found %}
-                    <img src="{{ img }}" loading="lazy">
+                    <img src="{{ img }}" alt="Playlist cover image" loading="lazy">
                     {% endfor %}
             </div>
             {% else %}

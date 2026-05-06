@@ -32,10 +32,10 @@
 - ✅ Add unit tests for `/see-all/...`, `/artist/<id>/discography/...`, `artist_page`, `album_page`.
 - ✅ Add template rendering tests to ensure `See All` buttons and section limits appear correctly.
 
-## 6. Accessibility
-- Add `alt` attributes to all images.
-- Add `aria-label` for buttons like like/favorite, playlist add, and "See All".
-- Ensure keyboard navigation works across cards, modals, and buttons.
+## 6. Accessibility ✅
+- ✅ Add `alt` attributes to all images.
+- ✅ Add `aria-label` for buttons like like/favorite, playlist add, and "See All".
+- ✅ Ensure keyboard navigation works across cards, modals, and buttons.
 
 ## 7. Miscellaneous
 - ✅ Keep visible UI text in English if the site is English-only.

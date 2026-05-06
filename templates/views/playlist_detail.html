@@ -7,7 +7,7 @@
             {% if item.image_url not in ns.found and ns.found|length < 4 %} {% set ns.found=ns.found + [item.image_url]
                 %} {% endif %} {% endfor %} <div class="art-collage">
                 {% for img in ns.found %}
-                <img src="{{ img|replace('100x100bb', '600x600bb') }}" loading="lazy"
+                <img src="{{ img|replace('100x100bb', '600x600bb') }}" alt="Playlist cover image" loading="lazy"
                     onload="if({{ 'true' if loop.first else 'false' }}) applyDynamicColors(this.src)">
                 {% endfor %}
         </div>

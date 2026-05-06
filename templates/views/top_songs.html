@@ -19,7 +19,7 @@
     {% for song in results %}
     <div class="song-row" style="display: flex; align-items: center;"
         onclick="openMusicModal('{{ song.spotify_link }}', '{{ song.collectionId }}', '{{ song.trackId }}', '{{ song.youtube_link }}', '{{ song.trackName|replace('\'', '\\\'') }}', '{{ song.artistName|replace('\'', '\\\'') }}', '{{ song.artworkUrl100 }}')">
-        <img src="{{ song.artworkUrl100 }}" class="song-img">
+        <img src="{{ song.artworkUrl100 }}" alt="{{ song.trackName }} by {{ song.artistName }} song artwork" class="song-img">
         <div class="song-info">
             <div class="song-title">{{ song.trackName }}</div>
             <div class="song-artist" style="opacity: 0.7;">{{ song.collectionName }}</div>
