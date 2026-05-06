@@ -152,8 +152,8 @@ class TestArtistRoutes(unittest.TestCase):
         """Test that artist page shows max 6 albums per category."""
         response = self.client.get('/artist/909253')
         self.assertEqual(response.status_code, 200)
-        # Response should render without 500 error
-        self.assertNotIn(b'500', response.data)
+        # Response should render without internal error
+        self.assertNotIn(b'Traceback', response.data)
     
     def test_artist_discography_albums(self):
         """Test /artist/<id>/discography/albums route."""
